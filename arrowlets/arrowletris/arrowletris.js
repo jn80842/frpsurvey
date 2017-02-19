@@ -1,30 +1,17 @@
-function updateTargetText(target,updateFunction) {
+function updateText(target,text) {
   return function() {
-    text = target.innerHTML;
-    target.innerHTML = updateFunction(text);
+    target.innerHTML = text;
   }
 }
-
-function startGameText() {
-  return "Pause";
-}
-
-// function switchButtonState(text) {
-//   if (text == "New Game") {
-//     return "Pause";
-//   } else if (text == "Pause") {
-//     return "Resume";
-//   } else if (text == "Resume") {
-//     return "Pause";
-//   } else {
-//     return "should never happen";
-//   }
-// }
 
 var gameButtonElt = document.getElementById("fjt-button")
 var gameButton = ElementA(gameButtonElt);
 
-//var pauseClick = EventA("click").next();
+// unlike the other two, the switching behavior is encoded as arrowlets
+var pauseClick = gameButton.next(EventA("click").next(updateText(gameButtonElt,"Pause")));
+var resumeClick = gameButton.next(EventA("click").next(updateText(gameButtonElt,"Resume")));
 
+var gameLoop = resumeClick.next(pauseClick).next(Repeat);
 
-(gameButton.next(EventA("click")).next(updateTargetText(gameButtonElt,startGameText))).run();
+// note that the initial state is from the state of the HTML at load
+gameLoop.repeat().run();

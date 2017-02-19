@@ -3,6 +3,7 @@ function updateTargetText(target,updateFunction) {
   target.innerHTML = updateFunction(text);
 }
 
+// need to look at what text was previously to get current state & condition on it
 function switchButtonState(text) {
   if (text == "New Game") {
     return "Pause";
@@ -15,7 +16,8 @@ function switchButtonState(text) {
   }
 }
 
-// had to supply the id of the button twice
+
 // initial state of the button is from the HTML
-var buttonClickE = clicksE("fjt-button")
-.mapE(function() { updateTargetText(document.getElementById("fjt-button"),switchButtonState) });
+var gameButtonElt = document.getElementById("fjt-button")
+var buttonClickE = clicksE(gameButtonElt)
+.mapE(function() { updateTargetText(gameButtonElt,switchButtonState) });
