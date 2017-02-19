@@ -1,23 +1,27 @@
 <html>
 <head>
-<title>Buttons (Increment/Decrement</title>
+<title>Buttons (Increment/Decrement)</title>
 <link rel="stylesheet" type="text/css" href="flapjaxtris.css" />
 <script type="text/javascript" src="flapjax-2.1.js"></script>
 <script type="text/javascript">
 
-function loader() {
-    var decClicks = clicksE('decrementButton');
-    var incClicks = clicksE('incrementButton');
-    // insertValueE(clicks.constantE(42).mapE(function(v) {
-    //     console.log(v);
-    // });
-    //insertDomB(decClicks.constantE(42).mergeE(incClicks.constantE(0)),'state');
-    //insertDomB(decClicks.constantE(42),'state')
-    //insertValueE(clicks.constantE(42),'state','value')
+function constructGraph() {
+    var decClicks = clicksE('decrementButton').constantE('-');
+    var incClicks = clicksE('incrementButton').constantE('+');
+    var quantityE = mergeE(decClicks,incClicks).collectE(0,function(a,b) {
+        if (a == '-') {
+            return b - 1;
+        } else if (a == '+') {
+            return b + 1;
+        }
+    });
+    var countStateB = startsWith(quantityE,-1);
+    insertDomB(countStateB,'state');
+
 }
 </script>
 </head>
-<body onload="loader()">
+<body onload="constructGraph()">
 <div>
     <button id="decrementButton">-</button>
     <div ><p id="state">0</p></div>

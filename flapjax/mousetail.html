@@ -1,0 +1,42 @@
+<html>
+<head>
+<title>Flapjax Demo: Follow the Mouse with a tail</title>
+<!--   http://www.flapjax-lang.org/try/index.html?edit=mouse2.html  -->
+<script type="text/javascript">
+
+function loader() {
+
+  var leftB = mouseLeftB(document);
+  var topB  = mouseTopB(document);
+
+  insertDomB( 
+    DIV({ id: 'themouse',
+          className: 'contrastBlock',
+          style: { position: 'absolute', left: leftB, top: topB } },
+        'the mouse!'),
+        'body',
+        'beginning');
+
+  var mouseOffset = $('themouse').offsetWidth;
+  var delayedLeft = 
+  //  liftB(function (pos) { return pos + mouseOffset; },leftB.delayB(300));
+    leftB.delayB(300).liftB(function(p) {return p + mouseOffset});
+  var delayedTop  = topB.delayB(300);
+
+  insertDomB(
+    DIV({ id: 'tail',
+          className: 'contrastBlock',
+          style: { color: '#FF0000',position: 'absolute',left: delayedLeft,
+                   top: delayedTop } },
+        'its tail!'),
+    'body',
+    'end');
+}
+
+</script>
+</head>
+
+<body id="body" onload="loader()">
+</body>
+
+</html>

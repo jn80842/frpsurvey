@@ -1,0 +1,28 @@
+<html>
+<head>
+<title>RxJS Buttons (Inc/Dec)</title>
+
+<script type="text/javascript" src="./RxJS/dist/rx.all.js"></script>
+</head>
+<body>
+<div>
+    <button id="decrementButton">-</button>
+    <div ><p id="state"></p></div>
+    <button id="incrementButton">+</button>
+</div>
+<script>
+var inc = a => a + 1;
+var dec = a => a - 1;
+
+var decStream = Rx.Observable.fromEvent(document.querySelector('#decrementButton'),'click')
+    .map(_ => dec);
+var incStream = Rx.Observable.fromEvent(document.querySelector('#incrementButton'),'click')
+    .map(_ => inc);
+decStream.merge(incStream)
+    .scan((x,lambda) => lambda(x),0)
+    .startWith(0) // 0 still appears in 2 places, but now it's moved out of HTML
+    .subscribe(count => document.querySelector('#state').innerHTML = count);
+</script>
+
+</body>
+</html>

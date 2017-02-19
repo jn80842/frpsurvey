@@ -1,0 +1,47 @@
+<html>
+<head>
+<title>Arrowlet Buttons (Inc/Dec)</title>
+
+<script type="text/javascript" src="arrowlets-alpha-20081103.js"></script></head>
+<body>
+<div>
+<div id="heads"></div>
+<div id="tails"></div>
+    <button id="decrementButton">-</button>
+    <div ><p id="state">!</p></div>
+    <button id="incrementButton">+</button>
+</div>
+<script>
+
+var count = 0;
+
+function incCount(evt) {
+    count += 1;
+    return count;
+}
+function decCount(evt) {
+    count -= 1;
+    return count;
+}
+
+function updateState(n) {
+    document.getElementById("state").innerHTML = count.toString();
+}
+
+updateState(count);
+
+
+var incButton = ElementA("incrementButton");
+var decButton = ElementA("decrementButton");
+
+var incA = (incButton.next(EventA("click").next(incCount)));
+var decA = (decButton.next(EventA("click").next(decCount)));
+
+((incA.or(decA)).next(updateState).next(Repeat)).repeat().run();
+
+// (incButton.next(EventA("click")).next(incCount).next(updateState).next(Repeat)).repeat().run();
+// (decButton.next(EventA("click")).next(decCount).next(updateState).next(Repeat)).repeat().run();
+
+</script>
+</body>
+</html>

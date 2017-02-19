@@ -1,0 +1,32 @@
+<html>
+<head>
+<title>Mousetail: Arrowlets</title>
+<!-- cf http://www.cs.umd.edu/projects/PL/arrowlets/example-time-flies-like-an-arrowlet.xhtml -->
+<link rel="stylesheet" href="../rx/mousetail/followthemouse.css">
+<script type="text/javascript" src="arrowlets-alpha-20081103.js"></script>
+
+</head>
+
+<body id="body">
+    <div id="themouse" class="contrastBlock" style="position: absolute;">the mouse!</div>
+    <div id="thetail" class="contrastBlock" style="position: absolute; color: #FF0000;">its tail!</div>
+  <!--   <div id="wagging" class="contrastBlock" style="position: absolute; color: #FFFF00;">is happy!</div> -->
+</body>
+<script type="text/javascript">
+
+function movingTarget(target,offset) {
+  return function(evt) {
+    target.style.left = evt.clientX + offset;
+    target.style.top = evt.clientY;
+  }
+}
+
+var theMouse = document.getElementById("themouse");
+var theTail = document.getElementById("thetail");
+
+(ElementA(document).next(EventA("mousemove")).next(movingTarget(theMouse,0)).next(Repeat)).repeat().run();
+(ElementA(document).next(EventA("mousemove")).next(DelayA(300)).next(movingTarget(theTail,theMouse.offsetWidth)).next(Repeat)).animate().run();
+
+
+</script>
+</html>
