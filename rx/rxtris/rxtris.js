@@ -3,6 +3,7 @@ function updateTargetText(target,updateFunction) {
   target.innerHTML = updateFunction(text);
 }
 // need to look at what text was previously to get current state & condition on it
+// we could also do this with a generator, which would hold state for us
 function switchButtonState(text) {
   if (text == "New Game") {
     return "Pause";
