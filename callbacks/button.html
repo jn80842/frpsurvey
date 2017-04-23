@@ -1,0 +1,33 @@
+<html>
+<head>
+<title>Buttons (Increment/Decrement)</title>
+
+<script type="text/javascript" src="jquery-3.1.1.min.js"></script>
+
+</head>
+<body>
+<div>
+    <button id="decrementButton">-</button>
+    <div ><p id="state">0</p></div>
+    <button id="incrementButton">+</button>
+</div>
+<script type="text/javascript">
+$(window).ready(function() {
+    console.log("called the loading function");
+    var counter = 0;
+
+    $("#decrementButton").click(function() {
+        console.log("clicked decrement button!");
+        counter -= 1;
+        $("#state").text(counter);
+    });
+    $("#incrementButton").click(function() {
+        console.log("clicked increment button!");
+        counter += 1;
+        $("#state").text(counter);
+    }); 
+});
+
+</script>
+</body>
+</html>

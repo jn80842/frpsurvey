@@ -21,3 +21,5 @@ function switchButtonState(text) {
 var gameButtonElt = document.getElementById("fjt-button")
 var buttonClickE = clicksE(gameButtonElt)
 .mapE(function() { updateTargetText(gameButtonElt,switchButtonState) });
+
+

@@ -125,3 +125,20 @@
     padding : 0;
     width : 60px;
 }
+
+#outer-next {
+    margin-top: 10px;
+    position: relative;
+}
+
+#inner-next {
+    padding: 0px;
+    margin: 0px;
+    overflow: hidden;
+    position: relative;
+}
+
+#next-tetrimino {
+    display: block;
+    position: absolute;
+}
