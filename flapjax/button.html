@@ -15,7 +15,7 @@ function constructGraph() {
             return b + 1;
         }
     });
-    var countStateB = startsWith(quantityE,-1);
+    var countStateB = startsWith(quantityE,0);
     insertDomB(countStateB,'state');
 
 }
@@ -24,7 +24,7 @@ function constructGraph() {
 <body onload="constructGraph()">
 <div>
     <button id="decrementButton">-</button>
-    <div ><p id="state">0</p></div>
+    <div ><p id="state"></p></div>
     <button id="incrementButton">+</button>
 </div>
 </body>
