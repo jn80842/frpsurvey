@@ -1,0 +1,39 @@
+<html>
+<head>
+<title>Autosave</title>
+<link rel="stylesheet" type="text/css" href="flapjaxtris.css" />
+<script type="text/javascript" src="flapjax-2.1.js"></script>
+<script type="text/javascript">
+
+function constructGraph() {
+    
+  var saveClickE = clicksE('saveButton');
+
+  var savedTimeE = saveClickE.mapE(function (_) {
+    var date = new Date();
+    return date.toLocaleString();});
+
+  var draftTextE = saveClickE.snapshotE($B('theText'));
+ 
+  insertDomB(SPAN({ className: "block" }, draftTextE.startsWith("")),
+             "curDraft");
+  insertDomB(SPAN(savedTimeE.startsWith("")),
+             "savedTime");
+}
+
+</script>
+</head>
+<body onload="constructGraph()">
+<p>Click 'Save Now' to save the draft.  The draft is stored locally, and is not sent to the server.
+Last Saved: <span id='savedTime'></span>
+</p>
+
+<form>
+<textarea id='theText'></textarea> <br>
+<input type='button' id='saveButton' value='Save Now'>
+</form>
+    
+<p>The currently saved draft is:</p>
+<div><span class="block" id='curDraft'></span></div>
+</body>
+</html>

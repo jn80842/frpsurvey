@@ -1,0 +1,127 @@
+#main-div {
+    padding : 30px 0;
+}
+
+#inner-div {
+    height : 680px;
+    margin : auto;
+    position : relative;
+    width : 480px;
+}
+
+#panel {
+    bottom : 80px;
+    color : #34495f;
+    font-family : Helvetica, Arial, sans-serif;
+    font-size : 14px;
+    left : 300px;
+    padding : 0 30px;
+    position : absolute;
+    right : 0;
+    top : 0;
+}
+
+#info {
+    background: rgba(236, 240, 241, 0.85);
+    color : #34495f;
+    font-family : Helvetica,Arial,sans-serif;
+    font-size : 18px;
+    height : 600px;
+    left : 0;
+    line-height: 1.5;
+    padding : 0 15px;
+    position: absolute;
+    top : 0;
+    width : 270px;
+    display : block;
+}
+
+#controls {
+    height : 80px;
+    left : 0;
+    position : absolute;
+    top : 600px;
+}
+
+#title {
+    color : ##34495f;
+    font-size : 40px;
+    line-height : 60px;
+    margin : 30px 0 0;
+}
+
+#shape-panel {
+    margin-top : 10px;
+    position : relative;
+}
+
+#renderWell {
+    padding : 0px;
+    margin : 0px;
+    overflow: hidden;
+    position: relative;
+    width: 300px;
+    height: 600px;
+}
+
+#renderCanvas {
+    padding: 0px;
+    margin: 0px;
+    width: 300px;
+    height: 600px;
+    display: block;
+    position: absolute;
+}
+
+.label {
+    color : #bdc3c7;
+    font-weight : 300;
+    line-height : 1;
+    margin : 30px 0 0;
+}
+
+.count {
+    color : #3993d0;
+    font-size : 30px;
+    line-height : 1;
+    margin : 5px 0 0;
+}
+
+#fjt-button {
+    background : #34495f;
+    border : 0;
+    bottom : 30px;
+    color : #fff;
+    cursor : pointer;
+    display : block;
+    font-family : Helvetica, Arial, sans-serif;
+    font-size : 18px;
+    font-weight : 300;
+    height : 60px;
+    left : 30px;
+    line-height : 60px;
+    outline : none;
+    padding : 0px;
+    position : absolute;
+    width : 120px;
+}
+
+.control-button {
+    background : #ecf0f1;
+    border : 0;
+    color : #34495f;
+    cursor : pointer;
+    text-align : center;
+    -webkit-user-select : none;
+    display : block;
+    float : left;
+    font-family : Helvetica, Arial, sans-serif;
+    font-size : 24px;
+    font-weight : 300;
+    height : 60px;
+    line-height : 60px;
+    margin : 20px 20px 0 0;
+    outline : none;
+    padding : 0;
+    width : 60px;
+}
