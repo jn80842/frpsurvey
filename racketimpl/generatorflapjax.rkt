@@ -214,6 +214,9 @@
                    (yield 'no-evt)
                    (yield g))
                (loop (gen)))))
+
+;;;;;; Web example ;;;;;;;;;
+
 (define inc-button (get-event-stream (sequence->generator (list 'click 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'click))))
 (define dec-button (get-event-stream (sequence->generator (list 'no-evt 'no-evt 'click 'click 'no-evt 'no-evt 'no-evt))))
 
@@ -224,19 +227,7 @@
 (define inc-dec-buttons-gen (startsWith collected-buttons-gen 0))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+;;;;;;; IoT example ;;;;;;;
 
 (define clock-times (get-event-stream (sequence->generator (list 2000 2030 2100 2101 2102 2103 2104 2105 2106 905 906 907 908 909 910 911 912))))
 (define user-location (get-event-stream (sequence->generator (list "work" "car" "home" "home" "home" "home" "home" "home" "home" "home" "home" "home" "home"))))
