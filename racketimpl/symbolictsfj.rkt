@@ -7,26 +7,29 @@
 ;; behaviors consist of timestamp/value pairs when some value *changes* (if no entry, behavior holds its previous value)
 
 (define (clicksE concrete-list)
- ; (λ ()
+ (λ ()
     (map (λ (c)
          (define-symbolic* timestamp integer?)
-         (list timestamp 'click)) concrete-list)) ;)
+         (list timestamp 'click)) concrete-list)))
+;(define (s-click)
+;  (define-symbolic* isclick boolean?)
+;  (if isclick 'click (void)))
 
 
 
 (define (inc-dec-button-graph inc dec)
-  (startsWith (collectE (mergeE (constantE inc 1) (constantE dec -1)) 0 +) (λ () (list (list 0 0)))))
+  (startsWith
+  (collectE
+               (mergeE (constantE inc 1) (constantE dec -1)) 0 +)  (λ () (list (list 0 70)))))
 
 (define concrete-inc-clicks (λ () (list (list 1 'click) (list 4 'click))))
 (define concrete-dec-clicks (λ () (list (list 2 'click) (list 3 'click) (list 5 'click))))
 
 (displayln ((inc-dec-button-graph concrete-inc-clicks concrete-dec-clicks)))
 
-(define s-inc (clicksE (list 1 2 3)))
-(define s-dec (clicksE (list 1 2 3)))
+(define s-inc (clicksE (list )))
+(define s-dec (clicksE (list )))
 
-;(displayln ((inc-dec-button-graph s-inc s-dec)))
-;(define sol (solve (assert (equal? (last (graph inc-clicks dec-clicks)) -1))))
 (define button-sol (solve
                     (begin
                       (assert (equal? (second (last ((inc-dec-button-graph (λ () s-inc) (λ () s-dec))))) 0))
@@ -60,7 +63,7 @@
 (define mouse-x (integer-events-for-timestamps mouse-timestamps))
 (define mouse-y (integer-events-for-timestamps mouse-timestamps))
 
-(displayln (mouse-tail-graph mouse-x mouse-y))
+;(displayln (mouse-tail-graph mouse-x mouse-y))
 
 ;;(define (unique-timestamps timestamps)
 ;;  (for-each ([ts timestamps])
@@ -81,17 +84,18 @@
                                                               (- (vector-ref mm 1) 1)))
                              (λ () (filter (λ (mm) (> (first mm) 3)) (mouse-movements)))))
 
-(define dropEe (mapE (λ (e) (zeroE e)) drag-mouse-up))
+(define dropEe (mapE (λ (e) (list (first e) (zeroE e))) drag-mouse-up))
 (define moveEe (mapE (λ (e) (define startX (vector-ref (second e) 0))
                        (define startY (vector-ref (second e) 1))
+                       (list (first e)
                        (mapE (λ (mm) (list (first mm)
                                (vector (- (vector-ref (second mm) 0) startX)
                                        (- (vector-ref (second mm) 1) startY))))
-                             (λ () (filter (λ (mm) (> (first mm) (first e)))
-                                           (startsWith mouse-movements (mapE (λ (e) (list (first e) #f)) drag-mouse-up))))))
+                             (startAtTimestamp (first e) (startsWith mouse-movements
+                                                                     (mapE (λ (e) (list (first e) #f)) drag-mouse-up))))))
                        drag-mouse-down))
 
-(define dragE (switchE (mergeE dropEe moveEe)))
+;(define dragE (switchE (mergeE dropEe moveEe)))
 
 
 

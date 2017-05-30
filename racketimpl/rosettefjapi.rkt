@@ -1,12 +1,21 @@
 #lang rosette/safe
 (provide (all-defined-out))
 
+;;;;; helpers ;;;;;
 (define ts-comparator (λ (x y) (< (first x) (first y))))
+(define (startAtTimestamp ts evt-stream-f)
+  (λ ()
+    (let ([evt-stream (evt-stream-f)])
+      (unless (empty? evt-stream)
+      (filter (λ (e) (> (first e) ts)) evt-stream)))))
+
+;;;;; flapjax API ;;;;;
 
 (define (oneE evt-stream-f)
   (λ ()
     (let ([evt-stream (evt-stream-f)])
-      (list (first evt-stream))))) ;; propagate only the first event
+      (unless (empty? evt-stream)
+      (list (first evt-stream)))))) ;; propagate only the first event
 
 (define (zeroE evt-stream-f)
   (λ ()
@@ -26,7 +35,8 @@
 
 (define (switchE stream-of-streams-f)
   (λ ()
-    (let ([stream-of-streams (map (λ (f) (apply f '())) stream-of-streams-f)])
+    (let ([stream-of-streams (map (λ (f) (apply (second f) '()))
+                                  stream-of-streams-f)])
       (sort (flatten stream-of-streams) (λ (x y) (< (first x) (first y)))))))
 
 ;; condE
@@ -88,15 +98,10 @@
                                  (append (list current) (calm (cdr evt-lst)))))))]) ;; propagate the first one
     (calm evt-stream)))))
 
-#;(define (startsWith evt-stream-f init) ;; adds special timestep 0
+(define (startsWith evt-stream-f init-value)
   (λ ()
-    (let ([evt-stream (evt-stream-f)])
-      (append (list (list 0 init)) evt-stream))))
+    (let* ([evt-stream (evt-stream-f)])
+      (append (list (list 0 init-value)) evt-stream))))
 
-(define (startsWith evt-stream-f init-evt-stream) ;; bit of a kludge, pretend init behavior val is basically event stream
-  (λ ()
-    (let* ([evt-stream (evt-stream-f)]
-          [init-stream (init-evt-stream)]
-          [end-init-ts (first (first evt-stream))])
-      (sort (append (filter (λ (e) (< (first e) end-init-ts)) init-stream) evt-stream) ts-comparator))))
+
 
