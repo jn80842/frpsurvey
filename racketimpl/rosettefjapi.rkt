@@ -1,6 +1,8 @@
 #lang rosette/safe
 (provide (all-defined-out))
 
+(define ts-comparator (λ (x y) (< (first x) (first y))))
+
 (define (oneE evt-stream-f)
   (λ ()
     (let ([evt-stream (evt-stream-f)])
@@ -8,12 +10,13 @@
 
 (define (zeroE evt-stream-f)
   (λ ()
-  (void))) ;; a stream that never fires
+    (let ([evt-stream (evt-stream-f)])
+  (map (λ (e) (list (first e) (void))) evt-stream)))) ;; a stream that never fires
 
-(define (mapE proc evt-stream-f)
+(define (mapE proc evt-stream-f) ;; proc operates over both timestamp and value (kind of a cheat)
   (λ ()
     (let ([evt-stream (evt-stream-f)])
-  (map (λ (e) (list (first e) (proc (second e)))) evt-stream))))
+  (map (λ (e) (proc e)) evt-stream))))
 
 (define (mergeE evt-stream1-f evt-stream2-f) ;; note: mergeE can actually take any num of args
   (λ ()
@@ -21,9 +24,10 @@
           [evt-stream2 (evt-stream2-f)])
       (sort (append evt-stream1 evt-stream2) (λ (x y) (< (first x) (first y)))))))
 
-(define (switchE stream-of-streams)
+(define (switchE stream-of-streams-f)
   (λ ()
-  (sort (flatten stream-of-streams) (λ (x y) (< (first x) (first y))))))
+    (let ([stream-of-streams (map (λ (f) (apply f '())) stream-of-streams-f)])
+      (sort (flatten stream-of-streams) (λ (x y) (< (first x) (first y)))))))
 
 ;; condE
 
@@ -84,8 +88,15 @@
                                  (append (list current) (calm (cdr evt-lst)))))))]) ;; propagate the first one
     (calm evt-stream)))))
 
-(define (startsWith evt-stream-f init) ;; adds special timestep 0
+#;(define (startsWith evt-stream-f init) ;; adds special timestep 0
   (λ ()
     (let ([evt-stream (evt-stream-f)])
       (append (list (list 0 init)) evt-stream))))
+
+(define (startsWith evt-stream-f init-evt-stream) ;; bit of a kludge, pretend init behavior val is basically event stream
+  (λ ()
+    (let* ([evt-stream (evt-stream-f)]
+          [init-stream (init-evt-stream)]
+          [end-init-ts (first (first evt-stream))])
+      (sort (append (filter (λ (e) (< (first e) end-init-ts)) init-stream) evt-stream) ts-comparator))))
 
