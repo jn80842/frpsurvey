@@ -6,13 +6,9 @@
 <script type="text/javascript">
 
 function constructGraph() {
-    var decClicks = clicksE('decrementButton').constantE('-');
-    var incClicks = clicksE('incrementButton').constantE('+');
-    var quantityE = mergeE(decClicks,incClicks).collectE(0,function(a,b) {
-        if (a == '-') {
-            return b - 1;
-        } else if (a == '+') {
-            return b + 1;
+    var decClicks = clicksE('decrementButton').constantE(1);
+    var incClicks = clicksE('incrementButton').constantE(-1);
+    var quantityE = mergeE(decClicks,incClicks).collectE(0,function(a,b) { return a + b; 
         }
     });
     var countStateB = startsWith(quantityE,0);
