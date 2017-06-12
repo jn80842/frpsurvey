@@ -9,6 +9,12 @@
       (unless (empty? evt-stream)
       (filter (λ (e) (> (first e) ts)) evt-stream)))))
 
+(define (get-timestamp item)
+  (first item))
+
+(define (get-value item)
+  (second item))
+
 ;;;;; flapjax API ;;;;;
 
 (define (oneE evt-stream-f)
@@ -48,7 +54,7 @@
 (define (constantE evt-stream-f const)
   (λ ()
     (let ([evt-stream (evt-stream-f)])
-      (map (λ (s) (list (first s) const)) evt-stream))))
+      (map (λ (s) (list (first s) (if (equal? 'no-evt (second s)) 'no-evt const))) evt-stream))))
 
 (define (collectE evt-stream-f init proc)
   (λ ()
@@ -56,8 +62,9 @@
       (letrec ([collect (λ (x-lst prev)
                           (if (equal? (length x-lst) 0)
                               '()
-                              (let ([new-ts (first (first x-lst))]
-                                    [new-val (proc (second (first x-lst)) prev)])
+                              (let* ([new-ts (first (first x-lst))]
+                                    [input-val (second (first x-lst))]
+                                    [new-val (if (equal? input-val 'no-evt) prev (proc (second (first x-lst)) prev))])
                                 (append (list (list new-ts new-val))
                                         (collect (cdr x-lst) new-val)))))])
         (collect evt-stream init)))))
