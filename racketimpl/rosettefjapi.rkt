@@ -21,12 +21,26 @@
        (andmap positive? (map get-timestamp input-stream))
        (timestamps-sorted? input-stream)))
 
+(define (assert-valid-input-timestamps? input-stream)
+  (begin (assert (apply distinct? (map get-timestamp input-stream)))
+         (assert (andmap integer? (map get-timestamp input-stream)))
+         (assert (andmap positive? (map get-timestamp input-stream)))
+         (assert (timestamps-sorted? input-stream))))
+
 (define (valid-output-timestamps? output-stream)
     (and (apply distinct? (map get-timestamp output-stream))
        (andmap integer? (map get-timestamp output-stream))
        ;; outputs can have 0 timestamp
        (andmap (λ (n) (not (negative? n))) (map get-timestamp output-stream))
        (timestamps-sorted? output-stream)))
+
+(define (assert-valid-output-timestamps? output-stream)
+  (begin (assert (apply distinct? (map get-timestamp output-stream)))
+         (assert (andmap integer? (map get-timestamp output-stream)))
+         ;; outputs can have 0 timestamp
+         (assert (andmap (λ (n) (not (negative? n))) (map get-timestamp output-stream)))
+         (assert (timestamps-sorted? output-stream))))
+
 
 (define (timestamps-sorted? stream)
   (equal? (map get-timestamp stream) (sort (map get-timestamp stream) <)))
