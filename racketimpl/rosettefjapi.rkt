@@ -41,7 +41,6 @@
          (assert (andmap (λ (n) (not (negative? n))) (map get-timestamp output-stream)))
          (assert (timestamps-sorted? output-stream))))
 
-
 (define (timestamps-sorted? stream)
   (equal? (map get-timestamp stream) (sort (map get-timestamp stream) <)))
 

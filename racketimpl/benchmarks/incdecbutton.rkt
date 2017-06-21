@@ -2,10 +2,9 @@
 
 (require "../rosettefjapi.rkt")
 
-;;(current-bitwidth 16)
+(current-bitwidth 5)
 
 (define (clicksE concrete-list)
- ;(λ ()
     (map (λ (c)
            
          (define-symbolic* timestamp integer?)
@@ -29,48 +28,39 @@
 (define s-inc (clicksE (list 1 2 3 4)))
 (define s-dec (clicksE (list 1 2 3 4)))
 
+(printf "current bitwidth: ~a~n" (current-bitwidth))
+(printf "length of increase clicks ~a~n" (length s-inc))
+(printf "length of decrease clicks ~a~n" (length s-dec))
+
 (define (concrete-eval inc dec)
   ((inc-dec-button-graph (λ () inc) (λ () dec))))
 
 (define (button-assumptions inc-stream dec-stream)
     (and (valid-input-timestamps? inc-stream)
          (valid-input-timestamps? dec-stream)
+         ;; TODO: figure out better solutions for simultaneous events
          (apply distinct? (map get-timestamp (append inc-stream dec-stream)))
-         (andmap (λ (e) (or (equal? 'no-evt (get-value e)) (equal? 'click (get-value e)))) (append inc-stream dec-stream))))
+         ))
 
 (define (button-guarantees output-stream)
     (and (valid-output-timestamps? output-stream)
+         ;; output should start with special timestamp 0
          (equal? (get-value (first output-stream)) 0)
+         ;; value at special timestamp 0 should also be 0
          (equal? (get-timestamp (first output-stream)) 0)
+         ;; values at each timestamp should be integers (i.e. should never be undefined)
          (andmap integer? (map get-value output-stream))
+         ;; last value is the difference between the number of increase clicks and the number of decrease clicks
          (equal? (get-value (last output-stream)) (- (length (filter (λ (e) (equal? 'click (get-value e))) s-inc))
                                                                                       (length (filter (λ (e) (equal? 'click (get-value e))) s-dec))))
          ))
-
+(define begin-time (current-seconds))
 (define verified (verify
-                  ;; assume that all inputs are valid
                   #:assume (assert (button-assumptions s-inc s-dec))
                   #:guarantee (assert (button-guarantees ((inc-dec-button-graph (λ () s-inc) (λ () s-dec)))))
                   ))
-
-#;(define verified2 (verify
-                   #:assume (begin ;;(assert
-                           ;; (assert (apply distinct? (map get-timestamp (append s-dec s-inc))))
-                           ;;(assert (apply distinct? (map get-timestamp s-inc)))
-                           ;;(assert (apply distinct? (map get-timestamp s-dec)))
-                           ;;   (assert (andmap (λ (e) (not (member (get-timestamp e) (map get-timestamp s-dec)))) s-inc))
-                            (assert (andmap positive? (map get-timestamp s-inc)))
-                            (assert (andmap positive? (map get-timestamp s-dec)))
-                          ;; (assert (equal? (map get-timestamp s-inc) (sort (map get-timestamp s-inc) <)))
-                          ;; (assert (equal? (map get-timestamp s-dec) (sort (map get-timestamp s-dec) <)))
-                                 ;;  (assert (apply distinct? (map get-timestamp s-dec))))
-                            )
-                   #:guarantee ;;(assert (or (equal? 1 (get-value (first ((small-graph (λ () s-inc) (λ () s-dec))))))
-                                 ;;      (equal? -1 (get-value (first ((small-graph (λ () s-inc) (λ () s-dec))))))))))
-                   (assert (equal? (get-value (first ((inc-dec-button-graph (λ () s-inc) (λ () s-dec))))) 0))))
-
-
-(define-symbolic x integer?)
-(define v (verify
-           #:assume (assert (equal? x 2))
-           #:guarantee (assert (equal? 0 (/ x 0)))))
+(define end-time (current-seconds))
+(printf "time to verify: ~a~n" (- end-time begin-time))
+(if (unsat? verified)
+    (displayln "Spec is verified.")
+    (displayln "Model that violates spec is found: increase stream ~a, decrease stream ~a~n" (evaluate s-inc verified) (evaluate s-dec verified)))
