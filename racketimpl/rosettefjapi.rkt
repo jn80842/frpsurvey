@@ -139,5 +139,66 @@
     (let* ([evt-stream (evt-stream-f)])
       (append (list (list 0 init-value)) evt-stream))))
 
+;; changes
 
+;;;; note for all behavior operators:                       ;;;;
+;;;; behaviors *always* have a value (can never be 'no-evt) ;;;;
+
+(struct behavior (init changes)
+  #:transparent)
+
+(define (project-values b ts)
+  (map (λ (t) (list t (valueNow b t))) ts))
+
+(define (get-missing-timestamps b1 b2)
+  (filter (λ (t) (not (member t (map get-timestamp (behavior-changes b1)))))
+          (map get-timestamp (behavior-changes b2))))
+
+(define (constantB const)
+  (behavior const '()))
+
+;; delayB
+
+;; valueNow
+
+(define (valueNow behavior1 ts) ;; altered a bit for our own use
+  (get-value (last (filter (λ (t) (<= (get-timestamp t) ts)) (behavior-changes behavior1)))))
+
+;; switchB
+
+(define (andB behavior1 behavior2)
+  ;(λ ()
+    (let* ([unique-ts (sort (remove-duplicates (append (map get-timestamp (behavior-changes behavior1))
+                                                       (map get-timestamp (behavior-changes behavior2)))) <)]
+           [enhanced-b1 (project-values behavior1 unique-ts)]
+           [enhanced-b2 (project-values behavior2 unique-ts)])
+      (behavior (and (behavior-init behavior1) (behavior-init behavior2))
+                (map (λ (x y) (list (get-timestamp x) (and (get-value x) (get-value y)))) enhanced-b1 enhanced-b2)))
+    )
+
+;; orB
+
+(define (notB behavior1)
+  (behavior (not (behavior-init behavior1)) (map (λ (b) (list (get-timestamp b) (not (get-value b)))) (behavior-changes behavior1))))
+
+(define (liftB proc behavior1) ;; note: procedure can technically take multiple behaviors as args
+  (behavior (proc (behavior-init behavior1)) (map (λ (b) (list (get-timestamp b) (proc (get-value b)))) (behavior-changes behavior1))))
+
+;; condB
+
+(define (ifB conditionB trueB falseB)
+  (let* ([unique-ts (sort (remove-duplicates (append (map get-timestamp (behavior-changes conditionB))
+                                                     (map get-timestamp (behavior-changes trueB))
+                                                     (map get-timestamp(behavior-changes falseB)))) <)]
+        [enhanced-condB (project-values conditionB unique-ts)]
+        [enhanced-trueB (project-values trueB unique-ts)]
+        [enhanced-falseB (project-values falseB unique-ts)])
+  (behavior (if (behavior-init conditionB) (behavior-init trueB) (behavior-init falseB))
+            (map (λ (c t f) (list (get-timestamp c) (if (get-value c) (get-value t) (get-value f)))) enhanced-condB enhanced-trueB enhanced-falseB))))
+
+;; timerB
+
+;; blindB
+
+;; calmB
 

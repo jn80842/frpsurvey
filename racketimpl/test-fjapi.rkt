@@ -50,3 +50,42 @@
 (test "startsWith" ((startsWith standard-evt-stream 10))
       (list (list 0 10) (list 1 11) (list 2 12) (list 3 13)))
 (test "startsWith on empty stream" ((startsWith empty-evt-stream 'zero)) (list (list 0 'zero)))
+
+;; behavior
+(test "behavior-init" (behavior-init (behavior 'a '())) 'a)
+(test "behavior-changes" (behavior-changes (behavior 'a '())) '())
+
+;; project-values
+(test "project-values" (project-values (behavior 'a (list (list 1 'a) (list 3 'b) (list 6 'c))) (list 1 2 4 7))
+      (list (list 1 'a) (list 2 'a) (list 4 'b) (list 7 'c)))
+
+;; valueNow
+(test "valueNow matching timestamp" (valueNow (behavior 3 (list (list 1 'a))) 1) 'a)
+(test "valueNow non-matching timestamp" (valueNow (behavior 3 (list (list 1 'a) (list 5 'b))) 3) 'a)
+
+;; constantB
+(test "constantB" (constantB 'a) (behavior 'a '()))
+
+;; andB
+(test "andB" (andB (behavior #t (list (list 1 #t) (list 5 #f) (list 7 #t)))
+                   (behavior #t (list (list 1 #t) (list 3 #t) (list 6 #t) (list 7 #f))))
+      (behavior #t (list (list 1 #t) (list 3 #t) (list 5 #f) (list 6 #f) (list 7 #f))))
+
+;; notB
+(test "notB" (notB (behavior #t (list (list 1 #f) (list 2 #t) (list 3 #f))))
+                   (behavior #f (list (list 1 #t) (list 2 #f) (list 3 #t))))
+
+;; liftB
+(test "liftB" (liftB (λ (v) (+ v 3)) (behavior 0 (list (list 1 2) (list 2 3) (list 5 4))))
+      (behavior 3 (list (list 1 5) (list 2 6) (list 5 7))))
+
+;; ifB
+(test "ifB matching timestamps" (ifB (behavior #t (list (list 1 #t) (list 3 #f) (list 5 #f) (list 7 #t)))
+                                     (behavior 't (list (list 1 't) (list 3 't) (list 5 't) (list 7 't)))
+                                     (behavior 'f (list (list 1 'f) (list 3 'f) (list 5 'f) (list 7 'f))))
+      (behavior 't (list (list 1 't) (list 3 'f) (list 5 'f) (list 7 't))))
+
+(test "ifB non matching timestamps" (ifB (behavior #t (list (list 1 #f) (list 5 #t) (list 9 #f)))
+                                         (behavior 't (list (list 1 '1) (list 3 '3) (list 5 '5) (list 11 '11)))
+                                         (behavior 'f (list (list 1 'no) (list 2 '2) (list 5 'no) (list 6 '6) (list 8 '8))))
+      (behavior 't (list (list 1 'no) (list 2 '2) (list 3 '2) (list 5 '5) (list 6 '5) (list 8 '5) (list 9 '8) (list 11 '8))))
