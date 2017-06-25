@@ -63,6 +63,23 @@
        (andmap positive? (map get-timestamp (behavior-changes b)))
        (timestamps-sorted? (behavior-changes b))))
 
+;;;;; inputs ;;;;;;;;;;
+(define (boolean-event-stream concrete-list)
+  (map (λ (c)
+         (define-symbolic* timestamp integer?)
+         (define-symbolic* value boolean?)
+         (list timestamp value)) concrete-list))
+
+(define (integer-event-stream concrete-list)
+  (map (λ (c)
+         (define-symbolic* timestamp integer?)
+         (define-symbolic* value integer?)
+         (list timestamp value)) concrete-list))
+
+(define (integer-behavior concrete-list)
+  (define-symbolic* init-val integer?)
+  (behavior init-val (integer-event-stream concrete-list)))
+
 ;;;;; flapjax API ;;;;;
 
 (define (oneE evt-stream-f)

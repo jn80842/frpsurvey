@@ -4,12 +4,6 @@
 
 (current-bitwidth 4)
 
-(define (get-inputs concrete-list)
-  (map (λ (c)
-         (define-symbolic* timestamp integer?)
-         (define-symbolic* value integer?)
-         (list timestamp value)) concrete-list))
-
 (define time-delay 3)
 (define x-offset 5)
 
@@ -31,8 +25,8 @@
   (let ([output (mouse-tail-y-graph (λ () y-input))])
     (output)))
 
-(define mouse-x (get-inputs (list 1 2)))
-(define mouse-y (get-inputs (list 1 2)))
+(define mouse-x (integer-event-stream (list 1 2)))
+(define mouse-y (integer-event-stream (list 1 2)))
 
 (printf "current bitwidth ~a~n" (current-bitwidth))
 (printf "length of mouse-x ~a~n" (length mouse-x))
