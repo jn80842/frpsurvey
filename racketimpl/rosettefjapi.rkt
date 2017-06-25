@@ -44,6 +44,25 @@
 (define (timestamps-sorted? stream)
   (equal? (map get-timestamp stream) (sort (map get-timestamp stream) <)))
 
+;;;; note for all behavior operators:                       ;;;;
+;;;; behaviors *always* have a value (can never be 'no-evt) ;;;;
+
+(struct behavior (init changes)
+  #:transparent)
+
+(define (project-values b ts)
+  (map (λ (t) (list t (valueNow b t))) ts))
+
+(define (get-missing-timestamps b1 b2)
+  (filter (λ (t) (not (member t (map get-timestamp (behavior-changes b1)))))
+          (map get-timestamp (behavior-changes b2))))
+
+(define (valid-behavior? b)
+  (and (behavior? b)
+       (apply distinct? (map get-timestamp (behavior-changes b)))
+       (andmap positive? (map get-timestamp (behavior-changes b)))
+       (timestamps-sorted? (behavior-changes b))))
+
 ;;;;; flapjax API ;;;;;
 
 (define (oneE evt-stream-f)
@@ -141,18 +160,7 @@
 
 ;; changes
 
-;;;; note for all behavior operators:                       ;;;;
-;;;; behaviors *always* have a value (can never be 'no-evt) ;;;;
 
-(struct behavior (init changes)
-  #:transparent)
-
-(define (project-values b ts)
-  (map (λ (t) (list t (valueNow b t))) ts))
-
-(define (get-missing-timestamps b1 b2)
-  (filter (λ (t) (not (member t (map get-timestamp (behavior-changes b1)))))
-          (map get-timestamp (behavior-changes b2))))
 
 (define (constantB const)
   (behavior const '()))
@@ -162,7 +170,10 @@
 ;; valueNow
 
 (define (valueNow behavior1 ts) ;; altered a bit for our own use
-  (get-value (last (filter (λ (t) (<= (get-timestamp t) ts)) (behavior-changes behavior1)))))
+  (let ([filtered-changes (filter (λ (t) (<= (get-timestamp t) ts)) (behavior-changes behavior1))])
+    (if (empty? filtered-changes)
+        (behavior-init behavior1)
+        (get-value (last filtered-changes)))))
 
 ;; switchB
 

@@ -62,6 +62,8 @@
 ;; valueNow
 (test "valueNow matching timestamp" (valueNow (behavior 3 (list (list 1 'a))) 1) 'a)
 (test "valueNow non-matching timestamp" (valueNow (behavior 3 (list (list 1 'a) (list 5 'b))) 3) 'a)
+(test "valueNow: behavior has no changes" (valueNow (behavior 3 '()) 10) 3)
+(test "valueNow: timestamp before any change" (valueNow (behavior 3 (list (list 10 5))) 6) 3)
 
 ;; constantB
 (test "constantB" (constantB 'a) (behavior 'a '()))
