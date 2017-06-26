@@ -46,10 +46,16 @@
 (test "collectE on stream with no-evts" ((collectE (λ () (list (list 1 11) (list 2 'no-evt) (list 3 10))) 0 (λ (old new) (+ old new))))
       (list (list 1 11) (list 2 11) (list 3 21)))
 
+;; snapshotE tests
+(test "snapshotE" ((snapshotE standard-evt-stream (behavior 1 '()))) (list (list 1 1) (list 2 1) (list 3 1)))
+(test "snapshotE with behavior changes" ((snapshotE  (λ () (list (list 1 #t) (list 4 #t) (list 9 #t))) (behavior 0 (list (list 1 1) (list 2 2) (list 8 8) (list 10 10)))))
+      (list (list 1 1) (list 4 2) (list 9 8)))
+(test "snapshotE with no-events" ((snapshotE stream-with-no-evts (behavior 1 '()))) (list (list 2 1) (list 5 1)))
+
 ;; startsWith tests
-(test "startsWith" ((startsWith standard-evt-stream 10))
-      (list (list 0 10) (list 1 11) (list 2 12) (list 3 13)))
-(test "startsWith on empty stream" ((startsWith empty-evt-stream 'zero)) (list (list 0 'zero)))
+(test "startsWith" (startsWith standard-evt-stream 10) (behavior 10 (list (list 1 11) (list 2 '12) (list 3 13))))
+     ; (list (list 0 10) (list 1 11) (list 2 12) (list 3 13)))
+(test "startsWith on empty stream" (startsWith empty-evt-stream 'zero) (behavior 'zero '())) ;;(list (list 0 'zero)))
 
 ;; behavior
 (test "behavior-init" (behavior-init (behavior 'a '())) 'a)

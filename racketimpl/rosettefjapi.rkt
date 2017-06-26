@@ -76,6 +76,10 @@
          (define-symbolic* value integer?)
          (list timestamp value)) concrete-list))
 
+(define (boolean-behavior concrete-list)
+  (define-symbolic* init-val boolean?)
+  (behavior init-val (boolean-event-stream concrete-list)))
+
 (define (integer-behavior concrete-list)
   (define-symbolic* init-val integer?)
   (behavior init-val (integer-event-stream concrete-list)))
@@ -144,7 +148,10 @@
 
 ;; send/receive
 
-;; snapshotE
+(define (snapshotE evt-stream-f behavior1)
+  (λ ()
+    (let ([real-evt-stream (filter (λ (e) (not (eq? (get-value e) 'no-evt))) (evt-stream-f))])
+      (map (λ (t) (list (get-timestamp t) (valueNow behavior1 (get-timestamp t)))) real-evt-stream))))
 
 ;; onceE
 
@@ -170,10 +177,13 @@
                                  (append (list current) (calm (cdr evt-lst)))))))]) ;; propagate the first one
     (calm evt-stream)))))
 
-(define (startsWith evt-stream-f init-value)
+#;(define (startsWith evt-stream-f init-value)
   (λ ()
     (let* ([evt-stream (evt-stream-f)])
       (append (list (list 0 init-value)) evt-stream))))
+
+(define (startsWith evt-stream-f init-value)
+  (behavior init-value (evt-stream-f)))
 
 ;; changes
 
