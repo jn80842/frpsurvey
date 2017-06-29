@@ -48,7 +48,8 @@
 ;;;; behaviors *always* have a value (can never be 'no-evt) ;;;;
 
 (struct behavior (init changes)
-  #:transparent)
+  #:transparent
+  )
 
 (define (project-values b ts)
   (map (λ (t) (list t (valueNow b t))) ts))
@@ -185,9 +186,9 @@
 (define (startsWith evt-stream-f init-value)
   (behavior init-value (evt-stream-f)))
 
-;; changes
-
-
+(define (changes behaviorB)
+  (λ ()
+    (behavior-changes behaviorB)))
 
 (define (constantB const)
   (behavior const '()))
@@ -203,6 +204,8 @@
         (get-value (last filtered-changes)))))
 
 ;; switchB
+;; switchBB takes a behavior of behaviors: (behavior behavior1 (list behavior2 behavior3 behavior4)))
+;; and returns a behavior: (behavior (behavior-init behavior1) (append (behavior-changes behavior1) (behavior-changes behavior2) ...)))
 
 (define (andB behavior1 behavior2)
   ;(λ ()
@@ -222,7 +225,22 @@
 (define (liftB proc behavior1) ;; note: procedure can technically take multiple behaviors as args
   (behavior (proc (behavior-init behavior1)) (map (λ (b) (list (get-timestamp b) (proc (get-value b)))) (behavior-changes behavior1))))
 
-;; condB
+(define (condB behaviorpairs)
+  (let* ([all-bool-ts (flatten (map (λ (b) (map get-timestamp (behavior-changes (first b)))) behaviorpairs))] ;; every timestamp mentioned in any boolean behavior
+         [all-val-ts (flatten (map (λ (b) (map get-timestamp (behavior-changes (second b)))) behaviorpairs))] ;; every timestamp mentioned in any value behavior
+         [unique-ts (sort (remove-duplicates (append all-bool-ts all-val-ts)) <)] ;; sorted list of all unique timestamps
+         [enhanced-behaviorpairs (map (λ (bp) (list (behavior (behavior-init (first bp)) (project-values (first bp) unique-ts)) ;; every behavior with every timestamp made explicit
+                                                    (behavior (behavior-init (second bp)) (project-values (second bp) unique-ts)))) behaviorpairs)]
+         [fused-pairs (map (λ (bp) (behavior (list (behavior-init (first bp)) (behavior-init (second bp)))
+                                             (map (λ (b1 b2) (list (get-timestamp b1) (list (get-value b1) (get-value b2))))
+                                                  (behavior-changes (first bp)) (behavior-changes (second bp))))) enhanced-behaviorpairs)]
+         [guarded-init (ormap (λ (b) (if (first (behavior-init b)) (behavior-init b) #f)) fused-pairs)]
+         [final-init (if (first guarded-init) (second guarded-init) #f)]
+         [final-changes (map (λ (tsitems) (list (get-timestamp (first tsitems))
+                                                (ormap (λ (item) (if (first (get-value item)) (get-value item) #f)) tsitems)))
+                             (apply (curry map list) (map behavior-changes fused-pairs)))]
+         )
+    (behavior final-init (map (λ (c) (if (get-value c) (list (get-timestamp c) (second (get-value c))) c)) final-changes))))
 
 (define (ifB conditionB trueB falseB)
   (let* ([unique-ts (sort (remove-duplicates (append (map get-timestamp (behavior-changes conditionB))

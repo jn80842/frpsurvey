@@ -57,6 +57,10 @@
      ; (list (list 0 10) (list 1 11) (list 2 12) (list 3 13)))
 (test "startsWith on empty stream" (startsWith empty-evt-stream 'zero) (behavior 'zero '())) ;;(list (list 0 'zero)))
 
+;; changes tests
+(test "changes" ((changes (behavior 0 (list (list 1 1) (list 2 2) (list 3 3))))) (list (list 1 1) (list 2 2) (list 3 3)))
+(test "changes with no events" ((changes (behavior 0 '()))) '())
+
 ;; behavior
 (test "behavior-init" (behavior-init (behavior 'a '())) 'a)
 (test "behavior-changes" (behavior-changes (behavior 'a '())) '())
@@ -86,6 +90,14 @@
 ;; liftB
 (test "liftB" (liftB (λ (v) (+ v 3)) (behavior 0 (list (list 1 2) (list 2 3) (list 5 4))))
       (behavior 3 (list (list 1 5) (list 2 6) (list 5 7))))
+
+;; condB
+(test "condB" (condB (list (list (behavior #t (list (list 1 #f))) (behavior 3 (list (list 1 3)))) (list (behavior #f (list (list 1 #t))) (behavior 5 (list (list 1 5))))))
+      (behavior 3 (list (list 1 5))))
+(test "condB returning #f" (condB (list
+                                   (list (behavior #t (list (list 1 #f))) (behavior #f (list (list 1 'a))))
+                                   (list (behavior #t (list (list 1 #t))) (behavior 'wrong (list (list 1 'b))))))
+      (behavior #f (list (list 1 'b))))
 
 ;; ifB
 (test "ifB matching timestamps" (ifB (behavior #t (list (list 1 #t) (list 3 #f) (list 5 #f) (list 7 #t)))
