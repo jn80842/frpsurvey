@@ -36,14 +36,14 @@
   (inc-dec-button-graph (λ () inc) (λ () dec)))
 
 (define (button-assumptions inc-stream dec-stream)
-    (and (valid-input-timestamps? inc-stream)
-         (valid-input-timestamps? dec-stream)
+    (and (valid-timestamps? inc-stream)
+         (valid-timestamps? dec-stream)
          ;; TODO: figure out better solutions for simultaneous events
          (apply distinct? (map get-timestamp (append inc-stream dec-stream)))
          ))
 
 #;(define (button-guarantees output-stream)
-    (and (valid-output-timestamps? output-stream)
+    (and (valid-timestamps? output-stream)
          ;; output should start with special timestamp 0
          (equal? (get-value (first output-stream)) 0)
          ;; value at special timestamp 0 should also be 0
@@ -68,7 +68,7 @@
                   #:guarantee (assert (button-guarantees (inc-dec-button-graph (λ () s-inc) (λ () s-dec))))
                   ))
 (define end-time (current-seconds))
-(printf "time to verify: ~a~n" (- end-time begin-time))
+(printf "time to verify: ~a seconds~n" (- end-time begin-time))
 (if (unsat? verified)
     (displayln "Spec is verified.")
     (displayln "Model that violates spec is found: increase stream ~a, decrease stream ~a~n" (evaluate s-inc verified) (evaluate s-dec verified)))

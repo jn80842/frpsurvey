@@ -34,13 +34,13 @@
 
 (define (assert-mousetail-x-assumptions mx)
   (begin
-    (assert-valid-input-timestamps? mx)
+    (assert (valid-timestamps? mx))
     ;; x mouse coordinates cannot be negative
     (assert (andmap (λ (n) (not (negative? n))) (map get-value mx)))))
 
 (define (assert-mousetail-y-assumptions my)
   (begin
-    (assert-valid-input-timestamps? my)
+    (assert (valid-timestamps? my))
     ;; y mouse coordinates cannot be negative
     (assert (andmap (λ (n) (not (negative? n))) (map get-value my)))))
 
@@ -62,7 +62,7 @@
 
 (define (assert-mousetail-y-guarantees my-in my-out)
   (begin
-    (assert-valid-output-timestamps? my-out)
+    (assert (valid-timestamps? my-out))
     ;; each timestamp is delayed by time-delay value
     (assert (andmap (λ (in out) (equal? (+ (get-timestamp in) time-delay) (get-timestamp out))) my-in my-out))
     ;; y coord for each timestamp is not changed
@@ -70,7 +70,7 @@
 
 (define (assert-mousetail-x-guarantees mx-in mx-out)
   (begin
-    (assert-valid-output-timestamps? mx-out)
+    (assert (valid-timestamps? mx-out))
     ;; each timestamp is delayed by time-delay value
     (assert (andmap (λ (in out) (equal? (+ (get-timestamp in) time-delay) (get-timestamp out))) mx-in mx-out))
     ;; x coord for each timestamp is increased by x-offset
@@ -87,12 +87,12 @@
 
 (define begin-time (current-seconds))
 
-(define verified (verify
+#;(define verified (verify
                   #:assume (assert-mousetail-assumptions mouse-x mouse-y)
                   #:guarantee (assert-mousetail-guarantees mouse-x mouse-y ((mouse-tail-x-graph (λ () mouse-x))) ((mouse-tail-y-graph (λ () mouse-y))))
                   ))
 
-(if (unsat? verified)
+#;(if (unsat? verified)
     (displayln "Spec is verified.")
     (printf "Model that violates spec is found: mouse-x ~a, mouse-y ~a~n" (evaluate mouse-x verified) (evaluate mouse-y verified)))
 
@@ -100,7 +100,7 @@
                     #:assume (assert-mousetail-x-assumptions mouse-x)
                     #:guarantee (assert-mousetail-x-guarantees mouse-x ((mouse-tail-x-graph (λ () mouse-x)))
                                                                )))
-#;(define verified-y (verify
+(define verified-y (verify
                     #:assume (assert-mousetail-y-assumptions mouse-y)
                     #:guarantee (assert-mousetail-y-guarantees mouse-y ((mouse-tail-y-graph (λ () mouse-y))))
                                     ))

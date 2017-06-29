@@ -56,7 +56,7 @@
 (define verified (verify #:assume (assert-thermostat-assumptions s-temp s-clock)
                          #:guarantee (assert-thermostat-guarantees (thermostat-graph s-temp s-clock))))
 (define end-time (current-seconds))
-(printf "time to verify: ~a~n" (- end-time begin-time))
+(printf "time to verify: ~aseconds~n" (- end-time begin-time))
 (if (unsat? verified)
     (displayln "Spec is verified.")
     (displayln "Model that violates spec is found: temp behavior ~a, clock behavior ~a~n" (evaluate s-temp verified) (evaluate s-clock verified)))

@@ -15,31 +15,11 @@
 (define (get-value item)
   (second item))
 
-(define (valid-input-timestamps? input-stream)
-  (and (apply distinct? (map get-timestamp input-stream))
-       (andmap integer? (map get-timestamp input-stream))
-       (andmap positive? (map get-timestamp input-stream))
-       (timestamps-sorted? input-stream)))
-
-(define (assert-valid-input-timestamps? input-stream)
-  (begin (assert (apply distinct? (map get-timestamp input-stream)))
-         (assert (andmap integer? (map get-timestamp input-stream)))
-         (assert (andmap positive? (map get-timestamp input-stream)))
-         (assert (timestamps-sorted? input-stream))))
-
-(define (valid-output-timestamps? output-stream)
-    (and (apply distinct? (map get-timestamp output-stream))
-       (andmap integer? (map get-timestamp output-stream))
-       ;; outputs can have 0 timestamp
-       (andmap (λ (n) (not (negative? n))) (map get-timestamp output-stream))
-       (timestamps-sorted? output-stream)))
-
-(define (assert-valid-output-timestamps? output-stream)
-  (begin (assert (apply distinct? (map get-timestamp output-stream)))
-         (assert (andmap integer? (map get-timestamp output-stream)))
-         ;; outputs can have 0 timestamp
-         (assert (andmap (λ (n) (not (negative? n))) (map get-timestamp output-stream)))
-         (assert (timestamps-sorted? output-stream))))
+(define (valid-timestamps? stream)
+  (and (apply distinct? (map get-timestamp stream))
+       (andmap integer? (map get-timestamp stream))
+       (andmap positive? (map get-timestamp stream))
+       (timestamps-sorted? stream)))
 
 (define (timestamps-sorted? stream)
   (equal? (map get-timestamp stream) (sort (map get-timestamp stream) <)))
@@ -225,6 +205,7 @@
 (define (liftB proc behavior1) ;; note: procedure can technically take multiple behaviors as args
   (behavior (proc (behavior-init behavior1)) (map (λ (b) (list (get-timestamp b) (proc (get-value b)))) (behavior-changes behavior1))))
 
+;; is there an easier way??
 (define (condB behaviorpairs)
   (let* ([all-bool-ts (flatten (map (λ (b) (map get-timestamp (behavior-changes (first b)))) behaviorpairs))] ;; every timestamp mentioned in any boolean behavior
          [all-val-ts (flatten (map (λ (b) (map get-timestamp (behavior-changes (second b)))) behaviorpairs))] ;; every timestamp mentioned in any value behavior
