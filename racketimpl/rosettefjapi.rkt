@@ -97,7 +97,10 @@
 
 ;; condE
 
-;; filterE
+(define (filterE stream-f pred)
+  (λ ()
+    (let ([stream (stream-f)])
+      (filter (λ (e) (if (pred (get-value e)) (list (get-timestamp e) (pred (get-value e))) #f)) stream))))
 
 ;; ifE
 
@@ -174,8 +177,6 @@
   (behavior const '()))
 
 ;; delayB
-
-;; valueNow
 
 (define (valueNow behavior1 ts) ;; altered a bit for our own use
   (let ([filtered-changes (filter (λ (t) (<= (get-timestamp t) ts)) (behavior-changes behavior1))])

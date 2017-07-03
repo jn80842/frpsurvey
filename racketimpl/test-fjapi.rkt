@@ -35,6 +35,10 @@
 (test "mergeE on stream with no events" ((mergeE stream-with-no-evts (λ () (list (list 3 'three)))))
       (list (list 1 'no-evt) (list 2 "hello") (list 3 'three) (list 5 "world") (list 6 'no-evt)))
 
+;; filterE tests
+(test "filterE" ((filterE (λ () (list (list 1 #t) (list 2 #f) (list 3 #t) (list 4 #f))) not))
+      (list (list 2 #f) (list 4 #f)))
+
 ;; constantE tests
 (test "constantE" ((constantE standard-evt-stream "hello")) (list (list 1 "hello") (list 2 "hello") (list 3 "hello")))
 (test "constantE on empty stream" ((constantE empty-evt-stream "hello")) '())
