@@ -16,7 +16,7 @@
   (startsWith
    (collectE 
     (mergeE
-     (mapE (λ (e) (list (get-timestamp e) 'midnight)) (filterE (changes clockB) (λ (e) (equal? 0 e))))
+     (mapE (λ (e) (list (get-timestamp e) 'midnight)) (filterE (changes clockB) (λ (e) (equal? 2359 e))))
      (changes rain-gaugeB))
     #f
     (λ (new val) (cond [(equal? new 'midnight) #f]
@@ -24,14 +24,13 @@
                        [else val])))
    #f))
 
-;; for later: try to write a version that uses timerB
-(define (sprinklers-graph clockB motionSensorB 24h-rainedB)
+(define (sprinkler-counter-graph clockB motionSensorB 24h-rainedB)
   (startsWith
-   (collectE
+  (collectE
     (changes
      (condB (list (list (andB (notB 24h-rainedB) (liftB (λ (t) (equal? t 1800)) clockB)) (constantB 10))
                   (list motionSensorB (constantB 'sensed))
-                  (list (constantB #t) (constantB #t)))))
+                  (list (constantB #t) (constantB #f)))))
     0
     (λ (new val) (if (equal? new 10)
                      10
@@ -40,14 +39,29 @@
                          (if (equal? new 'sensed)
                              val
                              (sub1 val))))))
-   'off))
+  0))
+
+;; for later: try to write a version that uses timerB
+(define (sprinklers-graph motionSensorB sprinkler-counterB)
+  ;; mask times with sensor
+  (condB (list (list motionSensorB (constantB 'off))
+          (list (liftB (λ (t) (not (equal? t 0))) sprinkler-counterB) (constantB 'on))
+          (list (constantB #t) (constantB 'off)))))
 
 (define b-raingauge (behavior #f (list (list 1 #t) (list 3 #f))))
 (define b-motion-sensor (behavior #f (list (list 4 #t) (list 5 #f) (list 6 #t) (list 7 #f) (list 10 #t) (list 11 #t) (list 12 #f))))
-(define b-clock (behavior 0 (list (list 1 1530) (list 2 1700) (list 3 1800) (list 4 1805) (list 5 2359) (list 6 800) (list 7 1305) (list 8 1800) (list 9 1803) (list 10 1806)
-                                  (list 11 1807) (list 12 1808) (list 13 1811) (list 14 1813))))
-(define expected-sprinklers (behavior 'off (list (list 1 'off) (list 2 'off) (list 3 'off) (list 4 'off) (list 5 'off) (list 6 'off) (list 7 'off) (list 8 'on) (list 9 'on)
-                                                 (list 10 'off) (list 11 'off) (list 12 'on) (list 13 'on) (list 14 'off))))
+;; note: graph won't work unless clock ticks for every minute the sprinklers should be on
+(define b-clock (behavior 0 (list (list 1 1530) (list 2 1700) (list 3 1800) (list 4 1805) (list 5 2359) (list 6 800) (list 7 1305)
+                                  (list 8 1800) (list 9 1801) (list 10 1802) (list 11 1803) (list 12 1804) (list 13 1805) (list 14 1806)
+                                  (list 15 1807) (list 16 1808) (list 17 1809) (list 18 1810) (list 19 1811) (list 20 1812) (list 21 1813))))
+(define b-24h-rained (24h-rainedB b-clock b-raingauge))
+(define b-cond (condB (list (list (andB (notB b-24h-rained) (liftB (λ (t) (equal? t 1800)) b-clock)) (constantB 10))
+                  (list b-motion-sensor (constantB 'sensed))
+                  (list (constantB #t) (constantB #f)))))
+
+(define expected-sprinklers (behavior 'off (list (list 1 'off) (list 2 'off) (list 3 'off) (list 4 'off) (list 5 'off) (list 6 'off) (list 7 'off)
+                                                 (list 8 'on) (list 9 'on) (list 10 'off) (list 11 'off) (list 12 'on) (list 13 'on) (list 14 'off)
+                                                 (list 14 'on) (list 15 'on) (list 16 'on) (list 17 'on) (list 18 'on) (list 19 'on) (list 20 'off) (list 21 'off))))
 
 
   
