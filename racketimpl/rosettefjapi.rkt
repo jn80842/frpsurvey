@@ -203,8 +203,10 @@
 (define (notB behavior1)
   (behavior (not (behavior-init behavior1)) (map (λ (b) (list (get-timestamp b) (not (get-value b)))) (behavior-changes behavior1))))
 
-(define (liftB proc behavior1) ;; note: procedure can technically take multiple behaviors as args
-  (behavior (proc (behavior-init behavior1)) (map (λ (b) (list (get-timestamp b) (proc (get-value b)))) (behavior-changes behavior1))))
+(define (liftB proc . argBs)
+  (let* ([unique-ts (sort (remove-duplicates (flatten (map (λ (b) (map get-timestamp (behavior-changes b))) argBs))) <)]
+         [enhanced-argBs (map (λ (b) (project-values b unique-ts)) argBs)])
+  (behavior (apply proc (map behavior-init argBs)) (apply (curry map (λ e (list (get-timestamp (first e)) (apply proc (map get-value e))))) enhanced-argBs))))
 
 ;; is there an easier way??
 (define (condB behaviorpairs)

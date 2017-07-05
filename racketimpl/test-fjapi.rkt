@@ -94,6 +94,9 @@
 ;; liftB
 (test "liftB" (liftB (λ (v) (+ v 3)) (behavior 0 (list (list 1 2) (list 2 3) (list 5 4))))
       (behavior 3 (list (list 1 5) (list 2 6) (list 5 7))))
+(test "liftB with var args" (liftB + (behavior 0 (list (list 1 1) (list 2 2) (list 3 3)))
+                                   (behavior 10 (list (list 1 1) (list 2 2) (list 3 3))))
+      (behavior 10 (list (list 1 2) (list 2 4) (list 3 6))))
 
 ;; condB
 (test "condB" (condB (list (list (behavior #t (list (list 1 #f))) (behavior 3 (list (list 1 3)))) (list (behavior #f (list (list 1 #t))) (behavior 5 (list (list 1 5))))))
