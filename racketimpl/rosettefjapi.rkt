@@ -44,6 +44,17 @@
        (andmap positive? (map get-timestamp (behavior-changes b)))
        (timestamps-sorted? (behavior-changes b))))
 
+(define (all-unique-timestamps b1 b2)
+  (sort (remove-duplicates (flatten (append (map get-timestamp (behavior-changes b1))
+                                            (map get-timestamp (behavior-changes b2))))) <))
+
+(define (equal-behaviors? b1 b2)
+  (let ([enhanced-b1 (project-values b1 (all-unique-timestamps b1 b2))]
+        [enhanced-b2 (project-values b2 (all-unique-timestamps b2 b1))])
+    (and (eq? (behavior-init b1) (behavior-init b2))
+         (eq? enhanced-b1 enhanced-b2))))
+
+
 ;;;;; inputs ;;;;;;;;;;
 (define (boolean-event-stream concrete-list)
   (map (λ (c)
