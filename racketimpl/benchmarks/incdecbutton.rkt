@@ -1,6 +1,7 @@
 #lang s-exp rosette/safe
 
 (require "../rosettefjapi.rkt")
+(require "../fjmodels.rkt")
 
 (current-bitwidth 5)
 

@@ -1,6 +1,7 @@
 #lang rosette/safe
 
 (require "../rosettefjapi.rkt")
+(require "../fjmodels.rkt")
 
 
 ;;;;; motion detector and porch light

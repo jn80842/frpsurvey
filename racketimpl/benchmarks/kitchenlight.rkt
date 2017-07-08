@@ -1,11 +1,15 @@
 #lang rosette/safe
 
 (require "../rosettefjapi.rkt")
+(require "../fjmodels.rkt")
 
-(current-bitwidth 5)
+(current-bitwidth 6)
 
-(define b-clock (behavior 0 (list (list 1 2000) (list 2 2021) (list 3 2025) (list 4 2027) (list 5 2032) (list 6 2045) (list 7 2130) (list 8 2345) (list 9 2350) (list 10 805)
-                          (list 11 2000) (list 12 2129) (list 13 2130) (list 14 2202) (list 15 2215) (list 16 2221) (list 17 2226))))
+(define b-clock (behavior (integer->time-vec 0) (list (list 1 (integer->time-vec 2000)) (list 2 (integer->time-vec 2021)) (list 3 (integer->time-vec 2025)) (list 4 (integer->time-vec 2027))
+                                  (list 5 (integer->time-vec 2032)) (list 6 (integer->time-vec 2045)) (list 7 (integer->time-vec 2130)) (list 8 (integer->time-vec 2345))
+                                  (list 9 (integer->time-vec 2350)) (list 10 (integer->time-vec 805)) (list 11 (integer->time-vec 2000)) (list 12 (integer->time-vec 2129))
+                                  (list 13 (integer->time-vec 2130)) (list 14 (integer->time-vec 2202)) (list 15 (integer->time-vec 2215)) (list 16 (integer->time-vec 2221))
+                                  (list 17 (integer->time-vec 2226)))))
 (define b-location (behavior 'not-at-home (list (list 1 'not-at-home) (list 2 'home) (list 3 'home) (list 4 'home) (list 5 'home) (list 6 'home) (list 7 'home) (list 8 'home) (list 9 'home)
                              (list 10 'not-at-home) (list 11 'not-at-home) (list 12 'not-at-home) (list 13 'not-at-home) (list 14 'home) (list 15 'home) (list 16 'home) (list 17 'home))))
 (define b-motion-sensor (behavior #f (list (list 3 #t) (list 5 #f) (list 8 #t) (list 9 #f) (list 15 #t) (list 17 #f))))
@@ -18,7 +22,7 @@
 ;; between 21:30 and 8:00 inclusive, mode is night
 ;; otherwise, if user is at home, home, else away
 (define (mode-graph clockB userLocationB)
-  (liftB (λ (clock location) (if (or (>= clock 2130) (< clock 800))
+  (liftB (λ (clock location) (if (or (>= (time-vec->integer clock) 2130) (< (time-vec->integer clock) 800))
                                  'night
                                  (if (equal? location 'home)
                                      'home
@@ -38,3 +42,48 @@
  (equal-behaviors? (mode-graph b-clock b-location) b-mode)
  (equal-behaviors? (kitchen-light-status-graph b-motion-sensor) b-light-status)
  (equal-behaviors? (kitchen-light-color-graph (kitchen-light-status-graph b-motion-sensor) (mode-graph b-clock b-location)) b-light-color))
+
+(define (location-behavior concrete-list)
+  (define-symbolic* init-is-home? boolean?)
+  (behavior (if init-is-home? 'home 'not-at-home) (map (λ (x)
+                                                         (define-symbolic* timestamp integer?)
+                                                         (define-symbolic* is-home? boolean?)
+                                                         (list timestamp (if is-home? 'home 'not-at-home))) concrete-list)))
+
+(define s-motion-sensor (boolean-behavior (list 1 2 3)))
+(define s-location (location-behavior (list 1 2 3)))
+(define s-clock (time-vec-behavior (list 1 2 3)))
+       
+(define (mode-assumptions clockB locationB)
+  (and (valid-behavior? clockB)
+       (valid-time-vec? (behavior-init clockB))
+       (andmap (λ (e) (valid-time-vec? (get-value e))) (behavior-changes clockB))
+       (valid-behavior? locationB)
+       ))
+
+(define solved (solve (assert (mode-assumptions s-clock s-location))))
+
+(if (unsat? solved)
+    (displayln "no solution for assumptions")
+    (begin
+      (displayln "sample solution for assumptions:")
+      (displayln (evaluate s-clock solved))
+      (displayln (evaluate s-location solved))))
+
+(define (if-home-then-home-or-night loc mode)
+  (or (not (eq? 'home loc)) (or (eq? mode 'home) (eq? mode 'night))))
+
+(define (mode-guarantees clockB locationB modeB)
+  (let ([unique-ts (all-unique-timestamps clockB locationB modeB)])
+  (and (if-home-then-home-or-night (behavior-init locationB) (behavior-init modeB))
+       (andmap if-home-then-home-or-night (project-values locationB unique-ts) (project-values modeB unique-ts)))))
+
+(displayln "Verify mode spec")
+(define begin-time (current-seconds))
+
+(define verified (verify
+                  #:assume (assert (mode-assumptions s-clock s-location))
+                  #:guarantee (assert (mode-guarantees s-clock s-location (mode-graph s-clock s-location)))))
+
+(define end-time (current-seconds))
+(printf "Verification took ~a seconds~n" (- end-time begin-time))

@@ -1,80 +1,7 @@
 #lang rosette/safe
 (provide (all-defined-out))
 
-;;;;; helpers ;;;;;
-(define ts-comparator (λ (x y) (< (first x) (first y))))
-(define (startAtTimestamp ts evt-stream-f)
-  (λ ()
-    (let ([evt-stream (evt-stream-f)])
-      (unless (empty? evt-stream)
-      (filter (λ (e) (> (first e) ts)) evt-stream)))))
-
-(define (get-timestamp item)
-  (first item))
-
-(define (get-value item)
-  (second item))
-
-(define (valid-timestamps? stream)
-  (and (apply distinct? (map get-timestamp stream))
-       (andmap integer? (map get-timestamp stream))
-       (andmap positive? (map get-timestamp stream))
-       (timestamps-sorted? stream)))
-
-(define (timestamps-sorted? stream)
-  (equal? (map get-timestamp stream) (sort (map get-timestamp stream) <)))
-
-;;;; note for all behavior operators:                       ;;;;
-;;;; behaviors *always* have a value (can never be 'no-evt) ;;;;
-
-(struct behavior (init changes)
-  #:transparent
-  )
-
-(define (project-values b ts)
-  (map (λ (t) (list t (valueNow b t))) ts))
-
-(define (get-missing-timestamps b1 b2)
-  (filter (λ (t) (not (member t (map get-timestamp (behavior-changes b1)))))
-          (map get-timestamp (behavior-changes b2))))
-
-(define (valid-behavior? b)
-  (and (behavior? b)
-       (apply distinct? (map get-timestamp (behavior-changes b)))
-       (andmap positive? (map get-timestamp (behavior-changes b)))
-       (timestamps-sorted? (behavior-changes b))))
-
-(define (all-unique-timestamps b1 b2)
-  (sort (remove-duplicates (flatten (append (map get-timestamp (behavior-changes b1))
-                                            (map get-timestamp (behavior-changes b2))))) <))
-
-(define (equal-behaviors? b1 b2)
-  (let ([enhanced-b1 (project-values b1 (all-unique-timestamps b1 b2))]
-        [enhanced-b2 (project-values b2 (all-unique-timestamps b2 b1))])
-    (and (eq? (behavior-init b1) (behavior-init b2))
-         (eq? enhanced-b1 enhanced-b2))))
-
-
-;;;;; inputs ;;;;;;;;;;
-(define (boolean-event-stream concrete-list)
-  (map (λ (c)
-         (define-symbolic* timestamp integer?)
-         (define-symbolic* value boolean?)
-         (list timestamp value)) concrete-list))
-
-(define (integer-event-stream concrete-list)
-  (map (λ (c)
-         (define-symbolic* timestamp integer?)
-         (define-symbolic* value integer?)
-         (list timestamp value)) concrete-list))
-
-(define (boolean-behavior concrete-list)
-  (define-symbolic* init-val boolean?)
-  (behavior init-val (boolean-event-stream concrete-list)))
-
-(define (integer-behavior concrete-list)
-  (define-symbolic* init-val integer?)
-  (behavior init-val (integer-event-stream concrete-list)))
+(require "fjmodels.rkt")
 
 ;;;;; flapjax API ;;;;;
 
@@ -189,11 +116,7 @@
 
 ;; delayB
 
-(define (valueNow behavior1 ts) ;; altered a bit for our own use
-  (let ([filtered-changes (filter (λ (t) (<= (get-timestamp t) ts)) (behavior-changes behavior1))])
-    (if (empty? filtered-changes)
-        (behavior-init behavior1)
-        (get-value (last filtered-changes)))))
+;; valueNow: since valueNow shouldn't be exposed to end users, it's in fjmodels.rkt
 
 ;; switchB
 ;; switchBB takes a behavior of behaviors: (behavior behavior1 (list behavior2 behavior3 behavior4)))

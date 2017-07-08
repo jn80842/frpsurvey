@@ -1,6 +1,7 @@
 #lang rosette/safe
 
 (require "rosettefjapi.rkt")
+(require "fjmodels.rkt")
 
 (define (test test-name test-code expected)
   (if (equal? test-code expected)
