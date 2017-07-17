@@ -50,9 +50,9 @@
                                                          (define-symbolic* is-home? boolean?)
                                                          (list timestamp (if is-home? 'home 'not-at-home))) concrete-list)))
 
-(define s-motion-sensor (boolean-behavior (list 1 2 3)))
-(define s-location (location-behavior (list 1 2 3)))
-(define s-clock (time-vec-behavior (list 1 2 3)))
+(define s-motion-sensor (boolean-behavior (list 1)))
+(define s-location (location-behavior (list 1)))
+(define s-clock (time-vec-behavior (list 1)))
        
 (define (mode-assumptions clockB locationB)
   (and (valid-behavior? clockB)
@@ -76,7 +76,8 @@
 (define (mode-guarantees clockB locationB modeB)
   (let ([unique-ts (all-unique-timestamps clockB locationB modeB)])
   (and (if-home-then-home-or-night (behavior-init locationB) (behavior-init modeB))
-       (andmap if-home-then-home-or-night (project-values locationB unique-ts) (project-values modeB unique-ts)))))
+     ;  (andmap if-home-then-home-or-night (project-values locationB unique-ts) (project-values modeB unique-ts))
+       )))
 
 (displayln "Verify mode spec")
 (define begin-time (current-seconds))

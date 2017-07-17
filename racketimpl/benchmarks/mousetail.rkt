@@ -26,8 +26,8 @@
   (let ([output (mouse-tail-y-graph (λ () y-input))])
     (output)))
 
-(define mouse-x (integer-event-stream (list 1 2)))
-(define mouse-y (integer-event-stream (list 1 2)))
+(define mouse-x (positive-integer-event-stream (list 1 2)))
+(define mouse-y (positive-integer-event-stream (list 1 2)))
 
 (printf "current bitwidth ~a~n" (current-bitwidth))
 (printf "length of mouse-x ~a~n" (length mouse-x))
@@ -88,12 +88,12 @@
 
 (define begin-time (current-seconds))
 
-#;(define verified (verify
+(define verified (verify
                   #:assume (assert-mousetail-assumptions mouse-x mouse-y)
                   #:guarantee (assert-mousetail-guarantees mouse-x mouse-y ((mouse-tail-x-graph (λ () mouse-x))) ((mouse-tail-y-graph (λ () mouse-y))))
                   ))
 
-#;(if (unsat? verified)
+(if (unsat? verified)
     (displayln "Spec is verified.")
     (printf "Model that violates spec is found: mouse-x ~a, mouse-y ~a~n" (evaluate mouse-x verified) (evaluate mouse-y verified)))
 
@@ -101,7 +101,7 @@
                     #:assume (assert-mousetail-x-assumptions mouse-x)
                     #:guarantee (assert-mousetail-x-guarantees mouse-x ((mouse-tail-x-graph (λ () mouse-x)))
                                                                )))
-(define verified-y (verify
+#;(define verified-y (verify
                     #:assume (assert-mousetail-y-assumptions mouse-y)
                     #:guarantee (assert-mousetail-y-guarantees mouse-y ((mouse-tail-y-graph (λ () mouse-y))))
                                     ))

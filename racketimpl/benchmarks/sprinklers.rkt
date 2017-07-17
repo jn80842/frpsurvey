@@ -10,7 +10,7 @@
 ;; if motion sensor goes off, pause sprinklers until motion is no longer sensed
 
 (define s-raingauge (boolean-behavior (list 1 2 3)))
-(define s-clock (integer-behavior (list 1 2 3)))
+(define s-clock (positive-integer-behavior (list 1 2 3)))
 (define s-motion-sensor (boolean-behavior (list 1 2 3))) ;; or, should this be event stream?
 
 ;; did it rain the past 24 hours?

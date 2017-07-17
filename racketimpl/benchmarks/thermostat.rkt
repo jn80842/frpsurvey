@@ -3,7 +3,7 @@
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
 
-(current-bitwidth 5)
+(current-bitwidth 7)
 
 ;; to handle bitwidth, constants don't make real-world sense
 (define temp-floor 2)
@@ -20,8 +20,8 @@
 (define concrete-temp (behavior 60 (list (list 1 59) (list 3 57) (list 15 61) (list 17 59) (list 22 61) (list 30 59))))
 (define concrete-clock (behavior 1900 (list (list 1 2000) (list 10 2300) (list 20 730) (list 25 805))))
 
-(define s-temp (integer-behavior (list 1 2 3)))
-(define s-clock (integer-behavior (list 1 2 3)))
+(define s-temp (positive-integer-behavior (list 1 2 3)))
+(define s-clock (positive-integer-behavior (list 1 2 3)))
 
 (printf "current bitwidth is: ~a\n" (current-bitwidth))
 (printf "number of temp changes: ~a\n" (length (behavior-changes s-temp)))
@@ -57,7 +57,7 @@
 (define verified (verify #:assume (assert-thermostat-assumptions s-temp s-clock)
                          #:guarantee (assert-thermostat-guarantees (thermostat-graph s-temp s-clock))))
 (define end-time (current-seconds))
-(printf "time to verify: ~aseconds~n" (- end-time begin-time))
+(printf "time to verify: ~a seconds~n" (- end-time begin-time))
 (if (unsat? verified)
     (displayln "Spec is verified.")
     (displayln "Model that violates spec is found: temp behavior ~a, clock behavior ~a~n" (evaluate s-temp verified) (evaluate s-clock verified)))
