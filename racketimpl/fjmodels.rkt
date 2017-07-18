@@ -10,11 +10,9 @@
 ;;;;;; timestamp related helpers ;;;;;;;;
 (define ts-comparator (λ (x y) (< (first x) (first y))))
 
-(define (startAtTimestamp ts evt-stream-f)
-  (λ ()
-    (let ([evt-stream (evt-stream-f)])
-      (unless (empty? evt-stream)
-      (filter (λ (e) (> (first e) ts)) evt-stream)))))
+(define (startAtTimestamp ts evt-stream)
+  (unless (empty? evt-stream)
+    (filter (λ (e) (> (first e) ts)) evt-stream)))
 
 (define (valid-timestamps? stream)
   (and (apply distinct? (map get-timestamp stream))

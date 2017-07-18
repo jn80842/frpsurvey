@@ -7,11 +7,12 @@
 
 (define (clicksE concrete-list)
     (map (λ (c)
-           
-         (define-symbolic* timestamp integer?)
-         (define-symbolic* click-evt boolean?)
-         (define click-union (if click-evt 'click 'no-evt))
-         (list timestamp click-union)) concrete-list));)
+           (define-symbolic* timestamp integer?)
+           (assert (>= (length concrete-list) timestamp))
+           (assert (> timestamp 0))
+           (define-symbolic* click-evt boolean?)
+           (define click-union (if click-evt 'click 'no-evt))
+           (list timestamp click-union)) concrete-list));)
 
 (define (inc-dec-button-graph inc dec)
   (startsWith
@@ -21,8 +22,8 @@
 (define (small-graph inc dec)
   (collectE (mergeE inc dec) 0 +))
 
-(define concrete-inc-clicks (λ () (list (list 1 'click) (list 4 'click))))
-(define concrete-dec-clicks (λ () (list (list 2 'no-evt) (list 3 'no-evt) (list 5 'click))))
+(define concrete-inc-clicks (list (list 1 'click) (list 4 'click)))
+(define concrete-dec-clicks (list (list 2 'no-evt) (list 3 'no-evt) (list 5 'click)))
 
 (displayln (inc-dec-button-graph concrete-inc-clicks concrete-dec-clicks))
 

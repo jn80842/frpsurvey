@@ -5,27 +5,21 @@
 
 ;;;;; flapjax API ;;;;;
 
-(define (oneE evt-stream-f)
-  (λ ()
-    (let ([evt-stream (evt-stream-f)])
-      (unless (empty? evt-stream)
-      (list (first evt-stream)))))) ;; propagate only the first event
+(define (oneE evt-stream)
+  (unless (empty? evt-stream)
+    (list (first evt-stream)))) ;; propagate only the first event
 
-(define (zeroE evt-stream-f)
-  (λ ()
-    (let ([evt-stream (evt-stream-f)])
-  (map (λ (e) (list (first e) (void))) evt-stream)))) ;; a stream that never fires
+(define (zeroE evt-stream)
+  (map (λ (e) (list (first e) (void))) evt-stream)) ;; a stream that never fires
 
-(define (mapE proc evt-stream-f) ;; proc operates over both timestamp and value (kind of a cheat)
-  (λ ()
-    (let ([evt-stream (evt-stream-f)])
-  (map (λ (e) (proc e)) evt-stream))))
+(define (mapE proc evt-stream) ;; proc operates over both timestamp and value (kind of a cheat)
+  (map (λ (e) (proc e)) evt-stream))
 
-(define (mergeE evt-stream1-f evt-stream2-f) ;; note: mergeE can actually take any num of args
-  (λ ()
-    (let ([evt-stream1 (evt-stream1-f)]
-          [evt-stream2 (evt-stream2-f)])
-      (sort (append evt-stream1 evt-stream2) (λ (x y) (< (get-timestamp x) (get-timestamp y)))))))
+(define (mergeE evt-stream1 evt-stream2) ;; note: mergeE can actually take any num of args
+ ; (λ ()
+ ;   (let ([evt-stream1 (evt-stream1-f)]
+ ;         [evt-stream2 (evt-stream2-f)])
+      (sort (append evt-stream1 evt-stream2) (λ (x y) (< (get-timestamp x) (get-timestamp y))))) ;))
 
 (define (switchE stream-of-streams-f)
   (λ ()
@@ -35,30 +29,24 @@
 
 ;; condE
 
-(define (filterE stream-f pred)
-  (λ ()
-    (let ([stream (stream-f)])
-      (filter (λ (e) (if (pred (get-value e)) (list (get-timestamp e) (pred (get-value e))) #f)) stream))))
+(define (filterE stream pred)
+  (filter (λ (e) (if (pred (get-value e)) (list (get-timestamp e) (pred (get-value e))) #f)) stream))
 
 ;; ifE
 
-(define (constantE evt-stream-f const)
-  (λ ()
-    (let ([evt-stream (evt-stream-f)])
-      (map (λ (s) (list (get-timestamp s) (if (equal? 'no-evt (get-value s)) 'no-evt const))) evt-stream))))
+(define (constantE evt-stream const)
+  (map (λ (s) (list (get-timestamp s) (if (equal? 'no-evt (get-value s)) 'no-evt const))) evt-stream)) ;))
 
-(define (collectE evt-stream-f init proc)
-  (λ ()
-    (let ([evt-stream (evt-stream-f)])
-      (letrec ([collect (λ (x-lst prev)
-                          (if (equal? (length x-lst) 0)
-                              '()
-                              (let* ([new-ts (get-timestamp (first x-lst))]
-                                    [input-val (get-value (first x-lst))]
-                                    [new-val (if (equal? input-val 'no-evt) prev (proc (get-value (first x-lst)) prev))])
-                                (append (list (list new-ts new-val))
-                                        (collect (cdr x-lst) new-val)))))])
-        (collect evt-stream init)))))
+(define (collectE evt-stream init proc)
+  (letrec ([collect (λ (x-lst prev)
+                      (if (equal? (length x-lst) 0)
+                          '()
+                          (let* ([new-ts (get-timestamp (first x-lst))]
+                                 [input-val (get-value (first x-lst))]
+                                 [new-val (if (equal? input-val 'no-evt) prev (proc (get-value (first x-lst)) prev))])
+                            (append (list (list new-ts new-val))
+                                    (collect (cdr x-lst) new-val)))))])
+    (collect evt-stream init)))
 
 ;; andE
 
@@ -70,10 +58,9 @@
 
 ;; send/receive
 
-(define (snapshotE evt-stream-f behavior1)
-  (λ ()
-    (let ([real-evt-stream (filter (λ (e) (not (eq? (get-value e) 'no-evt))) (evt-stream-f))])
-      (map (λ (t) (list (get-timestamp t) (valueNow behavior1 (get-timestamp t)))) real-evt-stream))))
+(define (snapshotE evt-stream behavior1)
+  (let ([real-evt-stream (filter (λ (e) (not (eq? (get-value e) 'no-evt))) evt-stream)])
+    (map (λ (t) (list (get-timestamp t) (valueNow behavior1 (get-timestamp t)))) real-evt-stream)))
 
 ;; onceE
 
@@ -99,13 +86,13 @@
                                  (append (list current) (calm (cdr evt-lst)))))))]) ;; propagate the first one
     (calm evt-stream)))))
 
-#;(define (startsWith evt-stream-f init-value)
-  (λ ()
-    (let* ([evt-stream (evt-stream-f)])
-      (append (list (list 0 init-value)) evt-stream))))
+#;(define (startsWith evt-stream init-value)
+  ;(λ ()
+  ;  (let* ([evt-stream (evt-stream-f)])
+      (append (list (list 0 init-value)) evt-stream)) ;))
 
-(define (startsWith evt-stream-f init-value)
-  (behavior init-value (evt-stream-f)))
+(define (startsWith evt-stream init-value)
+  (behavior init-value evt-stream))
 
 (define (changes behaviorB)
   (λ ()
