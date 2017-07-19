@@ -16,16 +16,16 @@
   (map (λ (e) (proc e)) evt-stream))
 
 (define (mergeE evt-stream1 evt-stream2) ;; note: mergeE can actually take any num of args
- ; (λ ()
- ;   (let ([evt-stream1 (evt-stream1-f)]
- ;         [evt-stream2 (evt-stream2-f)])
-      (sort (append evt-stream1 evt-stream2) (λ (x y) (< (get-timestamp x) (get-timestamp y))))) ;))
+  (sort (append evt-stream1 evt-stream2) (λ (x y) (< (get-timestamp x) (get-timestamp y))))) ;))
 
-(define (switchE stream-of-streams-f)
-  (λ ()
-    (let ([stream-of-streams (map (λ (f) (apply (second f) '()))
-                                  stream-of-streams-f)])
-      (sort (flatten stream-of-streams) (λ (x y) (< (get-timestamp x) (get-timestamp y)))))))
+(define (switchE stream-of-streams)
+  (if (empty? stream-of-streams)
+      '()
+      (let ([ts (map (λ (e) (get-timestamp e)) stream-of-streams)])
+        (apply append (map (λ (start-ts end-ts vals) (if end-ts
+                                           (boundedTimestampsStream start-ts end-ts (get-value vals))
+                                           (startAtTimestamp start-ts (get-value vals))))
+             ts (append (list-tail ts 1) (list #f)) stream-of-streams)))))
 
 ;; condE
 

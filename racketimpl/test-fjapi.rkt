@@ -36,6 +36,21 @@
 (test "mergeE on stream with no events" (mergeE stream-with-no-evts (list (list 3 'three)))
       (list (list 1 'no-evt) (list 2 "hello") (list 3 'three) (list 5 "world") (list 6 'no-evt)))
 
+;; switchE tests
+(test "switchE on empty event stream" (switchE '()) '())
+(test "switchE on single event stream" (switchE (list (list 1 (list (list 1 'a) (list 2 'b)))))
+      (list (list 1 'a) (list 2 'b)))
+(test "switchE on stream of 2 event streams" (switchE (list
+                          (list 1 (list (list 2 'a) (list 5 'b) (list 10 'c)))
+                          (list 6 (list (list 7 'd) (list 8 'e)))))
+      (list (list 2 'a) (list 5 'b) (list 7 'd) (list 8 'e)))
+(test "switchE on stream of 4 event streams" (switchE (list
+                                                       (list 1 (list (list 2 'a) (list 5 'b) (list 10 'c)))
+                                                       (list 6 (list (list 6 'd) (list 7 'e) (list 20 'f)))
+                                                       (list 8 (list (list 9 'g)))
+                                                       (list 10 (list (list 11 'h) (list 12 'i)))))
+      (list '(2 a) '(5 b) '(6 d) '(7 e) '(9 g) '(11 h) '(12 i)))
+
 ;; filterE tests
 (test "filterE" (filterE (list (list 1 #t) (list 2 #f) (list 3 #t) (list 4 #f)) not)
       (list (list 2 #f) (list 4 #f)))

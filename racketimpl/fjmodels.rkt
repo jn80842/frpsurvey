@@ -12,7 +12,13 @@
 
 (define (startAtTimestamp ts evt-stream)
   (unless (empty? evt-stream)
-    (filter (λ (e) (> (first e) ts)) evt-stream)))
+    (filter (λ (e) (>= (first e) ts)) evt-stream)))
+(define (endAtTimestamp ts evt-stream)
+  (unless (empty? evt-stream)
+    (filter (λ (e) (<= (first e) ts)) evt-stream)))
+(define (boundedTimestampsStream ts1 ts2 evt-stream)
+  (unless (empty? evt-stream)
+    (filter (λ (e) (and (>= (first e) ts1) (<= (first e) ts2))) evt-stream)))
 
 (define (valid-timestamps? stream)
   (and (apply distinct? (map get-timestamp stream))
