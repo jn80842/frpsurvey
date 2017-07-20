@@ -5,39 +5,56 @@
 
 ;;;;;; drag and drop ;;;;;
 
-;; value of all mouse events are x and y coordinates in a vector
-(define drag-mouse-down (list (list 1 (vector 0 0)) (list 10 (vector 2 3))))
-(define drag-mouse-up (list (list 5 (vector 10 20)) (list 13 (vector 20 40))))
-(define mouse-movements (list (list 1 (vector 0 0))
-                              (list 2 (vector 1 1))
-                              (list 5 (vector 10 20))
-                              (list 10 (vector 2 3))
-                              (list 13 (vector 20 40))))
+;; assume that all mouse down events are on the draggable element
+;; would b
 
-(define coordE (mapE (λ (mm) (vector (- (vector-ref mm 0) 1)
-                                                              (- (vector-ref mm 1) 1)))
-                             (λ () (filter (λ (mm) (> (first mm) 3)) (mouse-movements)))))
+(define i-mouse-down (list (list 3 'down)
+                           (list 10 'down)))
+(define i-mouse-up (list (list 6 'up)
+                         (list 11 'up)))
+(define i-mouse-pos (behavior (vector 0 0) (list (list 2 (vector 110 210))
+                                                 (list 4 (vector 50 100))
+                                                 (list 5 (vector 100 150))
+                                                 (list 8 (vector 200 220))
+                                                 (list 9 (vector 210 230))
+                                                 (list 10 (vector 100 150))
+                                                 (list 11 (vector 210 240))
+                                                 (list 13 (vector 75 75)))))
 
-(define dropEe (mapE (λ (e) (list (first e) (zeroE e))) drag-mouse-up))
+(define o-element-pos (behavior (vector 100 200) (list (list 4 (vector 50 100))
+                                                       (list 5 (vector 100 150))
+                                                       (list 10 (vector 100 150))
+                                                       (list 11 (vector 210 240)))))
 
-;; 
+;; inputs: mouse-up, mouse-down, mouse-pos (vector with 2 vals)
+(define s-mouse-up '())
+(define s-mouse-down '())
+(define s-mouse-pos '())
+
+;(define moveEe '()) ;; event stream of coord deltas followed by #f after mouse up
+;; i believe that putting in the #f is only for memory purposes so leaving it out for now
+(define (moveEe mouse-downE mouse-posB)
+  (mapE (λ (e) (begin
+                ; (define current-pos (valueNow mouse-posB (get-timestamp e)))
+                ; (define moveEltE (mapE (λ (e) (list (get-timestamp e) #f)) (changes mouse-upB)))
+                ; (define documentB (startsAtTimestamp (changes mouse-posB) (get-timestamp e)))
+                 (list (get-timestamp e)
+                ; (mapE (λ (e1) (list (get-timestamp e1) current-pos));(vector (- (vector-ref (get-value e1) 0)
+                                                        ;         (vector-ref current-pos 0))
+                                                        ;      (- (vector-ref (get-value e1) 1)
+                                                        ;         (vector-ref current-pos 1)))))
+                       (startAtTimestamp (get-timestamp e) (changes mouse-posB)))))
+        mouse-downE))
+
+(define (dropEe upE)
+  (mapE (λ (e) (list (get-timestamp e) (zeroE))) upE))
+(define (dragE moveEe dropEe)
+  (switchE (mergeE moveEe dropEe)))
 
 
-#;(define moveEe (mapE (λ (e) (define startX (vector-ref (second e) 0))
-                       (define startY (vector-ref (second e) 1))
-                       (list (first e)
-                       (mapE (λ (mm) (list (first mm)
-                               (vector (- (vector-ref (second mm) 0) startX)
-                                       (- (vector-ref (second mm) 1) startY))))
-                             (startAtTimestamp (first e) (startsWith mouse-movements
-                                                                     (mapE (λ (e) (list (first e) #f)) drag-mouse-up))))))
-                       drag-mouse-down))
 
-;(define dragE (switchE (mergeE dropEe moveEe)))
 
-;; s-upE : event stream of mouse up events anywhere on page
 
-;; s-target-downE : event stream of mouse down events on target div
 
 
 

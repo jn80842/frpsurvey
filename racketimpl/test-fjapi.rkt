@@ -18,9 +18,7 @@
 (test "oneE on empty stream" (oneE '()) (void))
 
 ;; zeroE tests
-(test "zeroE" (zeroE standard-evt-stream)
-      (list (list 1 (void)) (list 2 (void)) (list 3 (void))))
-(test "zeroE on empty stream" (zeroE empty-evt-stream) '())
+(test "zeroE" (zeroE) '())
 
 ;; mapE tests
 (test "mapE" (mapE (λ (e) (list (first e) (add1 (second e)))) standard-evt-stream)
@@ -50,6 +48,11 @@
                                                        (list 8 (list (list 9 'g)))
                                                        (list 10 (list (list 11 'h) (list 12 'i)))))
       (list '(2 a) '(5 b) '(6 d) '(7 e) '(9 g) '(11 h) '(12 i)))
+(test "switchE on stream including empty streams" (switchE (list
+                                                           (list 1 (list (list 2 'a) (list 10 'b)))
+                                                           (list 5 '())
+                                                           (list 10 (list (list 11 'c) (list 15 'd)))))
+      (list '(2 a) '(11 c) '(15 d)))
 
 ;; filterE tests
 (test "filterE" (filterE (list (list 1 #t) (list 2 #f) (list 3 #t) (list 4 #f)) not)
@@ -79,8 +82,8 @@
 (test "startsWith on empty stream" (startsWith empty-evt-stream 'zero) (behavior 'zero '())) ;;(list (list 0 'zero)))
 
 ;; changes tests
-(test "changes" ((changes (behavior 0 (list (list 1 1) (list 2 2) (list 3 3))))) (list (list 1 1) (list 2 2) (list 3 3)))
-(test "changes with no events" ((changes (behavior 0 '()))) '())
+(test "changes" (changes (behavior 0 (list (list 1 1) (list 2 2) (list 3 3)))) (list (list 1 1) (list 2 2) (list 3 3)))
+(test "changes with no events" (changes (behavior 0 '())) '())
 
 ;; behavior
 (test "behavior-init" (behavior-init (behavior 'a '())) 'a)

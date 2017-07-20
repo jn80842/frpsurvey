@@ -9,8 +9,8 @@
   (unless (empty? evt-stream)
     (list (first evt-stream)))) ;; propagate only the first event
 
-(define (zeroE evt-stream)
-  (map (λ (e) (list (first e) (void))) evt-stream)) ;; a stream that never fires
+(define (zeroE)
+  '()) ;; a stream that never fires
 
 (define (mapE proc evt-stream) ;; proc operates over both timestamp and value (kind of a cheat)
   (map (λ (e) (proc e)) evt-stream))
@@ -22,10 +22,11 @@
   (if (empty? stream-of-streams)
       '()
       (let ([ts (map (λ (e) (get-timestamp e)) stream-of-streams)])
-        (apply append (map (λ (start-ts end-ts vals) (if end-ts
+        (apply append (filter (λ (l) (not (void? l)))
+               (map (λ (start-ts end-ts vals) (if end-ts
                                            (boundedTimestampsStream start-ts end-ts (get-value vals))
                                            (startAtTimestamp start-ts (get-value vals))))
-             ts (append (list-tail ts 1) (list #f)) stream-of-streams)))))
+             ts (append (list-tail ts 1) (list #f)) stream-of-streams))))))
 
 ;; condE
 
@@ -95,8 +96,7 @@
   (behavior init-value evt-stream))
 
 (define (changes behaviorB)
-  (λ ()
-    (behavior-changes behaviorB)))
+    (behavior-changes behaviorB))
 
 (define (constantB const)
   (behavior const '()))
