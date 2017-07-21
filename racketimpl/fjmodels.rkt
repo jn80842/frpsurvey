@@ -93,6 +93,9 @@
   (and (proc (behavior-init b))
        (andmap (map proc (behavior-changes b)))))
 
+(define (implication p q)
+  (or (not p) q))
+
 ;;;;; make symbolic event streams ;;;;;;;;;;
 (define (boolean-event-stream concrete-list)
   (map (λ (c)

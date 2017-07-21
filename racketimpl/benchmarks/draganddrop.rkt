@@ -7,7 +7,7 @@
 
 ;; assume that all mouse down events are on the draggable element
 
-
+(define init-elt-pos (vector 100 200))
 (define i-mouse-down (list (list 3 'down)
                            (list 10 'down)))
 (define i-mouse-up (list (list 6 'up)
@@ -21,10 +21,10 @@
                                                  (list 11 (vector 210 240))
                                                  (list 13 (vector 75 75)))))
 
-(define o-element-pos (behavior (vector 100 200) (list (list 4 (vector 50 100))
-                                                       (list 5 (vector 100 150))
-                                                       (list 10 (vector 100 150))
-                                                       (list 11 (vector 210 240)))))
+(define o-element-pos (behavior init-elt-pos (list (list 4 (vector 50 100))
+                                                   (list 5 (vector 100 150))
+                                                   (list 10 (vector 100 150))
+                                                   (list 11 (vector 210 240)))))
 
 ;(define moveEe '()) ;; event stream of coord deltas followed by #f after mouse up
 ;; simplifying from flapjax ver: while dragging is active, elt has the same coords as mouse
@@ -46,8 +46,9 @@
   (mapE (λ (e) (list (get-timestamp e) (zeroE))) upE))
 (define (dragE moveEe dropEe)
   (switchE (mergeE moveEe dropEe)))
-(define (elt-positionB mouse-up mouse-down mouse-pos)
-  (startsWith (dragE (moveEe mouse-down mouse-pos) (dropEe mouse-up)) (behavior-init mouse-pos)))
+
+(define (elt-positionB mouse-up mouse-down mouse-pos init-pos)
+  (startsWith (dragE (moveEe mouse-down mouse-pos) (dropEe mouse-up)) init-pos))
 
 (printf "Checking concrete inputs ... ")
 (if (equal? (dragE (moveEe i-mouse-down i-mouse-pos) (dropEe i-mouse-up))
@@ -55,8 +56,12 @@
     (printf "ok!\n")
     (printf "something's wrong\n"))
 
-;; inputs: mouse-up, mouse-down, mouse-pos (vector with 2 vals)
-(current-bitwidth 7)
+;; inputs: mouse-up, mouse-down, mouse-pos (vector with 2 vals), initial element position
+(current-bitwidth 4)
+
+(define-symbolic* init-elt-x integer?)
+(define-symbolic* init-elt-y integer?)
+(define s-init-elt-pos (vector init-elt-x init-elt-y))
 
 (define (symbolic-click-event-stream symbol concrete-list)
   (map (λ (c)
@@ -94,12 +99,15 @@
 (printf "length of mouse down events: ~a~n" (length s-mouse-down))
 (printf "length of changes in mouse position behavior: ~a~n" (length (changes s-mouse-pos)))
 
-(define (drag-and-drop-assumptions mouse-up mouse-down mouse-pos)
+(define (drag-and-drop-assumptions mouse-up mouse-down mouse-pos init-elt-pos)
   (assert (and (valid-timestamps? mouse-up)
                (valid-timestamps? mouse-down)
-               (valid-behavior? mouse-pos))))
+               (valid-behavior? mouse-pos)
+               (>= (vector-ref init-elt-pos 0) 0)
+               (>= (vector-ref init-elt-pos 1) 0)
+               )))
 
-(define solved (solve (drag-and-drop-assumptions s-mouse-up s-mouse-down s-mouse-pos)))
+(define solved (solve (drag-and-drop-assumptions s-mouse-up s-mouse-down s-mouse-pos s-init-elt-pos)))
 
 (if (unsat? solved)
     (displayln "no solution for assumptions")
@@ -107,17 +115,56 @@
       (displayln "sample solution for assumptions:")
       (displayln (evaluate s-mouse-up solved))
       (displayln (evaluate s-mouse-down solved))
-      (displayln (evaluate s-mouse-pos solved))))
+      (displayln (evaluate s-mouse-pos solved))
+      (displayln (elt-positionB s-mouse-up s-mouse-down s-mouse-pos s-init-elt-pos))))
 
-(define (drag-and-drop-guarantees mouse-up mouse-down mouse-pos)
-  (let ([output-posB (elt-positionB mouse-up mouse-down mouse-pos)])
+(define (dragging-intervals mouse-down mouse-up)
+  (map (λ (down-e) (list (get-timestamp down-e) (get-timestamp (findf (λ (up-e) (and (eq? (get-value up-e) 'up)
+                                                                      (<= (get-timestamp down-e) (get-timestamp up-e))))
+                                                       mouse-up))))
+       (filter (λ (e) (eq? (get-value e) 'down)) mouse-down)))
+(define (dropping-intervals mouse-up mouse-down)
+  (map (λ (up-e) (list up-e (findf (λ (down-e) (and (eq? (get-value down-e) 'down)
+                                                                                   (<= (get-timestamp up-e) (get-timestamp down-e))))
+                                                                  mouse-down)))
+       (filter (λ (e) (eq? (get-value e) 'up)) mouse-up)))
+(define (bounded-by-events start end evt-stream)
+  (if (and (not start) (not end))
+      evt-stream
+      (if (and start end)
+          (boundedTimestampsStream (get-timestamp start) (get-timestamp end) evt-stream)
+          (if start
+              (startAtTimestamp (get-timestamp start) evt-stream)
+              (endAtTimestamp (get-timestamp end) evt-stream)))))
+
+(define (drag-and-drop-guarantees mouse-up mouse-down mouse-pos init-elt-pos)
+  (let ([output-posB (elt-positionB mouse-up mouse-down mouse-pos init-elt-pos)])
     (assert (and (valid-behavior? output-posB)
-                 #t))))
+                 (eq? init-elt-pos (behavior-init output-posB))
+                 ;; until a mouse down event occurs, the element position never changes
+                 (let* ([first-mouse-down (findf (λ (e) (eq? (get-value e) 'down)) mouse-down)]
+                        [until-first-mouse-down-output (if first-mouse-down
+                                                           (endAtTimestamp (get-timestamp first-mouse-down) (changes output-posB))
+                                                           (changes output-posB))])
+                   (andmap (λ (e) (eq? (get-value e) (behavior-init output-posB))) (changes output-posB)))
+                 ;; for every interval begun with a mouse down and ending with a mouse up
+                 ;; the mouse position and the elt position is the same
+                 (eq?
+                  (map (λ (bounds) (boundedTimestampsStream (list-ref bounds 0) (list-ref bounds 1) (changes output-posB)))
+                       (dragging-intervals mouse-down mouse-up))
+                  (map (λ (bounds) (boundedTimestampsStream (list-ref bounds 0) (list-ref bounds 1) (changes mouse-pos)))
+                       (dragging-intervals mouse-down mouse-up)))
+                 ;; for every interval begun with a mouse up and ending with a mouse down
+                 ;; the elt position does not change for its initial value
+                 (andmap (λ (positions) (eq? 1 (length (remove-duplicates positions))))
+                         (map (λ (pairs) (bounded-by-events (list-ref pairs 0) (list-ref pairs 1) (changes output-posB)))
+                              (dropping-intervals mouse-up mouse-down)))
+                 ))))
 
-(displayln "Verify drag and drop spec\n")
+(displayln "Verify drag and drop spec")
 (define begin-time (current-seconds))
 (define verified (verify #:assume (drag-and-drop-assumptions s-mouse-up s-mouse-down s-mouse-pos)
-                         #:guarantee (drag-and-drop-guarantees s-mouse-up s-mouse-down s-mouse-pos)))
+                         #:guarantee (drag-and-drop-guarantees s-mouse-up s-mouse-down s-mouse-pos s-init-elt-pos)))
 (if (unsat? verified)
     (displayln "Spec is verified")
     (printf "Model that violates spec is found: mouse-down ~a, mouse-up ~a, mouse-pos ~a~n"
@@ -127,11 +174,6 @@
 (define end-time (current-seconds))
 (printf "Took ~a seconds~n" (- end-time begin-time))
 
-#;(define (valid-behavior? b)
-  (and (behavior? b)
-       (apply distinct? (map get-timestamp (behavior-changes b)))
-       (andmap positive? (map get-timestamp (behavior-changes b)))
-       (timestamps-sorted? (behavior-changes b))))
 
 
 
