@@ -11,14 +11,16 @@
 (define ts-comparator (λ (x y) (< (first x) (first y))))
 
 (define (startAtTimestamp ts evt-stream)
-  (unless (empty? evt-stream)
-    (filter (λ (e) (>= (first e) ts)) evt-stream)))
+  (filter (λ (e) (>= (first e) ts)) evt-stream))
+(define (startBehaviorAtTimestamp ts b)
+  (let ([filtered-evt-stream (filter (λ (e) (>= (first e) ts)) (behavior-changes b))])
+    (if (member ts (map get-timestamp filtered-evt-stream))
+        filtered-evt-stream
+        (append (list (list ts (valueNow b ts))) filtered-evt-stream))))
 (define (endAtTimestamp ts evt-stream)
-  (unless (empty? evt-stream)
-    (filter (λ (e) (<= (first e) ts)) evt-stream)))
+  (filter (λ (e) (<= (first e) ts)) evt-stream))
 (define (boundedTimestampsStream ts1 ts2 evt-stream)
-  (unless (empty? evt-stream)
-    (filter (λ (e) (and (>= (first e) ts1) (<= (first e) ts2))) evt-stream)))
+  (filter (λ (e) (and (>= (first e) ts1) (<= (first e) ts2))) evt-stream))
 
 (define (valid-timestamps? stream)
   (and (apply distinct? (map get-timestamp stream))
