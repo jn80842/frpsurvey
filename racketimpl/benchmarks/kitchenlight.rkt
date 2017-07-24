@@ -43,16 +43,19 @@
  (equal-behaviors? (kitchen-light-status-graph b-motion-sensor) b-light-status)
  (equal-behaviors? (kitchen-light-color-graph (kitchen-light-status-graph b-motion-sensor) (mode-graph b-clock b-location)) b-light-color))
 
-(define (location-behavior concrete-list)
-  (define-symbolic* init-is-home? boolean?)
-  (behavior (if init-is-home? 'home 'not-at-home) (map (λ (x)
-                                                         (define-symbolic* timestamp integer?)
-                                                         (define-symbolic* is-home? boolean?)
-                                                         (list timestamp (if is-home? 'home 'not-at-home))) concrete-list)))
+(define (location-behavior n)
+  (let ([concrete-list (stream-size n)])
+    (define-symbolic* init-is-home? boolean?)
+    (behavior (if init-is-home? 'home 'not-at-home) (map (λ (x)
+                                                           (define-symbolic* timestamp integer?)
+                                                           (define-symbolic* is-home? boolean?)
+                                                           (list timestamp (if is-home? 'home 'not-at-home))) concrete-list))))
 
-(define s-motion-sensor (boolean-behavior (list 1)))
-(define s-location (location-behavior (list 1)))
-(define s-clock (time-vec-behavior (list 1)))
+(define stream-length 3)
+
+(define s-motion-sensor (boolean-behavior stream-length))
+(define s-location (location-behavior stream-length))
+(define s-clock (time-vec-behavior stream-length))
        
 (define (mode-assumptions clockB locationB)
   (and (valid-behavior? clockB)
@@ -61,21 +64,14 @@
        (valid-behavior? locationB)
        ))
 
-(define solved (solve (assert (mode-assumptions s-clock s-location))))
-
-(if (unsat? solved)
-    (displayln "no solution for assumptions")
-    (begin
-      (displayln "sample solution for assumptions:")
-      (displayln (evaluate s-clock solved))
-      (displayln (evaluate s-location solved))))
+(check-existence-of-solution mode-assumptions s-clock s-location)
 
 (define (if-home-then-home-or-night loc mode)
   (or (not (eq? 'home loc)) (or (eq? mode 'home) (eq? mode 'night))))
 
 (define (mode-guarantees clockB locationB modeB)
   (let ([unique-ts (all-unique-timestamps clockB locationB modeB)])
-  (and (if-home-then-home-or-night (behavior-init locationB) (behavior-init modeB))
+    (and (if-home-then-home-or-night (behavior-init locationB) (behavior-init modeB))
      ;  (andmap if-home-then-home-or-night (project-values locationB unique-ts) (project-values modeB unique-ts))
        )))
 

@@ -1,5 +1,7 @@
 #lang rosette/safe
 
+(require rosette/query/debug rosette/lib/render)
+
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
 
@@ -63,57 +65,67 @@
 (define-symbolic* init-elt-y integer?)
 (define s-init-elt-pos (vector init-elt-x init-elt-y))
 
-(define (symbolic-click-event-stream symbol concrete-list)
-  (map (λ (c)
-         (define-symbolic* timestamp integer?)
-        ; (assert (>= (length concrete-list) timestamp))
-        ; (assert (> timestamp 0))
-         (define-symbolic* click-evt boolean?)
-         (define click-union (if click-evt symbol 'no-evt))
-         (list timestamp click-union)) concrete-list))
+(define (symbolic-click-event-stream symbol n)
+  (let ([concrete-list (stream-size n)])
+    (map (λ (c)
+           (define-symbolic* timestamp integer?)
+           ; (assert (>= (length concrete-list) timestamp))
+           ; (assert (> timestamp 0))
+           (define-symbolic* click-evt boolean?)
+           (define click-union (if click-evt symbol 'no-evt))
+           (list timestamp click-union)) concrete-list)))
 
-(define s-mouse-up (symbolic-click-event-stream 'up (list 1 2 3)))
-(define s-mouse-down (symbolic-click-event-stream 'down (list 1 2 3)))
+(define stream-length 3)
+(define max-timestamp 20 );(* 2 stream-length))
 
-(define (vector-event-stream concrete-list)
-  (map (λ (v)
-         (define-symbolic* timestamp integer?)
-         ;(assert (>= (length concrete-list) timestamp))
-         ;(assert (> timestamp 0))
-         (define-symbolic* x integer?)
-         ;(assert (>= x 0))
-         (define-symbolic* y integer?)
-         ;(assert (>= y 0))
-         (list timestamp (vector x y))) concrete-list))
-(define (vector-behavior concrete-list)
+(define s-mouse-up (symbolic-click-event-stream 'up stream-length))
+(define s-mouse-down (symbolic-click-event-stream 'down stream-length))
+
+(define (vector-event-stream n)
+  (let ([concrete-list (stream-size n)])
+    (map (λ (v)
+           (define-symbolic* timestamp integer?)
+           ;(assert (>= max-timestamp timestamp))
+           ;(assert (> timestamp 0))
+           (define-symbolic* x integer?)
+           ;(assert (>= x 0))
+           (define-symbolic* y integer?)
+           ;(assert (>= y 0))
+           (list timestamp (vector x y))) concrete-list)))
+(define (vector-behavior n)
   (define-symbolic* init-x integer?)
-  (assert (> init-x 0))
+ ; (assert (> init-x 0))
   (define-symbolic* init-y integer?)
-  (assert (> init-y 0))
-  (behavior (vector init-x init-y) (vector-event-stream concrete-list)))
+ ; (assert (> init-y 0))
+  (behavior (vector init-x init-y) (vector-event-stream n)))
          
-(define s-mouse-pos (vector-behavior (list 1 2 3)))
+(define s-mouse-pos (vector-behavior stream-length))
 
 (printf "current bitwidth: ~a~n" (current-bitwidth))
 (printf "length of mouse up events: ~a~n" (length s-mouse-up))
 (printf "length of mouse down events: ~a~n" (length s-mouse-down))
 (printf "length of changes in mouse position behavior: ~a~n" (length (changes s-mouse-pos)))
 
-(define (drag-and-drop-assumptions mouse-up mouse-down mouse-pos init-elt-pos)
+(define (click-sequence state transition)
+  (cond [(and (eq? 'waiting-for-up state) (eq? 'up (get-value transition))) 'waiting-for-down]
+        [(and (eq? 'waiting-for-down state) (eq? 'down (get-value transition))) 'waiting-for-up]
+        [else #f]))
+
+(define/debug (drag-and-drop-assumptions mouse-up mouse-down mouse-pos init-elt-pos)
   (let ([actual-ups (filter (λ (e) (not (eq? 'no-evt (get-value e)))) mouse-up)]
         [actual-downs (filter (λ (e) (not (eq? 'no-evt (get-value e)))) mouse-down)])
     (and (valid-timestamps? mouse-up)
          (valid-timestamps? mouse-down)
          ;; timestamps don't need to be bigger than both sets of mouse events together
-         (andmap (λ (t) (<= t (+ (length mouse-up) (length mouse-down))))
-                 (append (map get-timestamp mouse-up) (map get-timestamp mouse-down)))
+         ;(timestamps-below-max? max-timestamp mouse-up)
+         ;(andmap (λ (t) (>= max-timestamp t)) (append (map get-timestamp mouse-up) (map get-timestamp mouse-down)))
          ;; no up and down can occur at the same time
          (apply distinct? (append (map get-timestamp actual-ups) (map get-timestamp actual-downs)))
          ;; every up has to be followed by a down (and not a second up)
          ;; if down is followed by anything, it has to be followed by an up
          (foldl
-          (λ (state transition) (cond [(and (eq? 'waiting state) (eq? 'up (get-value transition))) #t]
-                                      [(and state (eq? 'down (get-value transition))) 'waiting]
+          (λ (state transition) (cond [(and (eq? 'waiting-for-up state) (eq? 'up (get-value transition))) 'waiting-for-down]
+                                      [(and (eq? 'waiting-for-down state) (eq? 'down (get-value transition))) 'waiting-for-up]
                                       [else #f]))
           #t
           (sort (append actual-ups actual-downs) (λ (e1 e2) (< (get-timestamp e1) (get-timestamp e2)))))
@@ -121,6 +133,8 @@
          ;; all mouse positions must be >0
          (andmap (λ (v) (and (>= (vector-ref (get-value v) 0) 0)
                              (>= (vector-ref (get-value v) 1) 0))) (behavior-changes mouse-pos))
+         ;; no change in the element position can occur at a timestamp larger than those of both mouse up/down streams
+         ;(andmap (λ (t) (>= max-timestamp t)) (changes mouse-pos))
          ;; initial placement of element must be >0
          (>= (vector-ref init-elt-pos 0) 0)
          (>= (vector-ref init-elt-pos 1) 0)
@@ -169,10 +183,12 @@
                               (dropping-intervals mouse-up mouse-down)))
                  )))
 
-(define solved (solve (assert (drag-and-drop-assumptions s-mouse-up s-mouse-down
+(check-existence-of-solution drag-and-drop-assumptions s-mouse-up s-mouse-down s-mouse-pos s-init-elt-pos)
+
+#;(define solved (solve (assert (drag-and-drop-assumptions s-mouse-up s-mouse-down
                                                              s-mouse-pos s-init-elt-pos))))
 
-(if (unsat? solved)
+#;(if (unsat? solved)
     (displayln "no solution for assumptions")
     (begin
       (displayln "sample solution for assumptions:")

@@ -67,14 +67,12 @@
 
 ;; skipFirstE
 
-(define (delayE evt-stream-f interval)
-  (λ ()
-    (let ([evt-stream (evt-stream-f)])
-      (map (λ(s) (list (+ (get-timestamp s) interval) (get-value s))) evt-stream))))
+(define (delayE evt-stream interval)
+  (map (λ(s) (list (+ (get-timestamp s) interval) (get-value s))) evt-stream))
 
 ;; blindE
 
-(define (calmE evt-stream-f interval)
+#;(define (calmE evt-stream-f interval)
   (λ ()
     (let ([evt-stream (evt-stream-f)])
       (letrec ([calm (λ (evt-lst)
@@ -86,11 +84,6 @@
                                  (calm (cdr evt-lst)) ;; the first one is too close to the second, don't propagate
                                  (append (list current) (calm (cdr evt-lst)))))))]) ;; propagate the first one
     (calm evt-stream)))))
-
-#;(define (startsWith evt-stream init-value)
-  ;(λ ()
-  ;  (let* ([evt-stream (evt-stream-f)])
-      (append (list (list 0 init-value)) evt-stream)) ;))
 
 (define (startsWith evt-stream init-value)
   (behavior init-value evt-stream))

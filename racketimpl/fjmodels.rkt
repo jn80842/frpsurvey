@@ -31,6 +31,9 @@
 (define (timestamps-sorted? stream)
   (equal? (map get-timestamp stream) (sort (map get-timestamp stream) <)))
 
+(define (timestamps-below-max? max stream)
+  (andmap (λ (t) (>= max t)) (map get-timestamp stream)))
+
 ;;;; represent times with vectors to allow us to use bitwidth 5 ;;;;
 (define (s-time-vec)
   (define-symbolic* hour integer?)
@@ -99,49 +102,63 @@
   (or (not p) q))
 
 ;;;;; make symbolic event streams ;;;;;;;;;;
-(define (boolean-event-stream concrete-list)
-  (map (λ (c)
-         (define-symbolic* timestamp integer?)
-         (assert (>= (length concrete-list) timestamp))
-         (assert (> timestamp 0))
-         (define-symbolic* value boolean?)
-         (list timestamp value)) concrete-list))
 
-(define (positive-integer-event-stream concrete-list)
-  (map (λ (c)
-         (define-symbolic* timestamp integer?)
-         (assert (>= (length concrete-list) timestamp))
-         (assert (> timestamp 0))
-         (define-symbolic* value integer?)
-         (assert (> value -1))
-         (list timestamp value)) concrete-list))
+;; this is kludgy but i don't want to write a recursive function
+(define (stream-size n)
+  (cond [(eq? n 0) '()]
+         [(eq? n 1) '(1)]
+         [(eq? n 2) '(1 2)]
+         [(eq? n 3) '(1 2 3)]
+         [(eq? n 4) '(1 2 3 4)]
+         [(eq? n 5) '(1 2 3 4 5)]
+         [(eq? n 6) '(1 2 3 4 5 6)]))
 
-(define (time-vec-event-stream concrete-list)
-  (map (λ (c)
-         (define-symbolic* timestamp integer?)
-         (assert (>= (length concrete-list) timestamp))
-         (assert (> timestamp 0))
-         (define-symbolic* hour integer?)
-         (assert (>= 23 hour))
-         (assert (> hour 0))
-         (define-symbolic* minute-tens integer?)
-         (assert (>= 5 minute-tens))
-         (assert (> minute-tens 0))
-         (define-symbolic* minute-ones integer?)
-         (list timestamp (vector hour minute-tens minute-ones))) concrete-list))
+(define (boolean-event-stream n)
+  (let ([concrete-list (stream-size n)])
+    (map (λ (c)
+           (define-symbolic* timestamp integer?)
+           (assert (>= (length concrete-list) timestamp))
+           (assert (> timestamp 0))
+           (define-symbolic* value boolean?)
+           (list timestamp value)) concrete-list)))
+
+(define (positive-integer-event-stream n)
+  (let ([concrete-list (stream-size n)])
+    (map (λ (c)
+           (define-symbolic* timestamp integer?)
+           (assert (>= (length concrete-list) timestamp))
+           (assert (> timestamp 0))
+           (define-symbolic* value integer?)
+           (assert (> value -1))
+           (list timestamp value)) concrete-list)))
+
+(define (time-vec-event-stream n)
+  (let ([concrete-list (stream-size n)])
+    (map (λ (c)
+           (define-symbolic* timestamp integer?)
+           (assert (>= (length concrete-list) timestamp))
+           (assert (> timestamp 0))
+           (define-symbolic* hour integer?)
+           (assert (>= 23 hour))
+           (assert (> hour 0))
+           (define-symbolic* minute-tens integer?)
+           (assert (>= 5 minute-tens))
+           (assert (> minute-tens 0))
+           (define-symbolic* minute-ones integer?)
+           (list timestamp (vector hour minute-tens minute-ones))) concrete-list)))
 
 ;;;;;;;; make symbolic behaviors ;;;;;;;;
 
-(define (boolean-behavior concrete-list)
+(define (boolean-behavior n)
   (define-symbolic* init-val boolean?)
-  (behavior init-val (boolean-event-stream concrete-list)))
+  (behavior init-val (boolean-event-stream n)))
 
-(define (positive-integer-behavior concrete-list)
+(define (positive-integer-behavior n)
   (define-symbolic* init-val integer?)
   (assert (> init-val 0))
-  (behavior init-val (positive-integer-event-stream concrete-list)))
+  (behavior init-val (positive-integer-event-stream n)))
 
-(define (time-vec-behavior concrete-list)
+(define (time-vec-behavior n)
   (define-symbolic* hour integer?)
   (assert (>= 23 hour))
   (assert (> hour 0))
@@ -149,4 +166,13 @@
   (assert (>= 5 minute-tens))
   (assert (> minute-tens 0))
   (define-symbolic* minute-ones integer?)
-  (behavior (vector hour minute-tens minute-ones) (time-vec-event-stream concrete-list)))
+  (behavior (vector hour minute-tens minute-ones) (time-vec-event-stream n)))
+
+(define (check-existence-of-solution spec . inputs)
+  (displayln "checking assumptions ....")
+  (define solved (solve (assert (apply spec inputs))))
+  (if (unsat? solved)
+      (displayln "no solution for assumptions")
+      (begin (displayln "sample solution for assumptions:")
+             (map (λ (i) (displayln (evaluate i solved))) inputs)))
+  (void))

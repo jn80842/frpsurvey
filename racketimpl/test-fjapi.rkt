@@ -76,6 +76,9 @@
       (list (list 1 1) (list 4 2) (list 9 8)))
 (test "snapshotE with no-events" (snapshotE stream-with-no-evts (behavior 1 '())) (list (list 2 1) (list 5 1)))
 
+;; delayE tests
+(test "delayE" (delayE standard-evt-stream 3) '((4 11) (5 12) (6 13)))
+
 ;; startsWith tests
 (test "startsWith" (startsWith standard-evt-stream 10) (behavior 10 (list (list 1 11) (list 2 '12) (list 3 13))))
      ; (list (list 0 10) (list 1 11) (list 2 12) (list 3 13)))
