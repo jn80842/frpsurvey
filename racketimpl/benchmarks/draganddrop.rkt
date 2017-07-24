@@ -59,7 +59,7 @@
     (printf "ok!\n")
     (printf "something's wrong\n"))
 
-(current-bitwidth 3)
+(current-bitwidth 5)
 
 (define-symbolic* init-elt-x integer?)
 (define-symbolic* init-elt-y integer?)
@@ -76,7 +76,10 @@
            (list timestamp click-union)) concrete-list)))
 
 (define stream-length 3)
-(define max-timestamp 20 );(* 2 stream-length))
+(define max-timestamp (* 2 stream-length))
+(if (>= max-timestamp (sub1 (expt 2 (sub1 (current-bitwidth)))))
+    (displayln "MAX TIMESTAMP IS TOO HIGH and WILL CAUSE OVERFLOW")
+    (printf "max timestamp is ~a~n" max-timestamp))
 
 (define s-mouse-up (symbolic-click-event-stream 'up stream-length))
 (define s-mouse-down (symbolic-click-event-stream 'down stream-length))
@@ -85,18 +88,12 @@
   (let ([concrete-list (stream-size n)])
     (map (λ (v)
            (define-symbolic* timestamp integer?)
-           ;(assert (>= max-timestamp timestamp))
-           ;(assert (> timestamp 0))
            (define-symbolic* x integer?)
-           ;(assert (>= x 0))
            (define-symbolic* y integer?)
-           ;(assert (>= y 0))
            (list timestamp (vector x y))) concrete-list)))
 (define (vector-behavior n)
   (define-symbolic* init-x integer?)
- ; (assert (> init-x 0))
   (define-symbolic* init-y integer?)
- ; (assert (> init-y 0))
   (behavior (vector init-x init-y) (vector-event-stream n)))
          
 (define s-mouse-pos (vector-behavior stream-length))
@@ -111,14 +108,14 @@
         [(and (eq? 'waiting-for-down state) (eq? 'down (get-value transition))) 'waiting-for-up]
         [else #f]))
 
-(define/debug (drag-and-drop-assumptions mouse-up mouse-down mouse-pos init-elt-pos)
+(define (drag-and-drop-assumptions mouse-up mouse-down mouse-pos init-elt-pos)
   (let ([actual-ups (filter (λ (e) (not (eq? 'no-evt (get-value e)))) mouse-up)]
         [actual-downs (filter (λ (e) (not (eq? 'no-evt (get-value e)))) mouse-down)])
     (and (valid-timestamps? mouse-up)
          (valid-timestamps? mouse-down)
          ;; timestamps don't need to be bigger than both sets of mouse events together
          ;(timestamps-below-max? max-timestamp mouse-up)
-         ;(andmap (λ (t) (>= max-timestamp t)) (append (map get-timestamp mouse-up) (map get-timestamp mouse-down)))
+         (andmap (λ (t) (>= max-timestamp t)) (append (map get-timestamp mouse-up) (map get-timestamp mouse-down)))
          ;; no up and down can occur at the same time
          (apply distinct? (append (map get-timestamp actual-ups) (map get-timestamp actual-downs)))
          ;; every up has to be followed by a down (and not a second up)
@@ -134,7 +131,7 @@
          (andmap (λ (v) (and (>= (vector-ref (get-value v) 0) 0)
                              (>= (vector-ref (get-value v) 1) 0))) (behavior-changes mouse-pos))
          ;; no change in the element position can occur at a timestamp larger than those of both mouse up/down streams
-         ;(andmap (λ (t) (>= max-timestamp t)) (changes mouse-pos))
+        ; (andmap (λ (t) (>= max-timestamp t)) (changes mouse-pos))
          ;; initial placement of element must be >0
          (>= (vector-ref init-elt-pos 0) 0)
          (>= (vector-ref init-elt-pos 1) 0)
@@ -184,18 +181,6 @@
                  )))
 
 (check-existence-of-solution drag-and-drop-assumptions s-mouse-up s-mouse-down s-mouse-pos s-init-elt-pos)
-
-#;(define solved (solve (assert (drag-and-drop-assumptions s-mouse-up s-mouse-down
-                                                             s-mouse-pos s-init-elt-pos))))
-
-#;(if (unsat? solved)
-    (displayln "no solution for assumptions")
-    (begin
-      (displayln "sample solution for assumptions:")
-      (displayln (evaluate s-mouse-up solved))
-      (displayln (evaluate s-mouse-down solved))
-      (displayln (evaluate s-mouse-pos solved))
-      (displayln (elt-positionB s-mouse-up s-mouse-down s-mouse-pos s-init-elt-pos))))
 
 (displayln "Verify drag and drop spec")
 (define begin-time (current-seconds))
