@@ -7,6 +7,9 @@
 (define (get-value item)
   (second item))
 
+(define (max-for-current-bitwidth n)
+  (sub1 (expt 2 (sub1 n))))
+
 ;;;;;; timestamp related helpers ;;;;;;;;
 (define ts-comparator (λ (x y) (< (first x) (first y))))
 

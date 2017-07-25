@@ -1,9 +1,9 @@
-#lang rosette ;/safe
+#lang rosette/safe
 
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
 
-(current-bitwidth 4)
+(current-bitwidth 5)
 
 (define time-delay 3)
 (define x-offset 5)
@@ -26,24 +26,37 @@
   (let ([output (mouse-tail-y-graph (λ () y-input))])
     (output)))
 
-(define stream-length 2)
+(define stream-length 4)
 
 (define mouse-x (positive-integer-event-stream stream-length))
 (define mouse-y (positive-integer-event-stream stream-length))
 
-(printf "current bitwidth ~a~n" (current-bitwidth))
+(printf "current bitwidth ~a, maximum possible value is ~a~n"
+        (current-bitwidth) (max-for-current-bitwidth (current-bitwidth)))
 (printf "length of mouse-x ~a~n" (length mouse-x))
 (printf "length of mouse-y ~a~n" (length mouse-y))
 
 (define (mousetail-x-assumptions mx)
   (and (valid-timestamps? mx)
+       ;; timestamp is no longer than number of events in stream
        (andmap (λ (e) (<= (get-timestamp e) stream-length)) mx)
-       (andmap (λ (n) (> n 0)) (map get-value mx))))
+       ;; x coord must be 0 or higher
+       (andmap (λ (n) (>= n 0)) (map get-value mx))
+       ;; to prevent overflow, x coord can't be greater than max minus offset
+       (andmap (λ (n) (<= n (- (max-for-current-bitwidth (current-bitwidth)) x-offset)))
+               (map get-value mx))
+       ))
 
 (define (mousetail-y-assumptions my)
   (and (valid-timestamps? my)
+       ;; timestamp is no longer than number of events in stream
        (andmap (λ (e) (<= (get-timestamp e) stream-length)) my)
-       (andmap (λ (n) (> n 0)) (map get-value my))))
+       ;; y coord must be 0 or higher
+       (andmap (λ (n) (>= n 0)) (map get-value my))
+       ;; to prevent overflow, y coord can't be greater than max
+       (andmap (λ (n) (<= n (max-for-current-bitwidth (current-bitwidth))))
+               (map get-value my))
+       ))
 
 (define (mousetail-assumptions mx my)
   (and (mousetail-x-assumptions mx)

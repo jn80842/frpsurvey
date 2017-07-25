@@ -28,7 +28,8 @@
 (define s-inc (clicksE stream-length))
 (define s-dec (clicksE stream-length))
 
-(printf "current bitwidth: ~a~n" (current-bitwidth))
+(printf "current bitwidth ~a, maximum possible value is ~a~n"
+        (current-bitwidth) (max-for-current-bitwidth (current-bitwidth)))
 (printf "length of increase clicks ~a~n" (length s-inc))
 (printf "length of decrease clicks ~a~n" (length s-dec))
 

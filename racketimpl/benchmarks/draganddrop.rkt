@@ -59,7 +59,7 @@
     (printf "ok!\n")
     (printf "something's wrong\n"))
 
-(current-bitwidth 5)
+(current-bitwidth 4)
 
 (define-symbolic* init-elt-x integer?)
 (define-symbolic* init-elt-y integer?)
@@ -77,6 +77,7 @@
 
 (define stream-length 3)
 (define max-timestamp (* 2 stream-length))
+(define max-mouse-pos 6)
 (if (>= max-timestamp (sub1 (expt 2 (sub1 (current-bitwidth)))))
     (displayln "MAX TIMESTAMP IS TOO HIGH and WILL CAUSE OVERFLOW")
     (printf "max timestamp is ~a~n" max-timestamp))
@@ -98,7 +99,8 @@
          
 (define s-mouse-pos (vector-behavior stream-length))
 
-(printf "current bitwidth: ~a~n" (current-bitwidth))
+(printf "current bitwidth ~a, maximum possible value is ~a~n"
+        (current-bitwidth) (max-for-current-bitwidth (current-bitwidth)))
 (printf "length of mouse up events: ~a~n" (length s-mouse-up))
 (printf "length of mouse down events: ~a~n" (length s-mouse-down))
 (printf "length of changes in mouse position behavior: ~a~n" (length (changes s-mouse-pos)))
@@ -128,13 +130,18 @@
           (sort (append actual-ups actual-downs) (λ (e1 e2) (< (get-timestamp e1) (get-timestamp e2)))))
          (valid-behavior? mouse-pos)
          ;; all mouse positions must be >0
+         ;; and bound upper value to limit verification time
          (andmap (λ (v) (and (>= (vector-ref (get-value v) 0) 0)
-                             (>= (vector-ref (get-value v) 1) 0))) (behavior-changes mouse-pos))
-         ;; no change in the element position can occur at a timestamp larger than those of both mouse up/down streams
-        ; (andmap (λ (t) (>= max-timestamp t)) (changes mouse-pos))
+                             (<= (vector-ref (get-value v) 0) max-mouse-pos)
+                             (>= (vector-ref (get-value v) 1) 0)
+                             (<= (vector-ref (get-value v) 1) max-mouse-pos))) (behavior-changes mouse-pos))
+         ;; limit timestamps on mouse position to limit verification time
+         (andmap (λ (e) (>= max-timestamp (get-timestamp e))) (changes mouse-pos))
          ;; initial placement of element must be >0
          (>= (vector-ref init-elt-pos 0) 0)
+         (<= (vector-ref init-elt-pos 0) max-mouse-pos)
          (>= (vector-ref init-elt-pos 1) 0)
+         (<= (vector-ref init-elt-pos 1) max-mouse-pos)
        )))
 
 (define (dragging-intervals mouse-down mouse-up)
@@ -159,26 +166,26 @@
 (define (drag-and-drop-guarantees mouse-up mouse-down mouse-pos init-elt-pos)
   (let ([output-posB (elt-positionB mouse-up mouse-down mouse-pos init-elt-pos)])
      (and (valid-behavior? output-posB)
-                 (eq? init-elt-pos (behavior-init output-posB))
-                 ;; until a mouse down event occurs, the element position never changes
-                 (let* ([first-mouse-down (findf (λ (e) (eq? (get-value e) 'down)) mouse-down)]
-                        [until-first-mouse-down-output (if first-mouse-down
-                                                           (endAtTimestamp (get-timestamp first-mouse-down) (changes output-posB))
-                                                           (changes output-posB))])
-                   (andmap (λ (e) (eq? (get-value e) (behavior-init output-posB))) until-first-mouse-down-output))
-                 ;; for every interval begun with a mouse down and ending with a mouse up
-                 ;; the mouse position and the elt position is the same
-                 (eq?
-                  (map (λ (bounds) (boundedTimestampsStream (list-ref bounds 0) (list-ref bounds 1) (changes output-posB)))
-                       (dragging-intervals mouse-down mouse-up))
-                  (map (λ (bounds) (boundedTimestampsStream (list-ref bounds 0) (list-ref bounds 1) (changes mouse-pos)))
-                       (dragging-intervals mouse-down mouse-up)))
-                 ;; for every interval begun with a mouse up and ending with a mouse down
-                 ;; the elt position does not change for its initial value
-                 (andmap (λ (positions) (eq? 1 (length (remove-duplicates positions))))
-                         (map (λ (pairs) (bounded-by-events (list-ref pairs 0) (list-ref pairs 1) (changes output-posB)))
-                              (dropping-intervals mouse-up mouse-down)))
-                 )))
+          (eq? init-elt-pos (behavior-init output-posB))
+          ;; until a mouse down event occurs, the element position never changes
+          (let* ([first-mouse-down (findf (λ (e) (eq? (get-value e) 'down)) mouse-down)]
+                 [until-first-mouse-down-output (if first-mouse-down
+                                                    (endAtTimestamp (get-timestamp first-mouse-down) (changes output-posB))
+                                                    (changes output-posB))])
+            (andmap (λ (e) (eq? (get-value e) (behavior-init output-posB))) until-first-mouse-down-output))
+          ;; for every interval begun with a mouse down and ending with a mouse up
+          ;; the mouse position and the elt position is the same
+          (eq?
+           (map (λ (bounds) (boundedTimestampsStream (list-ref bounds 0) (list-ref bounds 1) (changes output-posB)))
+                (dragging-intervals mouse-down mouse-up))
+           (map (λ (bounds) (boundedTimestampsStream (list-ref bounds 0) (list-ref bounds 1) (changes mouse-pos)))
+                (dragging-intervals mouse-down mouse-up)))
+          ;; for every interval begun with a mouse up and ending with a mouse down
+          ;; the elt position does not change for its initial value
+          (andmap (λ (positions) (eq? 1 (length (remove-duplicates positions))))
+                  (map (λ (pairs) (bounded-by-events (list-ref pairs 0) (list-ref pairs 1) (changes output-posB)))
+                       (dropping-intervals mouse-up mouse-down)))
+          )))
 
 (check-existence-of-solution drag-and-drop-assumptions s-mouse-up s-mouse-down s-mouse-pos s-init-elt-pos)
 
