@@ -100,9 +100,9 @@
     (and (eq? (behavior-init b1) (behavior-init b2))
          (eq? enhanced-b1 enhanced-b2))))
 
-(define (behavior-check b proc)
-  (and (proc (behavior-init b))
-       (andmap (map proc (map get-value (behavior-changes b))))))
+(define (behavior-check proc . behaviors)
+  (and (apply proc (map behavior-init behaviors))
+       (andmap (λ (vs) (apply proc vs)) (apply (curry map list) (map behavior-changes behaviors)))))
 
 (define (implication p q)
   (or (not p) q))

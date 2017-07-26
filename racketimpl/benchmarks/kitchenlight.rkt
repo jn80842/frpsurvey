@@ -51,7 +51,7 @@
                                                            (define-symbolic* is-home? boolean?)
                                                            (list timestamp (if is-home? 'home 'not-at-home))) concrete-list))))
 
-(define stream-length 3)
+(define stream-length 6)
 
 (define s-motion-sensor (boolean-behavior stream-length))
 (define s-location (location-behavior stream-length))
@@ -96,17 +96,28 @@
          (andmap if-night-then-night enhanced-clockB enhanced-modeB)
          )))
 
-
 (define (light-status-guarantees motionSensorB)
   (let ([lightStatusB (kitchen-light-status-graph motionSensorB)])
     (and (valid-behavior? lightStatusB)
-         (behavior-check lightStatusB (λ (v) (or (eq? 'on v) (eq? 'off v))))
+         (behavior-check (λ (v) (or (eq? 'on v) (eq? 'off v))) lightStatusB)
          (eq? (length (filter (λ (v) (get-value v)) (changes motionSensorB)))
               (length (filter (λ (v) (eq? 'on (get-value v))) (changes lightStatusB)))))))
 
-;(define (light-color-guarantees clockB locationB motionSensorB)
-;  (let ([colorB (kitchen-color-status-graph (
-         
+(define (light-color-guarantees clockB locationB motionSensorB)
+  (let* ([colorB (kitchen-light-color-graph (kitchen-light-status-graph motionSensorB)
+                                            (mode-graph clockB locationB))]
+         [unique-ts (all-unique-timestamps clockB locationB motionSensorB colorB)]
+         [enhanced-clockB (projected-behavior clockB unique-ts)]
+         [enhanced-locationB (projected-behavior locationB unique-ts)]
+         [enhanced-motionSensorB (projected-behavior motionSensorB unique-ts)]
+         [enhanced-colorB (projected-behavior colorB unique-ts)])
+    (and (valid-behavior? colorB)
+         (behavior-check (λ (clock color) (or (not (or (>= (time-vec->integer clock) 2130) (< (time-vec->integer clock) 800)))
+                                             (or (eq? color 'none) (eq? color 'orange)))) enhanced-clockB enhanced-colorB)
+         (behavior-check (λ (clock color) (or (or (>= (time-vec->integer clock) 2130) (< (time-vec->integer clock) 800))
+                                             (or (eq? color 'none) (eq? color 'white)))) enhanced-clockB enhanced-colorB)
+         (behavior-check (λ (motion color) (or (not motion) (eq? color 'none))) motionSensorB colorB)
+         )))
 
 (displayln "Verify mode spec")
 (define begin-time (current-seconds))
