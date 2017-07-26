@@ -78,6 +78,9 @@
 (define (project-values b ts)
   (map (λ (t) (list t (valueNow b t))) ts))
 
+(define (projected-behavior b ts)
+  (behavior (behavior-init b) (project-values b ts)))
+
 (define (get-missing-timestamps b1 b2)
   (filter (λ (t) (not (member t (map get-timestamp (behavior-changes b1)))))
           (map get-timestamp (behavior-changes b2))))
@@ -99,7 +102,7 @@
 
 (define (behavior-check b proc)
   (and (proc (behavior-init b))
-       (andmap (map proc (behavior-changes b)))))
+       (andmap (map proc (map get-value (behavior-changes b))))))
 
 (define (implication p q)
   (or (not p) q))

@@ -56,7 +56,13 @@
 (define s-motion-sensor (boolean-behavior stream-length))
 (define s-location (location-behavior stream-length))
 (define s-clock (time-vec-behavior stream-length))
-       
+
+(printf "current bitwidth ~a, maximum possible value is ~a~n"
+        (current-bitwidth) (max-for-current-bitwidth (current-bitwidth)))
+(printf "length of motion sensor changes ~a~n" (length (changes s-motion-sensor)))
+(printf "length of location changes ~a~n" (length (changes s-location)))
+(printf "length of clock changes ~a~n" (length (changes s-clock)))
+
 (define (mode-assumptions clockB locationB)
   (and (valid-behavior? clockB)
        (valid-time-vec? (behavior-init clockB))
@@ -64,16 +70,43 @@
        (valid-behavior? locationB)
        ))
 
-(check-existence-of-solution mode-assumptions s-clock s-location)
+(define (light-status-assumptions motionSensorB)
+  (and (valid-behavior? motionSensorB)))
+
+(define (light-color-assumptions clockB locationB motionSensorB)
+  (and (mode-assumptions clockB locationB)
+       (light-status-assumptions motionSensorB)))
+
+(check-existence-of-solution light-color-assumptions s-clock s-location s-motion-sensor)
 
 (define (if-home-then-home-or-night loc mode)
   (or (not (eq? 'home loc)) (or (eq? mode 'home) (eq? mode 'night))))
+(define (if-night-then-night clock mode)
+  (or (not (or (>= (time-vec->integer clock) 2130) (< (time-vec->integer clock) 800))) (eq? mode 'night)))
 
-(define (mode-guarantees clockB locationB modeB)
-  (let ([unique-ts (all-unique-timestamps clockB locationB modeB)])
+(define (mode-guarantees clockB locationB)
+  (let* ([modeB (mode-graph clockB locationB)]
+         [unique-ts (all-unique-timestamps clockB locationB modeB)]
+         [enhanced-clockB (projected-behavior clockB unique-ts)]
+         [enhanced-locationB (projected-behavior locationB unique-ts)]
+         [enhanced-modeB (projected-behavior modeB unique-ts)])
     (and (if-home-then-home-or-night (behavior-init locationB) (behavior-init modeB))
-     ;  (andmap if-home-then-home-or-night (project-values locationB unique-ts) (project-values modeB unique-ts))
-       )))
+         (andmap if-home-then-home-or-night enhanced-locationB enhanced-modeB)
+         (if-night-then-night (behavior-init clockB) (behavior-init modeB))
+         (andmap if-night-then-night enhanced-clockB enhanced-modeB)
+         )))
+
+
+(define (light-status-guarantees motionSensorB)
+  (let ([lightStatusB (kitchen-light-status-graph motionSensorB)])
+    (and (valid-behavior? lightStatusB)
+         (behavior-check lightStatusB (λ (v) (or (eq? 'on v) (eq? 'off v))))
+         (eq? (length (filter (λ (v) (get-value v)) (changes motionSensorB)))
+              (length (filter (λ (v) (eq? 'on (get-value v))) (changes lightStatusB)))))))
+
+;(define (light-color-guarantees clockB locationB motionSensorB)
+;  (let ([colorB (kitchen-color-status-graph (
+         
 
 (displayln "Verify mode spec")
 (define begin-time (current-seconds))
