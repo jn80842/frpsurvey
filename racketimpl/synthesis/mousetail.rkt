@@ -1,14 +1,12 @@
 #lang rosette/safe
 (require rosette/lib/synthax)
-(require "../rosettefjapi.rkt")
+
 (require "../fjmodels.rkt")
+(require "../rosettefjapi.rkt")
+(require "grammar.rkt")
 
 (define x-offset 3)
 (define time-delay 3)
-
-(define (same program1 program2 input-stream)
-  (assert
-   (equal? (program1 input-stream) (program2 input-stream))))
 
 (define (spec-mouse-tail-x-graph x-evt-stream)
   (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) x-offset))) (delayE x-evt-stream time-delay)))
@@ -19,10 +17,13 @@
   (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) (?? integer?)))) (delayE x-evt-stream (??))))
 
 (define (op-sketch-mouse-tail-x-graph x-evt-stream)
-  ([choose mapE delayE constantE] (λ (e) (list (get-timestamp e) (+ (get-value e) x-offset)))
-                                  ([choose mapE delayE constantE] x-evt-stream time-delay)))
+  (flapjax-grmr x-evt-stream 3))
+
 (define (op-sketch-mouse-tail-y-graph y-evt-stream)
-  ([choose mapE delayE constantE] y-evt-stream time-delay))
+  (flapjax-grmr y-evt-stream 3))
+
+;(define (op-sketch-mouse-tail-y-graph y-evt-stream)
+;  (delayE y-evt-stream (integer-constants 3)))
 
 (define-symbolic* timestamp1 integer?)
 (define-symbolic* x-val1 integer?)
