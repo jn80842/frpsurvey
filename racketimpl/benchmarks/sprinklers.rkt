@@ -3,30 +3,41 @@
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
 
+(define i-raingaugeB (behavior #f (list (list 1 #t) (list 3 #f))))
+;; does it make more sense for motion sensor to be an event stream?
+(define i-motion-sensorB (behavior #f (list (list 4 #t) (list 5 #f) (list 6 #f) (list 7 #t) (list 10 #t) (list 12 #f))))
+(define i-clockE (list (list 1 (vector 15 3 0)) (list 2 (vector 17 0 0)) (list 3 (vector 18 0 0))
+                      (list 4 (vector 18 0 5)) (list 5 (vector 0 0 0)) (list 6 (vector 8 0 0))
+                      (list 7 (vector 13 0 5)) (list 8 (vector 18 0 0)) (list 9 (vector 18 0 3))
+                      (list 10 (vector 18 0 6)) (list 11 (vector 18 0 7)) (list 12 (vector 18 0 8))
+                      (list 13 (vector 18 1 1)) (list 14 (vector 18 1 3))))
+
+(define o-24h-rained (behavior #f (list (list 1 #t) (list 5 #f))))
+(define o-sprinkler (behavior 'off (list (list 8 'on) (list 10 'off) (list 12 'on) (list 14 'off))))
+
 (current-bitwidth 5)
 
 ;; sprinklers need to run every day for 10 minutes, unless it rains
 ;; sprinklers should go on at 1800
 ;; if motion sensor goes off, pause sprinklers until motion is no longer sensed
 
-(define stream-length 3)
-
-(define s-raingauge (boolean-behavior stream-length))
-(define s-clock (positive-integer-behavior stream-length))
-(define s-motion-sensor (boolean-behavior stream-length)) ;; or, should this be event stream?
-
-;; did it rain the past 24 hours?
-(define (24h-rainedB clockB rain-gaugeB)
+;; did it rain during the past day?
+(define (24h-rainedB clockE rain-gaugeB)
   (startsWith
    (collectE 
     (mergeE
-     (mapE (λ (e) (list (get-timestamp e) 'midnight)) (filterE (changes clockB) (λ (e) (equal? 2359 e))))
+     (mapE (λ (e) (list (get-timestamp e) 'midnight)) (filterE clockE (λ (e) (equal? 0 (time-vec->integer e)))))
      (changes rain-gaugeB))
     #f
     (λ (new val) (cond [(equal? new 'midnight) #f]
                        [new #t]
                        [else val])))
    #f))
+
+(display "checking 24h-rainedB...")
+(if (equal-behaviors? (24h-rainedB i-clockE i-raingaugeB) o-24h-rained)
+    (displayln "ok!")
+    (displayln "something's wrong."))
 
 ;; #t if sprinklers should turn on, 'sensed if motion sensors go off, #f otherwise
 (define (start-or-pause-graphE clockB motionSensorB 24h-rainedB)
@@ -57,25 +68,22 @@
           (list (liftB (λ (t) (not (equal? t 0))) sprinkler-counterB) (constantB 'on))
           (list (constantB #t) (constantB 'off)))))
 
-(define b-raingauge (behavior #f (list (list 1 #t) (list 3 #f))))
-(define b-motion-sensor (behavior #f (list (list 4 #t) (list 5 #f) (list 6 #t) (list 7 #f) (list 10 #t) (list 11 #t) (list 12 #f))))
-;; note: graph won't work unless clock ticks for every minute the sprinklers should be on
-;; seems reasonable for a real implementation, think about how 
-(define b-clock (behavior 0 (list (list 1 1530) (list 2 1700) (list 3 1800) (list 4 1805) (list 5 2359) (list 6 800) (list 7 1305)
-                                  (list 8 1800) (list 9 1801) (list 10 1802) (list 11 1803) (list 12 1804) (list 13 1805) (list 14 1806)
-                                  (list 15 1807) (list 16 1808) (list 17 1809) (list 18 1810) (list 19 1811) (list 20 1812) (list 21 1813))))
-(define b-24h-rained (24h-rainedB b-clock b-raingauge))
-(define b-cond (condB (list (list (andB (notB b-24h-rained) (liftB (λ (t) (equal? t 1800)) b-clock)) (constantB 10))
-                  (list b-motion-sensor (constantB 'sensed))
-                  (list (constantB #t) (constantB #f)))))
+(define stream-length 3)
 
-(define expected-sprinklers (behavior 'off (list (list 1 'off) (list 2 'off) (list 3 'off) (list 4 'off) (list 5 'off) (list 6 'off) (list 7 'off)
-                                                 (list 8 'on) (list 9 'on) (list 10 'off) (list 11 'off) (list 12 'on) (list 13 'on) (list 14 'off)
-                                                 (list 14 'on) (list 15 'on) (list 16 'on) (list 17 'on) (list 18 'on) (list 19 'on) (list 20 'off) (list 21 'off))))
+(define s-raingauge (boolean-behavior stream-length))
+(define s-clock (positive-integer-behavior stream-length))
+(define s-motion-sensor (boolean-behavior stream-length)) ;; or, should this be event stream?
 
-(define (24h-rainedB-assumptions clockB raingaugeB)
-  (and (valid-behavior? clockB)
-       (valid-behavior? raingaugeB)))
+(define (24h-rainedB-assumptions clockE raingaugeB)
+  (and (valid-timestamps? clockE)
+       ;; we need midnights to appear explicitly
+       ;; if any time follows a time of higher value, it must be midnight
+       (foldl (λ (new val) (cond [(not val) #f]
+                                 [(or (< (time-vec->integer val) (time-vec->integer (get-value new)))
+                                      (eq? (time-vec->integer (get-value new)) 0)) #f]
+                                 [else (get-value new)])) (get-value (first clockE)) (list-tail clockE 1))
+       (valid-behavior? raingaugeB)
+       ))
 
 
 (define solved (solve (assert (24h-rainedB-assumptions s-clock s-raingauge))))
