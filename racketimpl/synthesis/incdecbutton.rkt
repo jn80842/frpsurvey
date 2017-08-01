@@ -26,7 +26,10 @@
 (define (collect-graph evt-stream)
   (startsWith (collectE evt-stream 0 +) 0))
 (define (synth-collect-graph evt-stream)
-  (flapjax-grmr evt-stream 2))
+  (flapjax-grmr evt-stream 3))
+
+(define (outer-graph inc dec)
+  (startsWith (collectE (mergeE (flapjax-grmr inc 2) (constantE dec -1)) 0 +) 0))
 
 (define (synth-inc-dec-button-graph inc dec)
   (flapjax-grmr1 inc dec 4))
@@ -46,8 +49,10 @@
 
 (assert (positive? timestamp1))
 (assert (positive? timestamp2))
+(assert (< timestamp1 timestamp2))
 (assert (positive? timestamp3))
 (assert (positive? timestamp4))
+(assert (< timestamp3 timestamp4))
 (assert (positive? timestamp5))
 (assert (positive? timestamp6))
 
@@ -86,31 +91,37 @@
 (define collect-binding
   (synthesize #:forall (list timestamp1 bool1
                                timestamp2 bool2
-                              ; timestamp3 bool3
+                               timestamp3 bool3
                                timestamp4 bool4
-                               timestamp5 bool5
-                              ; timestamp6 bool6
                                )
               #:guarantee (same collect-graph synth-collect-graph
                                 (list (list timestamp1 1)
                                       (list timestamp2 -1)
                                       (list timestamp3 1))
                                         )
-                                
-                                 ;(mergeE (constantE
-                                ; (list (list timestamp1 (if bool1 'click 'no-evt))
-                                 ;       (list timestamp2 (if bool2 'click 'no-evt))
-                                      ;  (list timestamp3 (if bool3 'click 'no-evt))
-                                  ;      ) 1)
-                                   ;      (constantE
-                                  ;(list (list timestamp4 (if bool4 'click 'no-evt))
-                                   ;     (list timestamp5 (if bool5 'click 'no-evt))
-                                      ;  (list timestamp6 (if bool6 'click 'no-evt))
-                                    ;    ) -1)))
               ))
 (define collect-end-time (current-seconds))
 (if (unsat? collect-binding)
     (displayln "No binding was found.")
     (print-forms collect-binding))
 (printf "Took ~a seconds~n" (- collect-end-time collect-begin-time))
+
+(displayln "Synthesize full program")
+(define full-begin-time (current-seconds))
+(define full-binding
+  (synthesize #:forall (list timestamp1 bool1
+                             timestamp2 bool2
+                             timestamp3 bool3
+                             timestamp4 bool4)
+              #:guarantee (same2 inc-dec-button-graph synth-inc-dec-button-graph
+                                 (list (list timestamp1 bool1)
+                                       (list timestamp2 bool2))
+                                 (list (list timestamp3 bool3)
+                                       (list timestamp4 bool4)))
+              ))
+(define full-end-time (current-seconds))
+(if (unsat? full-binding)
+    (displayln "No binding was found.")
+    (print-forms full-binding))
+(printf "Took ~a seconds~n" (- full-end-time full-begin-time))
 
