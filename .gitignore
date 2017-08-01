@@ -3,3 +3,4 @@ rx/node_modules/*
 *~
 *\#
 racketimpl/compiled/
+racketimpl/synthesis/compiled/
