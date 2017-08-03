@@ -79,6 +79,11 @@
 ;; delayE tests
 (test "delayE" (delayE standard-evt-stream 3) '((4 11) (5 12) (6 13)))
 
+;; calmE tests
+(test "calmE" (calmE (list (list 1 'a) (list 5 'b) (list 6 'c) (list 7 'd)) 3) '((4 a) (10 d)))
+(test "calmE on empty stream" (calmE '() 3) '())
+(test "calmE on single event" (calmE (list (list 3 'a)) 3) '((6 a)))
+
 ;; startsWith tests
 (test "startsWith" (startsWith standard-evt-stream 10) (behavior 10 (list (list 1 11) (list 2 '12) (list 3 13))))
      ; (list (list 0 10) (list 1 11) (list 2 12) (list 3 13)))

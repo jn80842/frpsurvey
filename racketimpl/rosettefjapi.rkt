@@ -72,18 +72,18 @@
 
 ;; blindE
 
-#;(define (calmE evt-stream-f interval)
-  (λ ()
-    (let ([evt-stream (evt-stream-f)])
-      (letrec ([calm (λ (evt-lst)
-                       (if (equal? (length evt-lst) 1)
-                           evt-lst ;; the last event is always propagated
-                           (let ([current (first evt-lst)]
-                                 [next (second evt-lst)])
-                             (if (< (- (first next) (first current)) interval)
-                                 (calm (cdr evt-lst)) ;; the first one is too close to the second, don't propagate
-                                 (append (list current) (calm (cdr evt-lst)))))))]) ;; propagate the first one
-    (calm evt-stream)))))
+
+(define (calmE evt-stream interval)
+  (let ([filtered (if (or (empty? evt-stream) (eq? 1 (length evt-stream)))
+                      evt-stream ;; if empty or 1 event, no filtering necessary
+                      (append (filter list? (map (λ (e1 e2) (if (< (- (get-timestamp e2) (get-timestamp e1)) interval)
+                                                        #f ;; if e1 is too close to e2, throw it away
+                                                        e1)) ;; else retain it
+                                         (take evt-stream (sub1 (length evt-stream))) ;; all but last 
+                                         (list-tail evt-stream 1))) ;; all but first
+                              (list-tail evt-stream (sub1 (length evt-stream)))) ;; and the very last is never filtered
+                           )])
+    (delayE filtered interval))) ;; and delay all events by interval
 
 (define (startsWith evt-stream init-value)
   (behavior init-value evt-stream))
