@@ -3,27 +3,38 @@
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
 
-(current-bitwidth 4)
+(current-bitwidth 6)
 
 ;; to handle bitwidth, constants don't make real-world sense
 (define temp-floor 2)
-;(define temp-ceiling 65)
-(define hour-begin 10)
-(define hour-end 5)
+(define hour-begin 19)
+(define hour-end 7)
+
+(if (>= hour-begin (sub1 (expt 2 (sub1 (current-bitwidth)))))
+    (displayln "HOUR BEGIN IS TOO HIGH and WILL CAUSE OVERFLOW")
+    (printf "hour-begin is ~a~n" hour-begin))
 
 (define (thermostat-graph tempB clockB)
   (ifB (andB (liftB (λ (t) (<= t temp-floor)) tempB)
-             (liftB (λ (c) (or (>= c hour-begin) (>= hour-end c))) clockB))
+             (liftB (λ (c) (or (>= (vector-ref c 0) hour-begin) (>= hour-end (vector-ref c 0)))) clockB))
        (constantB 'on)
        (constantB 'off)))
 
-(define concrete-temp (behavior 60 (list (list 1 59) (list 3 57) (list 15 61) (list 17 59) (list 22 61) (list 30 59))))
-(define concrete-clock (behavior 1900 (list (list 1 2000) (list 10 2300) (list 20 730) (list 25 805))))
+(define concrete-temp (behavior 4 (list (list 1 2) (list 3 1) (list 15 4) (list 17 2) (list 22 5) (list 30 7))))
+(define concrete-clock (behavior (vector 19 0 0) (list (list 1 (vector 20 0 0)) (list 10 (vector 23 0 0))
+                                                       (list 20 (vector 7 3 0)) (list 25 (vector 8 0 5)))))
 
-(define stream-length 4)
+(if (eq? (thermostat-graph concrete-temp concrete-clock) (behavior 'off (list (list 1 'on) (list 3 'on)
+                                                                              (list 10 'on) (list 15 'off)
+                                                                              (list 17 'on) (list 20 'on)
+                                                                              (list 22 'off) (list 25 'off) (list 30 'off))))
+    (displayln "graph is correct on concrete inputs")
+    (displayln "graph fails on concrete inputs"))
 
-(define s-temp (positive-integer-behavior stream-length))
-(define s-clock (positive-integer-behavior stream-length))
+(define stream-length 2)
+
+(define s-temp (integer-behavior stream-length))
+(define s-clock (time-vec-behavior stream-length))
 
 (printf "current bitwidth is: ~a\n" (current-bitwidth))
 (printf "number of temp changes: ~a\n" (length (behavior-changes s-temp)))
@@ -31,11 +42,9 @@
 
 (define (thermostat-assumptions temp clock)
   (and (valid-behavior? temp)
-       (valid-behavior? clock)))
-       ;(< (behavior-init temp) 32)
-       ;(andmap (λ (n) (< n 32)) (map get-value (behavior-changes temp)))
-       ;(positive? (behavior-init clock))
-       ;(andmap positive? (map get-value (behavior-changes clock)))))
+       (valid-time-vec-behavior? clock)
+       (behavior-check integer? temp)
+       ))
 
 (check-existence-of-solution thermostat-assumptions s-temp s-clock)
 
@@ -43,7 +52,11 @@
   (let ([heater (thermostat-graph temp clock)])
     (and (valid-behavior? heater)
          (or (equal? (behavior-init heater) 'on) (equal? (behavior-init heater) 'off))
-         (andmap (λ (v) (or (equal? v 'on) (equal? v 'off))) (map get-value (behavior-changes heater))))))
+         (andmap (λ (v) (or (equal? v 'on) (equal? v 'off))) (map get-value (behavior-changes heater)))
+         (behavior-check (λ (heat t) (implication (eq? 'on heat) (<= t temp-floor))) heater temp)
+         (behavior-check (λ (heat c) (implication (eq? 'on heat) (or (>= (vector-ref c 0) hour-begin) (>= hour-end (vector-ref c 0)))))
+                         heater clock)
+         )))
 
 (define begin-time (current-seconds))
 (define verified (verify #:assume (assert (thermostat-assumptions s-temp s-clock))

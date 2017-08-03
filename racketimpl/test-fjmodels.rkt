@@ -15,4 +15,16 @@
                                                                                                  '(6 6))))
       (list '(2 1) '(5 5) '(6 6)))
 (test "startBehaviorAtTimestamp no changes" (startBehaviorAtTimestamp 2 (behavior 0 '())) (list (list 2 0)))
+
+(test "behavior check" (behavior-check positive? (behavior 2 (list (list 1 2) (list 5 3) (list 10 10)))) #t)
+
+(test "valid-time-vec-value valid value" (valid-time-vec-value? (vector 22 5 0)) #t)
+(test "valid-time-vec-value valid value2" (valid-time-vec-value? (vector 0 0 1)) #t)
+(test "valid-time-vec-value invalid value" (valid-time-vec-value? (vector 24 0 0)) #f)
+(test "valid-time-vec-value invalid value" (valid-time-vec-value? (vector 23 6 0)) #f)
+(test "valid-time-vec-value invalid value" (valid-time-vec-value? (vector 8 2 10)) #f)
+(test "valid-time-vec-behavior valid behavior" (valid-time-vec-behavior?
+                                                (behavior (vector 1 2 1) (list (list 1 (vector 23 3 2))))) #t)
+
+
                                                                                                  

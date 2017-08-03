@@ -91,6 +91,18 @@
        (andmap positive? (map get-timestamp (behavior-changes b)))
        (timestamps-sorted? (behavior-changes b))))
 
+(define (valid-time-vec-behavior? b)
+  (and (valid-behavior? b)
+       (behavior-check valid-time-vec-value? b)))
+
+(define (valid-time-vec-value? t)
+  (and (>= 23 (vector-ref t 0))
+       (>= (vector-ref t 0) 0)
+       (>= 5 (vector-ref t 1))
+       (>= (vector-ref t 1) 0)
+       (>= 9 (vector-ref t 2))
+       (>= (vector-ref t 2) 0)))
+
 (define (all-unique-timestamps . behaviors)
   (sort (remove-duplicates (flatten (map (λ (b) (map get-timestamp (behavior-changes b))) behaviors))) <))
 
@@ -100,9 +112,13 @@
     (and (eq? (behavior-init b1) (behavior-init b2))
          (eq? enhanced-b1 enhanced-b2))))
 
+;(apply (curry map list) (map (λ (b) (map get-value (project-values b (list 1 2 3 4 5 6)))) (list b b2)))
+
 (define (behavior-check proc . behaviors)
-  (and (apply proc (map behavior-init behaviors))
-       (andmap (λ (vs) (apply proc vs)) (apply (curry map list) (map behavior-changes behaviors)))))
+  (let ([all-ts (apply all-unique-timestamps behaviors)])
+    (and (apply proc (map behavior-init behaviors))
+         (andmap (λ (vs) (apply proc vs))
+                 (apply (curry map list) (map (λ (b) (map get-value (project-values b all-ts))) behaviors))))))
 
 (define (implication p q)
   (or (not p) q))
@@ -128,6 +144,13 @@
            (define-symbolic* value boolean?)
            (list timestamp value)) concrete-list)))
 
+(define (integer-event-stream n)
+  (let ([concrete-list (stream-size n)])
+    (map (λ (c)
+           (define-symbolic* timestamp integer?)
+           (define-symbolic* value integer?)
+           (list timestamp value)) concrete-list)))
+
 (define (positive-integer-event-stream n)
   (let ([concrete-list (stream-size n)])
     (map (λ (c)
@@ -142,14 +165,8 @@
   (let ([concrete-list (stream-size n)])
     (map (λ (c)
            (define-symbolic* timestamp integer?)
-           (assert (>= (length concrete-list) timestamp))
-           (assert (> timestamp 0))
            (define-symbolic* hour integer?)
-           (assert (>= 23 hour))
-           (assert (> hour 0))
            (define-symbolic* minute-tens integer?)
-           (assert (>= 5 minute-tens))
-           (assert (> minute-tens 0))
            (define-symbolic* minute-ones integer?)
            (list timestamp (vector hour minute-tens minute-ones))) concrete-list)))
 
@@ -164,13 +181,13 @@
   (assert (> init-val 0))
   (behavior init-val (positive-integer-event-stream n)))
 
+(define (integer-behavior n)
+  (define-symbolic* init-val integer?)
+  (behavior init-val (integer-event-stream n)))
+
 (define (time-vec-behavior n)
   (define-symbolic* hour integer?)
-  (assert (>= 23 hour))
-  (assert (> hour 0))
   (define-symbolic* minute-tens integer?)
-  (assert (>= 5 minute-tens))
-  (assert (> minute-tens 0))
   (define-symbolic* minute-ones integer?)
   (behavior (vector hour minute-tens minute-ones) (time-vec-event-stream n)))
 
