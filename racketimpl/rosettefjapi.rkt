@@ -70,10 +70,26 @@
 (define (delayE evt-stream interval)
   (map (λ(s) (list (+ (get-timestamp s) interval) (get-value s))) evt-stream))
 
-;; blindE
-
+(define (blindE evt-stream interval)
+  (letrec ([f (λ (evts last-sent)
+                (cond [(empty? evts) '()]
+                      [(> interval (- (get-timestamp (first evts)) last-sent)) (f (list-tail evts 1) last-sent)]
+                      [else (append (list (first evts)) (f (list-tail evts 1) (get-timestamp (first evts))))]))])
+    (f evt-stream (- interval))))
 
 (define (calmE evt-stream interval)
+  (letrec ([f (λ (evts buffered-evt last-sent)
+                (cond [(and (empty? evts) buffered-evt) (list (list (+ (get-timestamp buffered-evt) interval) (get-value buffered-evt)))]
+                      [(empty? evts) '()]
+                      [(false? buffered-evt) (f (list-tail evts 1) (first evts) last-sent)]
+                      [(< interval (- (get-timestamp (first evts)) last-sent))
+                       (append (list (list (+ (get-timestamp buffered-evt) interval) (get-value buffered-evt)))
+                               (f (list-tail evts 1) (first evts) (+ (get-timestamp buffered-evt) interval)))]
+                      [else (f (list-tail evts 1) (first evts) last-sent)]))])
+    (f evt-stream #f 0)))
+
+
+#;(define (calmE evt-stream interval)
   (let ([filtered (if (or (empty? evt-stream) (eq? 1 (length evt-stream)))
                       evt-stream ;; if empty or 1 event, no filtering necessary
                       (append (filter list? (map (λ (e1 e2) (if (< (- (get-timestamp e2) (get-timestamp e1)) interval)
