@@ -74,10 +74,12 @@
   (letrec ([f (λ (evts last-sent)
                 ;; if all events have been processed, done!
                 (cond [(empty? evts) '()]
-                      ;; if interval is geq the time between the current event and the last event sent, continue
-                      [(>= interval (- (get-timestamp (first evts)) last-sent)) (f (list-tail evts 1) last-sent)]
-                      ;; else, emit the current event, update last sent, and continue
-                      [else (append (list (first evts)) (f (list-tail evts 1) (get-timestamp (first evts))))]))])
+                      ;; if time between current event and last sent is geq interval
+                      ;; propagate event, update last sent, and continue
+                      [(<= interval (- (get-timestamp (first evts)) last-sent))
+                       (append (list (first evts)) (f (list-tail evts 1) (get-timestamp (first evts))))]
+                      ;; else, continue without propagating current event
+                      [else (f (list-tail evts 1) last-sent)]))])
     (f evt-stream (- interval))))
 
 (define (calmE evt-stream interval)

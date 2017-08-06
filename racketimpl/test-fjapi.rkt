@@ -96,7 +96,7 @@
 (test "blindE on single event" (blindE (list (list 1 'a)) 3) (list (list 1 'a)))
 (test "blindE on continuous events" (blindE (list (list 1 'a) (list 2 'b) (list 3 'c)
                                                 (list 4 'd) (list 5 'e) (list 6 'f)) 3)
-      '((1 a) (5 e)))
+      '((1 a) (4 d)))
 
 ;; startsWith tests
 (test "startsWith" (startsWith standard-evt-stream 10) (behavior 10 (list (list 1 11) (list 2 '12) (list 3 13))))
