@@ -86,7 +86,7 @@
 (test "calmE on single event" (calmE (list (list 3 'a)) 3) '((6 a)))
 (test "calmE on continuous events" (calmE (list (list 1 'a) (list 2 'b) (list 3 'c)
                                                 (list 4 'd) (list 5 'e) (list 6 'f)) 3)
-      '((6 c) (9 f)))
+      '((9 f)))
 
 ;; blindE tests
 (test "blindE" (blindE (list (list 1 'a) (list 2 'b) (list 3 'c)
@@ -96,7 +96,7 @@
 (test "blindE on single event" (blindE (list (list 1 'a)) 3) (list (list 1 'a)))
 (test "blindE on continuous events" (blindE (list (list 1 'a) (list 2 'b) (list 3 'c)
                                                 (list 4 'd) (list 5 'e) (list 6 'f)) 3)
-      '((1 a) (4 d)))
+      '((1 a) (5 e)))
 
 ;; startsWith tests
 (test "startsWith" (startsWith standard-evt-stream 10) (behavior 10 (list (list 1 11) (list 2 '12) (list 3 13))))

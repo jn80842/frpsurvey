@@ -72,34 +72,31 @@
 
 (define (blindE evt-stream interval)
   (letrec ([f (λ (evts last-sent)
+                ;; if all events have been processed, done!
                 (cond [(empty? evts) '()]
-                      [(> interval (- (get-timestamp (first evts)) last-sent)) (f (list-tail evts 1) last-sent)]
+                      ;; if interval is geq the time between the current event and the last event sent, continue
+                      [(>= interval (- (get-timestamp (first evts)) last-sent)) (f (list-tail evts 1) last-sent)]
+                      ;; else, emit the current event, update last sent, and continue
                       [else (append (list (first evts)) (f (list-tail evts 1) (get-timestamp (first evts))))]))])
     (f evt-stream (- interval))))
 
 (define (calmE evt-stream interval)
-  (letrec ([f (λ (evts buffered-evt last-sent)
-                (cond [(and (empty? evts) buffered-evt) (list (list (+ (get-timestamp buffered-evt) interval) (get-value buffered-evt)))]
+  (letrec ([emit-event (λ (evt) (list (list (+ (get-timestamp evt) interval) (get-value evt))))]
+           [f (λ (evts buffered-evt)
+                ;; if all events have been processed, propagate buffered event
+                (cond [(and (empty? evts) buffered-evt) (emit-event buffered-evt)]
+                      ;; if all events have been processed and no event is buffered, done!
                       [(empty? evts) '()]
-                      [(false? buffered-evt) (f (list-tail evts 1) (first evts) last-sent)]
-                      [(< interval (- (get-timestamp (first evts)) last-sent))
-                       (append (list (list (+ (get-timestamp buffered-evt) interval) (get-value buffered-evt)))
-                               (f (list-tail evts 1) (first evts) (+ (get-timestamp buffered-evt) interval)))]
-                      [else (f (list-tail evts 1) (first evts) last-sent)]))])
-    (f evt-stream #f 0)))
-
-
-#;(define (calmE evt-stream interval)
-  (let ([filtered (if (or (empty? evt-stream) (eq? 1 (length evt-stream)))
-                      evt-stream ;; if empty or 1 event, no filtering necessary
-                      (append (filter list? (map (λ (e1 e2) (if (< (- (get-timestamp e2) (get-timestamp e1)) interval)
-                                                        #f ;; if e1 is too close to e2, throw it away
-                                                        e1)) ;; else retain it
-                                         (take evt-stream (sub1 (length evt-stream))) ;; all but last 
-                                         (list-tail evt-stream 1))) ;; all but first
-                              (list-tail evt-stream (sub1 (length evt-stream)))) ;; and the very last is never filtered
-                           )])
-    (delayE filtered interval))) ;; and delay all events by interval
+                      ;; if nothing has been buffered, buffer event and continue
+                      [(false? buffered-evt) (f (list-tail evts 1) (first evts))]
+                      ;; if time between buffered event and next event is geq interval
+                      ;; propagate buffered event and continue
+                      [(<= interval (- (get-timestamp (first evts)) (get-timestamp buffered-evt)))
+                       (append (emit-event buffered-evt) (f (list-tail evts 1) (first evts)))]
+                      ;; if time between buffered event and next event is too small
+                      ;; discard buffered event and continue
+                      [else (f (list-tail evts 1) (first evts))]))])
+    (f evt-stream #f)))
 
 (define (startsWith evt-stream init-value)
   (behavior init-value evt-stream))
