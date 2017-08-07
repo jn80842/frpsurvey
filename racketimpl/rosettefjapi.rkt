@@ -3,6 +3,14 @@
 
 (require "fjmodels.rkt")
 
+;;;;;;;;; operator wishlist ;;;;;;
+;;
+;; highFreqE: propagate events that occur x seconds after prev
+;; collectE but where internal value and output value can be different
+;; mapE, collectE, liftB etc where the functions have access to timestamps
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;;;; flapjax API ;;;;;
 
 (define (oneE evt-stream)
@@ -33,7 +41,12 @@
 (define (filterE stream pred)
   (filter (λ (e) (if (pred (get-value e)) (list (get-timestamp e) (pred (get-value e))) #f)) stream))
 
-;; ifE
+(define (ifE guard-stream value-stream)
+  ;; filter both lists to ts they have in common
+  ;; if guard evals to true, propagate corresponding value
+  (let ([filtered-guard-stream (filter (λ (e) (and (get-value e) (member (get-timestamp e) (map get-timestamp value-stream))))
+                                       guard-stream)])
+    (filter (λ (e) (member (get-timestamp e) (map get-timestamp filtered-guard-stream))) value-stream)))
 
 (define (constantE evt-stream const)
   (map (λ (s) (list (get-timestamp s) (if (equal? 'no-evt (get-value s)) 'no-evt const))) evt-stream)) ;))
@@ -53,7 +66,8 @@
 
 ;; orE
 
-;; notE
+(define (notE evt-stream)
+  (map (λ (e) (list (get-timestamp e) (not (get-value e)))) evt-stream))
 
 ;; filterRepeatsE
 

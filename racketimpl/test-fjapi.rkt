@@ -58,6 +58,11 @@
 (test "filterE" (filterE (list (list 1 #t) (list 2 #f) (list 3 #t) (list 4 #f)) not)
       (list (list 2 #f) (list 4 #f)))
 
+;; ifE tests
+(test "ifE" (ifE (list (list 1 #t) (list 3 #f) (list 7 #t))
+                 (list (list 1 'a) (list 2 'b) (list 3 'c) (list 10 'd)))
+      (list (list 1 'a)))
+
 ;; constantE tests
 (test "constantE" (constantE standard-evt-stream "hello") (list (list 1 "hello") (list 2 "hello") (list 3 "hello")))
 (test "constantE on empty stream" (constantE empty-evt-stream "hello") '())
@@ -68,6 +73,10 @@
 (test "collectE on empty stream)" (collectE empty-evt-stream 0 (λ (old new) (+ old new))) '())
 (test "collectE on stream with no-evts" (collectE (list (list 1 11) (list 2 'no-evt) (list 3 10)) 0 (λ (old new) (+ old new)))
       (list (list 1 11) (list 2 11) (list 3 21)))
+
+;; notE tests
+(test "notE" (notE (list (list 1 #f) (list 3 #t) (list 10 #f)))
+      (list (list 1 #t) (list 3 #f) (list 10 #t)))
 
 ;; snapshotE tests
 (test "snapshotE" (snapshotE standard-evt-stream (behavior 1 '())) (list (list 1 1) (list 2 1) (list 3 1)))
