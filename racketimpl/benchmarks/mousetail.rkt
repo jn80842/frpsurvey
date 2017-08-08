@@ -3,6 +3,8 @@
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
 
+(provide mousetail-x-assumptions mousetail-y-assumptions)
+
 (current-bitwidth 5)
 
 (define time-delay 3)

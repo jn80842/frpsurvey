@@ -3,7 +3,11 @@
 
 (require "../fjmodels.rkt")
 (require "../rosettefjapi.rkt")
+(require "../benchmarks/mousetail.rkt")
 (require "grammar.rkt")
+
+(current-bitwidth 5)
+(printf "Current bitwidth: ~a~n" (current-bitwidth))
 
 (define x-offset 3)
 (define time-delay 3)
@@ -16,54 +20,33 @@
 (define (int-sketch-mouse-tail-x-graph x-evt-stream)
   (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) (?? integer?)))) (delayE x-evt-stream (??))))
 
-(define (op-sketch-mouse-tail-x-graph x-evt-stream)
+(define (synth-mouse-tail-x-graph x-evt-stream)
   (flapjax-grmr x-evt-stream 3))
 
-(define (op-sketch-mouse-tail-y-graph y-evt-stream)
+(define (synth-mouse-tail-y-graph y-evt-stream)
   (flapjax-grmr y-evt-stream 3))
 
 ;(define (op-sketch-mouse-tail-y-graph y-evt-stream)
 ;  (delayE y-evt-stream (integer-constants 3)))
 
-(define-symbolic* timestamp1 integer?)
-(define-symbolic* x-val1 integer?)
-(define-symbolic* y-val1 integer?)
-(define-symbolic* timestamp2 integer?)
-(define-symbolic* x-val2 integer?)
-(define-symbolic* y-val2 integer?)
-(define-symbolic* timestamp3 integer?)
-(define-symbolic* x-val3 integer?)
-(define-symbolic* y-val3 integer?)
+(define s-mouse-x (integer-event-stream 3))
+(define s-mouse-y (integer-event-stream 3))
 
-(assert (positive? timestamp1))
-(assert (positive? x-val1))
-(assert (positive? y-val1))
-(assert (positive? timestamp2))
-(assert (positive? x-val2))
-(assert (positive? y-val2))
-(assert (positive? timestamp3))
-(assert (positive? x-val3))
-(assert (positive? y-val3))
+(assert (mousetail-x-assumptions s-mouse-x))
+(assert (mousetail-y-assumptions s-mouse-y))
 
 (displayln "Synthesize mousetail program:")
 
 (define begin-time (current-seconds))
 (define binding
-    (synthesize #:forall (list timestamp1 x-val1 y-val1
-                               timestamp2 x-val2 y-val2
-                               timestamp3 x-val3 y-val3)
+    (synthesize #:forall (append (harvest-events s-mouse-x)
+                                 (harvest-events s-mouse-y))
                 #:guarantee (begin (same spec-mouse-tail-x-graph
-                                         op-sketch-mouse-tail-x-graph
-                                         (list (list timestamp1 x-val1)
-                                               (list timestamp2 x-val2)
-                                               (list timestamp3 x-val3)))
-                                   (same spec-mouse-tail-y-graph
-                                         op-sketch-mouse-tail-y-graph
-                                         (list (list timestamp1 y-val1)
-                                               (list timestamp2 y-val2)
-                                               (list timestamp3 y-val3))))
-                                         
-                              ))
+                                         synth-mouse-tail-x-graph
+                                         s-mouse-x)
+                                  (same spec-mouse-tail-y-graph
+                                         synth-mouse-tail-y-graph
+                                         s-mouse-y))))
 (if (unsat? binding)
     (displayln "No binding was found.")
     (print-forms binding))

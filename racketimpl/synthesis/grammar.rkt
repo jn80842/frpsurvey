@@ -6,24 +6,30 @@
 
 (provide (all-defined-out))
 
-(define (same program1 program2 input-stream)
-  (assert
-   (equal? (program1 input-stream) (program2 input-stream))))
+(define  (same program1 program2 . inputs)
+  (assert (equal? (apply program1 inputs)
+                  (apply program2 inputs))))
 
-(define (same2 program1 program2 input1 input2)
-  (assert (equal? (program1 input1 input2)
-                  (program2 input1 input2))))
-(define (same3 program1 program2 input1 input2 input3)
-  (assert (equal? (program1 input1 input2 input3)
-                  (program2 input1 input2 input3))))
+(define (harvest-term v)
+  (cond [(vector? v) (vector->list v)]
+        [(and (union? v) (eq? 2 (length (union-contents v)))) (car (first (union-contents v)))]
+        [(term? v) v]))
+
+(define (harvest-events evt-stream)
+  (flatten
+  (append (map get-timestamp evt-stream)
+          (map harvest-term (map get-value evt-stream)))))
+
+(define (harvest-behavior b)
+  (append (list (harvest-term (behavior-init b))) (harvest-events (behavior-changes b))))
 
 (define-synthax (flapjax-grmr input-stream depth)
   #:base input-stream
   #:else (choose input-stream
                  (startsWith (flapjax-grmr input-stream (sub1 depth)) (choose 0 1 2 -1))
                  (collectE (flapjax-grmr input-stream (sub1 depth)) 0 +)
-                ; (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) (choose 1 2 3))))
-                ;       (flapjax-grmr input-stream (sub1 depth)))
+                 (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) (choose 1 2 3))))
+                       (flapjax-grmr input-stream (sub1 depth)))
                  (constantE (flapjax-grmr input-stream (sub1 depth)) 1)
                  (delayE (flapjax-grmr input-stream (sub1 depth)) (choose 1 2 3))))
 
