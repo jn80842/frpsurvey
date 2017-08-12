@@ -21,10 +21,12 @@
   (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) (?? integer?)))) (delayE x-evt-stream (??))))
 
 (define (synth-mouse-tail-x-graph x-evt-stream)
-  (flapjax-grmr x-evt-stream 3))
+ ; (flapjax-grmr  (λ () (terminals x-evt-stream)) 3))
+  (flapjaxE-grmr x-evt-stream 3))
 
 (define (synth-mouse-tail-y-graph y-evt-stream)
-  (flapjax-grmr y-evt-stream 3))
+ ; (flapjax-grmr (λ () (terminals y-evt-stream)) 3))
+  (flapjaxE-grmr y-evt-stream 3))
 
 ;(define (op-sketch-mouse-tail-y-graph y-evt-stream)
 ;  (delayE y-evt-stream (integer-constants 3)))

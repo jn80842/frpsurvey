@@ -3,6 +3,8 @@
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
 
+(provide clicksE button-assumptions)
+
 (current-bitwidth 5)
 
 (define (clicksE n)
@@ -23,7 +25,7 @@
 
 (displayln (inc-dec-button-graph concrete-inc-clicks concrete-dec-clicks))
 
-(define stream-length 6)
+(define stream-length 3)
 
 (define s-inc (clicksE stream-length))
 (define s-dec (clicksE stream-length))
