@@ -3,22 +3,26 @@
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
 
-(current-bitwidth 6)
+(provide thermostat-assumptions)
+
+(current-bitwidth #f)
 
 ;; to handle bitwidth, constants don't make real-world sense
 (define temp-floor 2)
 (define hour-begin 19)
 (define hour-end 7)
 
-(if (>= hour-begin (sub1 (expt 2 (sub1 (current-bitwidth)))))
+(define midnight (vector 0 0 0))
+
+#;(if (>= hour-begin (sub1 (expt 2 (sub1 (current-bitwidth)))))
     (displayln "HOUR BEGIN IS TOO HIGH and WILL CAUSE OVERFLOW")
     (printf "hour-begin is ~a~n" hour-begin))
 
 (define (thermostat-graph tempB clockB)
   (ifB (andB (liftB (λ (t) (<= t temp-floor)) tempB)
              (liftB (λ (c) (or (>= (vector-ref c 0) hour-begin) (>= hour-end (vector-ref c 0)))) clockB))
-       (constantB 'on)
-       (constantB 'off)))
+        (constantB 'on)
+        (constantB 'off)))
 
 (define concrete-temp (behavior 4 (list (list 1 2) (list 3 1) (list 15 4) (list 17 2) (list 22 5) (list 30 7))))
 (define concrete-clock (behavior (vector 19 0 0) (list (list 1 (vector 20 0 0)) (list 10 (vector 23 0 0))
@@ -43,7 +47,8 @@
 (define (thermostat-assumptions temp clock)
   (and (valid-behavior? temp)
        (valid-time-vec-behavior? clock)
-       (behavior-check integer? temp)
+       (behavior-check (λ (t) (< -1 t)) temp)
+      ; (behavior-check integer? temp)
        ))
 
 (check-existence-of-solution thermostat-assumptions s-temp s-clock)
@@ -53,9 +58,11 @@
     (and (valid-behavior? heater)
          (or (equal? (behavior-init heater) 'on) (equal? (behavior-init heater) 'off))
          (andmap (λ (v) (or (equal? v 'on) (equal? v 'off))) (map get-value (behavior-changes heater)))
-         (behavior-check (λ (heat t) (implication (eq? 'on heat) (<= t temp-floor))) heater temp)
-         (behavior-check (λ (heat c) (implication (eq? 'on heat) (or (>= (vector-ref c 0) hour-begin) (>= hour-end (vector-ref c 0)))))
-                         heater clock)
+         (behavior-check (λ (heat) (eq? 'on heat)) heater)
+         ;(behavior-check (λ (heat t) (or (not (eq? 'on heat)) (<= t temp-floor))) heater temp)
+         ;(behavior-check (λ (heat t) (implication (eq? 'on heat) (<= t temp-floor))) heater temp)
+         ;(behavior-check (λ (heat c) (implication (eq? 'on heat) (or (>= (vector-ref c 0) hour-begin) (>= hour-end (vector-ref c 0)))))
+         ;                heater clock)
          )))
 
 (define begin-time (current-seconds))

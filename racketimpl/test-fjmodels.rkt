@@ -17,6 +17,9 @@
 (test "startBehaviorAtTimestamp no changes" (startBehaviorAtTimestamp 2 (behavior 0 '())) (list (list 2 0)))
 
 (test "behavior check" (behavior-check positive? (behavior 2 (list (list 1 2) (list 5 3) (list 10 10)))) #t)
+(test "behavior check 2 behaviors" (behavior-check (λ (n t) (and (integer? n) (symbol? t)))
+                                                   (behavior 1 (list (list 1 2) (list 2 3)))
+                                                   (behavior 'a (list (list 1 'b) (list 2 'c)))) #t)
 
 (test "valid-time-vec-value valid value" (valid-time-vec-value? (vector 22 5 0)) #t)
 (test "valid-time-vec-value valid value2" (valid-time-vec-value? (vector 0 0 1)) #t)
