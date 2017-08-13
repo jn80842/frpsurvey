@@ -1,6 +1,7 @@
 #lang rosette/safe
 
 (require rosette/lib/synthax)
+ (require rosette/lib/angelic)
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
 
@@ -22,6 +23,18 @@
 
 (define (harvest-behavior b)
   (append (list (harvest-term (behavior-init b))) (harvest-events (behavior-changes b))))
+
+(define (new-flapjaxE-grmr depth inputs)
+  (let ([base (apply choose* (list inputs))])
+    (if (= 0 depth)
+        base
+        (choose* base
+                 (startsWith (new-flapjaxE-grmr (sub1 depth) inputs))
+                 (collectE (new-flapjaxE-grmr (sub1 depth) inputs) 0 +)
+                 (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) (choose 1 2 3))))
+                       (new-flapjaxE-grmr (sub1 depth) inputs))
+                 (constantE (new-flapjaxE-grmr (sub1 depth) inputs) (choose 0 1 -1))
+                 (delayE (new-flapjaxE-grmr (sub1 depth) inputs) (choose 1 2 3))))))
 
 (define-synthax (flapjaxE-grmr input-stream depth)
   #:base input-stream
@@ -50,6 +63,7 @@
 (define-synthax (flapjax-grmrB input-behavior depth)
   #:base input-behavior
   #:else (choose input-behavior
+                 (constantB (choose 'on 'off))
                  (liftB (λ (e) (if e 'on 'off)) (flapjax-grmrB input-behavior (sub1 depth)))
                  ))
 
@@ -57,6 +71,7 @@
 (define-synthax (flapjax-grmrB2 inputB1 inputB2 depth)
   #:base (choose inputB1 inputB2)
   #:else (choose inputB1 inputB2
+                 (constantB (choose 'on 'off))
                  (liftB (choose (λ (clock location) (if (or (>= (time-vec->integer clock) 2130) (< (time-vec->integer clock) 800))
                                  'night
                                  (if (equal? location 'home)
@@ -65,11 +80,14 @@
                                 (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none)))
                                 (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
                  (liftB (λ (e) (if e 'on 'off)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
+                 (andB (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
+                 (ifB (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
 ))
 
 (define-synthax (flapjax-grmrB3 inputB1 inputB2 inputB3 depth)
   #:base (choose inputB1 inputB2 inputB3)
   #:else (choose inputB1 inputB2 inputB3
+                 (constantB (choose 'on 'off))
                  (liftB (choose (λ (clock location) (if (or (>= (time-vec->integer clock) 2130) (< (time-vec->integer clock) 800))
                                  'night
                                  (if (equal? location 'home)
@@ -78,4 +96,6 @@
                                 (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none)))
                                 (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)) (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)))
                  (liftB (λ (e) (if e 'on 'off)) (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)))
+                 (andB (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)) (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)) (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)))
+                 (ifB (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)) (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)) (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)))
 ))

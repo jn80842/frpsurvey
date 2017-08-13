@@ -22,11 +22,11 @@
 
 (define (synth-mouse-tail-x-graph x-evt-stream)
  ; (flapjax-grmr  (λ () (terminals x-evt-stream)) 3))
-  (flapjaxE-grmr x-evt-stream 3))
+  (new-flapjaxE-grmr 3 x-evt-stream))
 
 (define (synth-mouse-tail-y-graph y-evt-stream)
  ; (flapjax-grmr (λ () (terminals y-evt-stream)) 3))
-  (flapjaxE-grmr y-evt-stream 3))
+  (new-flapjaxE-grmr 3 y-evt-stream))
 
 ;(define (op-sketch-mouse-tail-y-graph y-evt-stream)
 ;  (delayE y-evt-stream (integer-constants 3)))
