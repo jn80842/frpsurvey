@@ -22,11 +22,11 @@
 
 (define (synth-mouse-tail-x-graph x-evt-stream)
  ; (flapjax-grmr  (λ () (terminals x-evt-stream)) 3))
-  (new-flapjaxE-grmr 3 x-evt-stream))
+  (flapjaxE-grmr x-evt-stream 3))
 
 (define (synth-mouse-tail-y-graph y-evt-stream)
  ; (flapjax-grmr (λ () (terminals y-evt-stream)) 3))
-  (new-flapjaxE-grmr 3 y-evt-stream))
+  (flapjaxE-grmr y-evt-stream 3))
 
 ;(define (op-sketch-mouse-tail-y-graph y-evt-stream)
 ;  (delayE y-evt-stream (integer-constants 3)))
@@ -43,12 +43,12 @@
 (define binding
     (synthesize #:forall (append (harvest-events s-mouse-x)
                                  (harvest-events s-mouse-y))
-                #:guarantee (begin (same spec-mouse-tail-x-graph
+                #:guarantee (begin (assert (same spec-mouse-tail-x-graph
                                          synth-mouse-tail-x-graph
-                                         s-mouse-x)
-                                  (same spec-mouse-tail-y-graph
+                                         s-mouse-x))
+                                  (assert (same spec-mouse-tail-y-graph
                                          synth-mouse-tail-y-graph
-                                         s-mouse-y))))
+                                         s-mouse-y)))))
 (if (unsat? binding)
     (displayln "No binding was found.")
     (print-forms binding))

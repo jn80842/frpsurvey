@@ -43,8 +43,8 @@
 (define begin-time (current-seconds))
 (define binding
     (synthesize #:forall (append (harvest-events s-inc) (harvest-events s-dec))
-                #:guarantee (same merge-constants-graph synth-merge-constants-graph
-                                  s-inc s-dec)))  
+                #:guarantee (assert (same merge-constants-graph synth-merge-constants-graph
+                                  s-inc s-dec))))  
 (if (unsat? binding)
     (displayln "No binding was found.")
     (print-forms binding))
@@ -60,11 +60,11 @@
 (define collect-begin-time (current-seconds))
 (define collect-binding
   (synthesize #:forall (list timestamp1 timestamp2 timestamp3)
-              #:guarantee (same collect-graph synth-collect-graph
+              #:guarantee (assert (same collect-graph synth-collect-graph
                                 (list (list timestamp1 1)
                                       (list timestamp2 -1)
                                       (list timestamp3 1))
-                                        )
+                                        ))
               ))
 (define collect-end-time (current-seconds))
 (if (unsat? collect-binding)
@@ -76,8 +76,8 @@
 (define full-begin-time (current-seconds))
 (define full-binding
   (synthesize #:forall (append (harvest-events s-inc) (harvest-events s-dec))
-              #:guarantee (same inc-dec-button-graph synth-inc-dec-button-graph
-                                 s-inc s-dec)))
+              #:guarantee (assert (same inc-dec-button-graph synth-inc-dec-button-graph
+                                 s-inc s-dec))))
 (define full-end-time (current-seconds))
 (if (unsat? full-binding)
     (displayln "No binding was found.")

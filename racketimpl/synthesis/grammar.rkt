@@ -8,8 +8,8 @@
 (provide (all-defined-out))
 
 (define  (same program1 program2 . inputs)
-  (assert (equal? (apply program1 inputs)
-                  (apply program2 inputs))))
+  (equal? (apply program1 inputs)
+                  (apply program2 inputs)))
 
 (define (harvest-term v)
   (cond [(vector? v) (vector->list v)]
