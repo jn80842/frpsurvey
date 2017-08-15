@@ -146,6 +146,9 @@
 (define (notB behavior1)
   (behavior (not (behavior-init behavior1)) (map (λ (b) (list (get-timestamp b) (not (get-value b)))) (behavior-changes behavior1))))
 
+(define (liftB1 proc argB)
+  (behavior (proc (behavior-init argB)) (map (λ (e) (list (get-timestamp e) (proc (get-value e)))) (behavior-changes argB))))
+
 (define (liftB proc . argBs)
   (let* ([unique-ts (sort (remove-duplicates (flatten (map (λ (b) (map get-timestamp (behavior-changes b))) argBs))) <)]
          [enhanced-argBs (map (λ (b) (project-values b unique-ts)) argBs)])
