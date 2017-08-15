@@ -142,6 +142,10 @@
 (check-equal? (liftB + (behavior 0 (list (list 1 1) (list 2 2) (list 3 3)))
                                    (behavior 10 (list (list 1 1) (list 2 2) (list 3 3))))
       (behavior 10 (list (list 1 2) (list 2 4) (list 3 6))))
+(check-equal? (liftB (λ (t) (<= t 2)) (behavior 1 (list (list 1 0) (list 3 0))))
+              (behavior #t (list (list 1 #t) (list 3 #t))))
+(check-equal? (liftB (λ (t) (<= t 2)) (behavior 1 '()))
+              (behavior #t '()))
 
 ;; condB
 (check-equal? (condB (list (list (behavior #t (list (list 1 #f))) (behavior 3 (list (list 1 3)))) (list (behavior #f (list (list 1 #t))) (behavior 5 (list (list 1 5))))))
