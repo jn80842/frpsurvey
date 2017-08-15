@@ -60,11 +60,13 @@
                          (flapjaxE-grmr2 input-stream1 input-stream2 (sub1 depth)))
                  ))
 
-(define-synthax (flapjax-grmrB input-behavior depth)
+#;(define-synthax (flapjax-grmrB input-behavior depth)
   #:base input-behavior
   #:else (choose input-behavior
-                 (constantB (choose 'on 'off))
-                 (liftB (λ (e) (if e 'on 'off)) (flapjax-grmrB input-behavior (sub1 depth)))
+                ; (liftB (λ (t) (<= t 2)) input-behavior)
+                ; (constantB (choose 'on 'off))
+                 (liftB (λ (t) (<= t 2))
+                        (flapjax-grmrB input-behavior (sub1 depth)))
                  ))
 
 ;; there's probably a more elegant way
@@ -79,7 +81,10 @@
                                      'away)))
                                 (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none)))
                                 (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
-                 (liftB (λ (e) (if e 'on 'off)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
+                 (liftB (choose (λ (e) (if e 'on 'off))
+                                (λ (t) (<= t 2))
+                                (λ (c) (or (>= (vector-ref c 0) 4) (>= 2 (vector-ref c 0)))))
+                                (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
                  (andB (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
                  (ifB (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
 ))
