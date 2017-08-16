@@ -75,8 +75,17 @@
         (behavior-init behavior1)
         (get-value (last filtered-changes)))))
 
+(define (valueNow-List l ts)
+  (let ([filtered-changes (filter (λ (t) (<= (get-timestamp t) ts)) l)])
+    (if (empty? filtered-changes)
+        0
+        (get-value (last filtered-changes)))))
+
 (define (project-values b ts)
   (map (λ (t) (list t (valueNow b t))) ts))
+
+(define (project-values-list l ts)
+  (map (λ (t) (list t (valueNow-List l t))) ts))
 
 (define (projected-behavior b ts)
   (behavior (behavior-init b) (project-values b ts)))
