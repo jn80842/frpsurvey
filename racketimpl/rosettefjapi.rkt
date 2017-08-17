@@ -34,7 +34,7 @@
                (map (λ (start-ts end-ts vals) (if end-ts
                                            (boundedTimestampsStream start-ts end-ts (get-value vals))
                                            (startAtTimestamp start-ts (get-value vals))))
-             ts (append (list-tail ts 1) (list #f)) stream-of-streams))))))
+             ts (append (rest ts) (list #f)) stream-of-streams))))))
 
 ;; condE
 
@@ -91,9 +91,9 @@
                       ;; if time between current event and last sent is geq interval
                       ;; propagate event, update last sent, and continue
                       [(<= interval (- (get-timestamp (first evts)) last-sent))
-                       (append (list (first evts)) (f (list-tail evts 1) (get-timestamp (first evts))))]
+                       (append (list (first evts)) (f (rest evts) (get-timestamp (first evts))))]
                       ;; else, continue without propagating current event
-                      [else (f (list-tail evts 1) last-sent)]))])
+                      [else (f (rest evts) last-sent)]))])
     (f evt-stream (- interval))))
 
 (define (calmE evt-stream interval)
@@ -104,14 +104,14 @@
                       ;; if all events have been processed and no event is buffered, done!
                       [(empty? evts) '()]
                       ;; if nothing has been buffered, buffer event and continue
-                      [(false? buffered-evt) (f (list-tail evts 1) (first evts))]
+                      [(false? buffered-evt) (f (rest evts) (first evts))]
                       ;; if time between buffered event and next event is geq interval
                       ;; propagate buffered event and continue
                       [(<= interval (- (get-timestamp (first evts)) (get-timestamp buffered-evt)))
-                       (append (emit-event buffered-evt) (f (list-tail evts 1) (first evts)))]
+                       (append (emit-event buffered-evt) (f (rest evts) (first evts)))]
                       ;; if time between buffered event and next event is too small
                       ;; discard buffered event and continue
-                      [else (f (list-tail evts 1) (first evts))]))])
+                      [else (f (rest evts) (first evts))]))])
     (f evt-stream #f)))
 
 (define (startsWith evt-stream init-value)

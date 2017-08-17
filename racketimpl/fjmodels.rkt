@@ -10,6 +10,9 @@
 (define (max-for-current-bitwidth n)
   (sub1 (expt 2 (sub1 n))))
 
+(define (all-but-last lst)
+  (reverse (cdr (reverse lst))))
+
 ;;;;;; timestamp related helpers ;;;;;;;;
 (define ts-comparator (λ (x y) (< (first x) (first y))))
 
@@ -26,16 +29,20 @@
   (filter (λ (e) (and (>= (first e) ts1) (<= (first e) ts2))) evt-stream))
 
 (define (valid-timestamps? stream)
-  (and (apply distinct? (map get-timestamp stream))
-       (andmap integer? (map get-timestamp stream))
+  (and (andmap integer? (map get-timestamp stream))
        (andmap positive? (map get-timestamp stream))
-       (timestamps-sorted? stream)))
-
-(define (timestamps-sorted? stream)
-  (equal? (map get-timestamp stream) (sort (map get-timestamp stream) <)))
+       (timestamps-sorted-and-distinct? stream)))
 
 (define (timestamps-below-max? max stream)
   (andmap (λ (t) (>= max t)) (map get-timestamp stream)))
+
+(define (timestamps-sorted? stream)
+  (let ([times (map get-timestamp stream)])
+    (andmap <= (all-but-last times) (rest times))))
+
+(define (timestamps-sorted-and-distinct? stream)
+  (let ([times (map get-timestamp stream)])
+    (andmap < (all-but-last times) (rest times))))
 
 ;;;; represent times with vectors to allow us to use bitwidth 5 ;;;;
 (define (s-time-vec)
@@ -96,9 +103,8 @@
 
 (define (valid-behavior? b)
   (and (behavior? b)
-       (apply distinct? (map get-timestamp (behavior-changes b)))
        (andmap positive? (map get-timestamp (behavior-changes b)))
-       (timestamps-sorted? (behavior-changes b))))
+       (timestamps-sorted-and-distinct? (behavior-changes b))))
 
 (define (valid-time-vec-behavior? b)
   (and (valid-behavior? b)
@@ -120,8 +126,6 @@
         [enhanced-b2 (project-values b2 (all-unique-timestamps b2 b1))])
     (and (eq? (behavior-init b1) (behavior-init b2))
          (eq? enhanced-b1 enhanced-b2))))
-
-;(apply (curry map list) (map (λ (b) (map get-value (project-values b (list 1 2 3 4 5 6)))) (list b b2)))
 
 (define (behavior-check proc . behaviors)
   (let ([all-ts (apply all-unique-timestamps behaviors)])
@@ -148,8 +152,6 @@
   (let ([concrete-list (stream-size n)])
     (map (λ (c)
            (define-symbolic* timestamp integer?)
-           (assert (>= (length concrete-list) timestamp))
-           (assert (> timestamp 0))
            (define-symbolic* value boolean?)
            (list timestamp value)) concrete-list)))
 
@@ -164,10 +166,7 @@
   (let ([concrete-list (stream-size n)])
     (map (λ (c)
            (define-symbolic* timestamp integer?)
-           (assert (>= (length concrete-list) timestamp))
-           (assert (> timestamp 0))
            (define-symbolic* value integer?)
-           (assert (> value -1))
            (list timestamp value)) concrete-list)))
 
 (define (time-vec-event-stream n)
