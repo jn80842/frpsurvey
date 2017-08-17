@@ -146,37 +146,10 @@
 (define (notB behavior1)
   (behavior (not (behavior-init behavior1)) (map (λ (b) (list (get-timestamp b) (not (get-value b)))) (behavior-changes behavior1))))
 
-(define (liftB1 proc argB)
-  (behavior (proc (behavior-init argB)) (map (λ (e) (list (get-timestamp e) (proc (get-value e)))) (behavior-changes argB))))
-
-(define (liftB2 proc argB1 argB2)
-  (let* ([unique-ts (sort (remove-duplicates (append (map get-timestamp (behavior-changes argB1)) (map get-timestamp (behavior-changes argB2)))) <)]
-         [enhanced-argB1 (project-values argB1 unique-ts)]
-         [enhanced-argB2 (project-values argB2 unique-ts)])
-    (behavior (proc (behavior-init argB1) (behavior-init argB2)) (map (λ (e1 e2) (list (get-timestamp e1) (proc (get-value e1) (get-value e2)))) enhanced-argB1 enhanced-argB2))))
-
 (define (liftB proc . argBs)
   (let* ([unique-ts (sort (remove-duplicates (flatten (map (λ (b) (map get-timestamp (behavior-changes b))) argBs))) <)]
          [enhanced-argBs (map (λ (b) (project-values b unique-ts)) argBs)])
   (behavior (apply proc (map behavior-init argBs)) (apply (curry map (λ e (list (get-timestamp (first e)) (apply proc (map get-value e))))) enhanced-argBs))))
-
-(define (liftB-no-let proc . argBs)
-  (behavior (apply proc (map behavior-init argBs)) (apply (curry map (λ e (list (get-timestamp (first e)) (apply proc (map get-value e)))))
-                                                          (map (λ (b) (project-values b (sort (remove-duplicates (flatten (map (λ (b) (map get-timestamp (behavior-changes b))) argBs))) <))) argBs))))
-
-(define (liftB-no-enhanced proc . argBs)
-  (behavior (apply proc (map behavior-init argBs)) (apply (curry map (λ e (list (get-timestamp (first e)) (apply proc (map get-value e))))) (map behavior-changes argBs))))
-
-(define (liftB-list proc . argLists)
-  (let* ([unique-ts (sort (remove-duplicates (flatten (map (λ (l) (map get-timestamp l)) argLists))) <)]
-         [enhanced-Lists (map (λ (l) (project-values-list l unique-ts)) argLists)])
-    (apply (curry map (λ e (list (get-timestamp (first e)) (apply proc (map get-value e))))) enhanced-Lists)))
-
-(define (liftB-list-no-let proc argLists)
-  (apply (curry map (λ e (list (get-timestamp (first e)) (apply proc (map get-value e))))) argLists))
-
-(define (liftB-list-no-let-no-apply proc argLists)
-  (map (λ e (list (get-timestamp (first e)) (apply proc (map get-value e)))) argLists))
 
 ;; is there an easier way??
 (define (condB behaviorpairs)

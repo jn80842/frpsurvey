@@ -147,16 +147,6 @@
 (check-equal? (liftB (λ (t) (<= t 2)) (behavior 1 '()))
               (behavior #t '()))
 
-(check-equal? (liftB-list (λ (v) (+ v 3)) (list (list 1 2) (list 2 3) (list 5 4)))
-      (list (list 1 5) (list 2 6) (list 5 7)))
-(check-equal? (liftB-list + (list (list 1 1) (list 2 2) (list 3 3))
-                                   (list (list 1 1) (list 2 2) (list 3 3)))
-      (list (list 1 2) (list 2 4) (list 3 6)))
-(check-equal? (liftB-list (λ (t) (<= t 2)) (list (list 1 0) (list 3 0)))
-              (list (list 1 #t) (list 3 #t)))
-(check-equal? (liftB-list (λ (t) (<= t 2)) '())
-              '())
-
 ;; condB
 (check-equal? (condB (list (list (behavior #t (list (list 1 #f))) (behavior 3 (list (list 1 3)))) (list (behavior #f (list (list 1 #t))) (behavior 5 (list (list 1 5))))))
       (behavior 3 (list (list 1 5))))
