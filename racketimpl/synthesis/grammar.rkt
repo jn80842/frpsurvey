@@ -22,7 +22,7 @@
           (map harvest-term (map get-value evt-stream)))))
 
 (define (harvest-behavior b)
-  (append (list (harvest-term (behavior-init b))) (harvest-events (behavior-changes b))))
+  (flatten (append (list (harvest-term (behavior-init b))) (harvest-events (behavior-changes b)))))
 
 (define (new-flapjaxE-grmr depth inputs)
   (let ([base (apply choose* (list inputs))])
@@ -35,6 +35,13 @@
                        (new-flapjaxE-grmr (sub1 depth) inputs))
                  (constantE (new-flapjaxE-grmr (sub1 depth) inputs) (choose 0 1 -1))
                  (delayE (new-flapjaxE-grmr (sub1 depth) inputs) (choose 1 2 3))))))
+
+(define (small-grmr depth inputs)
+  (let ([base (apply choose* (list inputs))])
+    (if (= 0 depth)
+        base
+        (choose* base
+                 (delayE (small-grmr (sub1 depth) inputs) (choose* 1 2 3))))))
 
 (define-synthax (flapjaxE-grmr input-stream depth)
   #:base input-stream

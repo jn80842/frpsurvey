@@ -3,6 +3,8 @@
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
 
+(provide location-behavior light-color-assumptions)
+
 (current-bitwidth 6)
 
 (define b-clock (behavior (integer->time-vec 0) (list (list 1 (integer->time-vec 2000)) (list 2 (integer->time-vec 2021)) (list 3 (integer->time-vec 2025)) (list 4 (integer->time-vec 2027))
