@@ -24,6 +24,31 @@
 (define (harvest-behavior b)
   (flatten (append (list (harvest-term (behavior-init b))) (harvest-events (behavior-changes b)))))
 
+(define-synthax (flapjaxE-grmr input-stream ... depth)
+  #:base (choose input-stream  ... )
+  #:else (choose input-stream  ...
+                (startsWith (flapjaxE-grmr input-stream ... (sub1 depth)) (??))
+                 (collectE (flapjaxE-grmr input-stream ... (sub1 depth)) (??) +)
+                 (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) (??))))
+                       (flapjaxE-grmr input-stream ... (sub1 depth)))
+                 (constantE (flapjaxE-grmr input-stream ... (sub1 depth)) (??))
+                 (delayE (flapjaxE-grmr input-stream ... (sub1 depth)) (??))
+                 (mergeE (flapjaxE-grmr input-stream ... (sub1 depth)) (flapjaxE-grmr input-stream ... (sub1 depth)))))
+
+(define-synthax (flapjaxB-grmr input ... depth)
+  #:base (choose input ...)
+  #:else (choose input ...
+                (liftB (choose (λ (t) (<= t (??)))
+                                (λ (c) (or (>= (vector-ref c 0) (??)) (>= (??) (vector-ref c 0)))))
+                        (flapjaxB-grmr input ... (sub1 depth)))
+                (andB (flapjaxB-grmr input ... (sub1 depth))
+                      (flapjaxB-grmr input ... (sub1 depth)))
+                (ifB (flapjaxB-grmr input ... (sub1 depth))
+                     (flapjaxB-grmr input ... (sub1 depth))
+                     (flapjaxB-grmr input ... (sub1 depth)))
+                (constantB (choose 'on 'off))
+                 ))
+
 #;(define (new-flapjaxE-grmr depth inputs)
   (let ([base (apply choose* (list inputs))])
     (if (= 0 depth)

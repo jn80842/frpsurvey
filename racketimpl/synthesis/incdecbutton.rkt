@@ -13,7 +13,7 @@
 
 (define (merge-constants-graph inc dec)
   (mergeE (constantE inc 1) (constantE dec -1)))
-(define (synth-merge-constants-graph inc dec)
+#;(define (synth-merge-constants-graph inc dec)
   (flapjaxE-grmr2 inc dec 2))
 
 (define (collect-graph evt-stream)
@@ -25,12 +25,12 @@
   (startsWith (collectE (mergeE (flapjaxE-grmr inc 2) (constantE dec -1)) 0 +) 0))
 
 (define (synth-inc-dec-button-graph inc dec)
-  (flapjaxE-grmr2 inc dec 4))
+  (flapjaxE-grmr inc dec 4))
 
 (define stream-length 3)
 
-(define s-inc (clicksE stream-length))
-(define s-dec (clicksE stream-length))
+(define s-inc (new-event-stream (sym-union-constructor 'click 'no-evt) stream-length))
+(define s-dec (new-event-stream (sym-union-constructor 'click 'no-evt) stream-length))
 
 (assert (button-assumptions s-inc s-dec))
 (assert (andmap (λ (e) (>= (* 2 stream-length) (get-timestamp e))) s-inc))
@@ -41,11 +41,11 @@
 (displayln "Synthesize two merged streams with 1 and -1 constants")
 
 (define begin-time (current-seconds))
-(define binding
+#;(define binding
     (synthesize #:forall (append (harvest-events s-inc) (harvest-events s-dec))
                 #:guarantee (assert (same merge-constants-graph synth-merge-constants-graph
                                   s-inc s-dec))))  
-(if (unsat? binding)
+#;(if (unsat? binding)
     (displayln "No binding was found.")
     (print-forms binding))
 (define end-time (current-seconds))
@@ -58,7 +58,7 @@
 
 (displayln "Synthesize startsWith and collectE portion")
 (define collect-begin-time (current-seconds))
-(define collect-binding
+#;(define collect-binding
   (synthesize #:forall (list timestamp1 timestamp2 timestamp3)
               #:guarantee (assert (same collect-graph synth-collect-graph
                                 (list (list timestamp1 1)
@@ -67,7 +67,7 @@
                                         ))
               ))
 (define collect-end-time (current-seconds))
-(if (unsat? collect-binding)
+#;(if (unsat? collect-binding)
     (displayln "No binding was found.")
     (print-forms collect-binding))
 (printf "Took ~a seconds~n" (- collect-end-time collect-begin-time))
