@@ -41,8 +41,7 @@
 
 (define stream-length 2)
 
-(define s-motion (map (λ (n) (define-symbolic* timestamp integer?)
-                        (list timestamp 'motion)) (stream-size stream-length)))
+(define s-motion (new-event-stream (sym-union-constructor 'motion 'no-evt) stream-length))
 
 (printf "current bitwidth is: ~a\n" (current-bitwidth))
 (printf "number of motion detector events: ~a\n" stream-length)

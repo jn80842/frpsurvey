@@ -40,8 +40,8 @@
 
 (define stream-length 2)
 
-(define s-temp (integer-behavior stream-length))
-(define s-clock (time-vec-behavior stream-length))
+(define s-temp (new-behavior sym-integer stream-length))
+(define s-clock (new-behavior sym-time-vec stream-length))
 
 (printf "current bitwidth is: ~a\n" (current-bitwidth))
 (printf "number of temp changes: ~a\n" (length (behavior-changes s-temp)))

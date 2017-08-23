@@ -5,9 +5,14 @@
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
 
+(provide drag-and-drop-assumptions
+         sym-coords)
+
 ;;;;;; drag and drop ;;;;;
 
 ;; assume that all mouse down events are on the draggable element
+;; since the source of the mouse down events should be from that element
+;; mouse up events are from the entire document
 
 (define init-elt-pos (vector 100 200))
 (define i-mouse-down (list (list 3 'down)
@@ -15,7 +20,7 @@
 (define i-mouse-up (list (list 6 'up)
                          (list 11 'up)))
 
-(define i-mouse-pos (behavior (vector 0 0) (list (list 2 (vector 110 210))
+(define i-mouse-pos (behavior (vector 0 0) (list (list 2 (vector 100 200))
                                                  (list 4 (vector 50 100))
                                                  (list 5 (vector 100 150))
                                                  (list 8 (vector 200 220))
@@ -54,50 +59,32 @@
   (startsWith (dragE (moveEe mouse-down mouse-pos) (dropEe mouse-up)) init-pos))
 
 (printf "Checking concrete inputs ... ")
-(if (equal? (dragE (moveEe i-mouse-down i-mouse-pos) (dropEe i-mouse-up))
-            (changes o-element-pos))
+(if (equal-behaviors? ;(dragE (moveEe i-mouse-down i-mouse-pos) (dropEe i-mouse-up))
+     (elt-positionB i-mouse-up i-mouse-down i-mouse-pos init-elt-pos)
+            o-element-pos)
     (printf "ok!\n")
     (printf "something's wrong\n"))
 
 (current-bitwidth 4)
 
-(define-symbolic* init-elt-x integer?)
-(define-symbolic* init-elt-y integer?)
-(define s-init-elt-pos (vector init-elt-x init-elt-y))
+(define (sym-coords)
+  (define-symbolic* x integer?)
+  (define-symbolic* y integer?)
+  (vector x y))
 
-(define (symbolic-click-event-stream symbol n)
-  (let ([concrete-list (stream-size n)])
-    (map (λ (c)
-           (define-symbolic* timestamp integer?)
-           ; (assert (>= (length concrete-list) timestamp))
-           ; (assert (> timestamp 0))
-           (define-symbolic* click-evt boolean?)
-           (define click-union (if click-evt symbol 'no-evt))
-           (list timestamp click-union)) concrete-list)))
+(define s-init-elt-pos (sym-coords))
 
-(define stream-length 3)
+(define stream-length 2)
 (define max-timestamp (* 2 stream-length))
-(define max-mouse-pos 6)
+(define max-mouse-pos 3)
 (if (>= max-timestamp (sub1 (expt 2 (sub1 (current-bitwidth)))))
     (displayln "MAX TIMESTAMP IS TOO HIGH and WILL CAUSE OVERFLOW")
     (printf "max timestamp is ~a~n" max-timestamp))
 
-(define s-mouse-up (symbolic-click-event-stream 'up stream-length))
-(define s-mouse-down (symbolic-click-event-stream 'down stream-length))
+(define s-mouse-up (new-event-stream (sym-union-constructor 'up 'no-evt) stream-length))
+(define s-mouse-down (new-event-stream (sym-union-constructor 'down 'no-evt) stream-length))
 
-(define (vector-event-stream n)
-  (let ([concrete-list (stream-size n)])
-    (map (λ (v)
-           (define-symbolic* timestamp integer?)
-           (define-symbolic* x integer?)
-           (define-symbolic* y integer?)
-           (list timestamp (vector x y))) concrete-list)))
-(define (vector-behavior n)
-  (define-symbolic* init-x integer?)
-  (define-symbolic* init-y integer?)
-  (behavior (vector init-x init-y) (vector-event-stream n)))
-         
-(define s-mouse-pos (vector-behavior stream-length))
+(define s-mouse-pos (new-behavior sym-coords stream-length))
 
 (printf "current bitwidth ~a, maximum possible value is ~a~n"
         (current-bitwidth) (max-for-current-bitwidth (current-bitwidth)))

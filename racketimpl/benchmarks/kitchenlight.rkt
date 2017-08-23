@@ -3,7 +3,7 @@
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
 
-(provide location-behavior light-color-assumptions)
+(provide sym-location light-color-assumptions)
 
 (current-bitwidth 6)
 
@@ -45,19 +45,15 @@
  (equal-behaviors? (kitchen-light-status-graph b-motion-sensor) b-light-status)
  (equal-behaviors? (kitchen-light-color-graph (kitchen-light-status-graph b-motion-sensor) (mode-graph b-clock b-location)) b-light-color))
 
-(define (location-behavior n)
-  (let ([concrete-list (stream-size n)])
-    (define-symbolic* init-is-home? boolean?)
-    (behavior (if init-is-home? 'home 'not-at-home) (map (λ (x)
-                                                           (define-symbolic* timestamp integer?)
-                                                           (define-symbolic* is-home? boolean?)
-                                                           (list timestamp (if is-home? 'home 'not-at-home))) concrete-list))))
+(define (sym-location)
+  (define-symbolic* b boolean?)
+  (if b 'home 'not-at-home))
 
 (define stream-length 6)
 
-(define s-motion-sensor (boolean-behavior stream-length))
-(define s-location (location-behavior stream-length))
-(define s-clock (time-vec-behavior stream-length))
+(define s-motion-sensor (new-behavior sym-boolean stream-length))
+(define s-location (new-behavior sym-location stream-length))
+(define s-clock (new-behavior sym-time-vec stream-length))
 
 (printf "current bitwidth ~a, maximum possible value is ~a~n"
         (current-bitwidth) (max-for-current-bitwidth (current-bitwidth)))

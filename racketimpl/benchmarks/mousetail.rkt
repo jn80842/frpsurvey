@@ -30,8 +30,8 @@
 
 (define stream-length 4)
 
-(define mouse-x (positive-integer-event-stream stream-length))
-(define mouse-y (positive-integer-event-stream stream-length))
+(define mouse-x (new-event-stream sym-integer stream-length))
+(define mouse-y (new-event-stream sym-integer stream-length))
 
 (printf "current bitwidth ~a, maximum possible value is ~a~n"
         (current-bitwidth) (max-for-current-bitwidth (current-bitwidth)))
@@ -46,7 +46,7 @@
        (andmap (λ (n) (>= n 0)) (map get-value mx))
        ;; to prevent overflow, x coord can't be greater than max minus offset
        (andmap (λ (n) (<= n (- (max-for-current-bitwidth (current-bitwidth)) x-offset)))
-               (map get-value mx))
+               (map get-value mx))    
        ))
 
 (define (mousetail-y-assumptions my)

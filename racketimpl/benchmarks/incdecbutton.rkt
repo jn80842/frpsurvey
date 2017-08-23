@@ -3,17 +3,9 @@
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
 
-(provide clicksE button-assumptions)
+(provide button-assumptions)
 
 (current-bitwidth 5)
-
-(define (clicksE n)
-  (let ([concrete-list (stream-size n)])
-    (map (λ (c)
-           (define-symbolic* timestamp integer?)
-           (define-symbolic* click-evt boolean?)
-           (define click-union (if click-evt 'click 'no-evt))
-           (list timestamp click-union)) concrete-list)))
 
 (define (inc-dec-button-graph inc dec)
   (startsWith
@@ -27,8 +19,8 @@
 
 (define stream-length 3)
 
-(define s-inc (clicksE stream-length))
-(define s-dec (clicksE stream-length))
+(define s-inc (new-event-stream (sym-union-constructor 'click 'no-evt) stream-length))
+(define s-dec (new-event-stream (sym-union-constructor 'click 'no-evt) stream-length))
 
 (printf "current bitwidth ~a, maximum possible value is ~a~n"
         (current-bitwidth) (max-for-current-bitwidth (current-bitwidth)))

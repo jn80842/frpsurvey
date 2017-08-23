@@ -70,9 +70,9 @@
 
 (define stream-length 3)
 
-(define s-raingauge (boolean-behavior stream-length))
-(define s-clock (positive-integer-behavior stream-length))
-(define s-motion-sensor (boolean-behavior stream-length)) ;; or, should this be event stream?
+(define s-raingauge (new-behavior sym-boolean stream-length))
+(define s-clock (new-behavior sym-integer stream-length))
+(define s-motion-sensor (new-behavior sym-boolean stream-length)) ;; or, should this be event stream?
 
 (define (24h-rainedB-assumptions clockE raingaugeB)
   (and (valid-timestamps? clockE)

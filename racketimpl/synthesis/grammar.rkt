@@ -24,7 +24,7 @@
 (define (harvest-behavior b)
   (flatten (append (list (harvest-term (behavior-init b))) (harvest-events (behavior-changes b)))))
 
-(define (new-flapjaxE-grmr depth inputs)
+#;(define (new-flapjaxE-grmr depth inputs)
   (let ([base (apply choose* (list inputs))])
     (if (= 0 depth)
         base
@@ -36,14 +36,14 @@
                  (constantE (new-flapjaxE-grmr (sub1 depth) inputs) (choose 0 1 -1))
                  (delayE (new-flapjaxE-grmr (sub1 depth) inputs) (choose 1 2 3))))))
 
-(define (small-grmr depth inputs)
+#;(define (small-grmr depth inputs)
   (let ([base (apply choose* (list inputs))])
     (if (= 0 depth)
         base
         (choose* base
                  (delayE (small-grmr (sub1 depth) inputs) (choose* 1 2 3))))))
 
-(define-synthax (flapjaxE-grmr input-stream depth)
+#;(define-synthax (flapjaxE-grmr input-stream depth)
   #:base input-stream
   #:else (choose input-stream
                  (startsWith (flapjaxE-grmr input-stream (sub1 depth)) (choose 0 1 2 -1))
@@ -53,7 +53,7 @@
                  (constantE (flapjaxE-grmr input-stream (sub1 depth)) 1)
                  (delayE (flapjaxE-grmr input-stream (sub1 depth)) (choose 1 2 3))))
 
-(define-synthax (flapjaxE-grmr2 input-stream1 input-stream2 depth)
+#;(define-synthax (flapjaxE-grmr2 input-stream1 input-stream2 depth)
   #:base (choose input-stream1 input-stream2)
   #:else (choose input-stream1
                  input-stream2
@@ -77,7 +77,7 @@
                  ))
 
 ;; there's probably a more elegant way
-(define-synthax (flapjax-grmrB2 inputB1 inputB2 depth)
+#;(define-synthax (flapjax-grmrB2 inputB1 inputB2 depth)
   #:base (choose inputB1 inputB2)
   #:else (choose inputB1 inputB2
                  (constantB (choose 'on 'off))
@@ -96,7 +96,7 @@
                  (ifB (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
 ))
 
-(define-synthax (flapjax-grmrB3 inputB1 inputB2 inputB3 depth)
+#;(define-synthax (flapjax-grmrB3 inputB1 inputB2 inputB3 depth)
   #:base (choose inputB1 inputB2 inputB3)
   #:else (choose inputB1 inputB2 inputB3
                  (constantB (choose 'on 'off))

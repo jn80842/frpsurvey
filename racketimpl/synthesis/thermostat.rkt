@@ -10,18 +10,41 @@
 (unless (>= (current-bitwidth) 6)
   (displayln "bitwidth too low for time vec!!!!"))
 
-(define-synthax (flapjax-grmrB input-behavior1 input-behavior2 depth)
+#;(define-synthax (flapjax-grmrB input-behavior1 input-behavior2 depth)
   #:base (choose input-behavior1 input-behavior2)
   #:else (choose input-behavior1 input-behavior2
                 (liftB (choose (λ (t) (<= t temp-floor))
                                 (λ (c) (or (>= (vector-ref c 0) hour-begin) (>= hour-end (vector-ref c 0)))))
                         (flapjax-grmrB input-behavior1 input-behavior2  (sub1 depth)))
-                (andB (flapjax-grmrB input-behavior1 input-behavior2 (sub1 depth)) (flapjax-grmrB input-behavior1 input-behavior2 (sub1 depth)))
+                (andB (flapjax-grmrB input-behavior1 input-behavior2 (sub1 depth))
+                      (flapjax-grmrB input-behavior1 input-behavior2 (sub1 depth)))
                 (ifB (flapjax-grmrB input-behavior1 input-behavior2 (sub1 depth))
                      (flapjax-grmrB input-behavior1 input-behavior2 (sub1 depth))
                      (flapjax-grmrB input-behavior1 input-behavior2 (sub1 depth)))
                 (constantB (choose 'on 'off))
                  ))
+
+(define-synthax (flapjax-grmrC input ... depth)
+  #:base (choose input ...)
+  #:else (choose input ...))
+
+(define-synthax (flapjax-grmrB input ... depth)
+  #:base (choose input ...)
+  #:else (choose input ...
+                (liftB (choose (λ (t) (<= t temp-floor))
+                                (λ (c) (or (>= (vector-ref c 0) hour-begin) (>= hour-end (vector-ref c 0)))))
+                        (flapjax-grmrB input ... (sub1 depth)))
+                (andB (flapjax-grmrB input ... (sub1 depth))
+                      (flapjax-grmrB input ... (sub1 depth)))
+                (ifB (flapjax-grmrB input ... (sub1 depth))
+                     (flapjax-grmrB input ... (sub1 depth))
+                     (flapjax-grmrB input ... (sub1 depth)))
+                (constantB (choose 'on 'off))
+                 ))
+
+(define temp-floor 2)
+(define hour-begin 2)
+(define hour-end 1)
 
 (define (thermostat-graph tempB clockB)
   (ifB (andB (liftB (λ (t) (<= t temp-floor)) tempB)
@@ -30,7 +53,7 @@
        (constantB 'off)))
 
 (define (synth-thermostat-graph tempB clockB)
-  (flapjax-grmrB tempB clockB 3))
+  (flapjax-grmrB clockB tempB 3))
 
 (define s-tempB (integer-behavior 2))
 (define s-clockB (time-vec-behavior 2))

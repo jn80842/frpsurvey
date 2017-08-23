@@ -124,8 +124,8 @@
 (define (equal-behaviors? b1 b2)
   (let ([enhanced-b1 (project-values b1 (all-unique-timestamps b1 b2))]
         [enhanced-b2 (project-values b2 (all-unique-timestamps b2 b1))])
-    (and (eq? (behavior-init b1) (behavior-init b2))
-         (eq? enhanced-b1 enhanced-b2))))
+    (and (equal? (behavior-init b1) (behavior-init b2))
+         (equal? enhanced-b1 enhanced-b2))))
 
 (define (behavior-check proc . behaviors)
   (let ([all-ts (apply all-unique-timestamps behaviors)])
@@ -169,6 +169,32 @@
            (define-symbolic* value integer?)
            (list timestamp value)) concrete-list)))
 
+
+
+(define (sym-boolean)
+  (define-symbolic* b boolean?)
+  b)
+
+(define (sym-integer)
+  (define-symbolic* i integer?)
+  i)
+
+(define (sym-union-constructor symbol1 symbol2)
+  (λ ()
+  (define-symbolic* b boolean?)
+  (if b symbol1 symbol2)))
+
+(define (sym-time-vec)
+  (define-symbolic* hour integer?)
+  (define-symbolic* minute-tens integer?)
+  (define-symbolic* minute-ones integer?)
+  (vector hour minute-tens minute-ones))
+
+(define (new-event-stream constructor n)
+  (map (λ (e)
+         (define-symbolic* timestamp integer?)
+         (list timestamp (constructor))) (stream-size n)))
+
 (define (time-vec-event-stream n)
   (let ([concrete-list (stream-size n)])
     (map (λ (c)
@@ -179,6 +205,9 @@
            (list timestamp (vector hour minute-tens minute-ones))) concrete-list)))
 
 ;;;;;;;; make symbolic behaviors ;;;;;;;;
+
+(define (new-behavior constructor n)
+  (behavior (constructor) (new-event-stream constructor n)))
 
 (define (boolean-behavior n)
   (define-symbolic* init-val boolean?)
