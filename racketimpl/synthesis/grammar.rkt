@@ -24,7 +24,7 @@
 (define (harvest-behavior b)
   (flatten (append (list (harvest-term (behavior-init b))) (harvest-events (behavior-changes b)))))
 
-(define-synthax (flapjaxE-grmr input-stream ... depth)
+#;(define-synthax (flapjaxE-grmr input-stream ... depth)
   #:base (choose input-stream  ... )
   #:else (choose input-stream  ...
                 (startsWith (flapjaxE-grmr input-stream ... (sub1 depth)) (??))
@@ -35,7 +35,7 @@
                  (delayE (flapjaxE-grmr input-stream ... (sub1 depth)) (??))
                  (mergeE (flapjaxE-grmr input-stream ... (sub1 depth)) (flapjaxE-grmr input-stream ... (sub1 depth)))))
 
-(define-synthax (flapjaxB-grmr input ... depth)
+#;(define-synthax (flapjaxB-grmr input ... depth)
   #:base (choose input ...)
   #:else (choose input ...
                 (liftB (choose (λ (t) (<= t (??)))
