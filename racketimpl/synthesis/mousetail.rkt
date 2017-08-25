@@ -30,12 +30,9 @@
 
 (define-synthax (smaller-grmr input ... depth)
   #:base (choose input ...)
-  #:else (choose input ...
+  #:else (choose input ... (zeroE)
                  ;; E ::= arity-1-op E int
-                 ((choose startsWith constantE delayE blindE calmE mapE)
-                  (choose void)
-                 ; (choose (λ (e) (list (get-timestamp e) (+ (get-value e) (??)))) void)
-                  (smaller-grmr input ... (sub1 depth)) (choose 1 2 3 void))
+                 ((choose startsWith constantE delayE blindE calmE) (smaller-grmr input ... (sub1 depth)) (choose 1 2 3 void))
                  ;; E ::= mapE λ E
                  (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) (??)))) (smaller-grmr input ... (sub1 depth)))
                  ;; E ::= arity-2-op E E
