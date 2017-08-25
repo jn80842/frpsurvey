@@ -18,13 +18,13 @@
 (define (collect-graph evt-stream)
   (startsWith 0 (collectE 0 + evt-stream)))
 (define (synth-collect-graph evt-stream)
-  (flapjaxE-grmr evt-stream 3))
+  (flapjax-grmr evt-stream 3))
 
 (define (outer-graph inc dec)
-  (startsWith 0 (collectE 0 + (mergeE (flapjaxE-grmr inc 2) (constantE -1 dec)))))
+  (startsWith 0 (collectE 0 + (mergeE (flapjax-grmr inc 2) (constantE -1 dec)))))
 
 (define (synth-inc-dec-button-graph inc dec)
-  (flapjaxE-grmr inc dec 4))
+  (flapjax-grmr inc dec 4))
 
 (define stream-length 3)
 
