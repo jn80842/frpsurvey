@@ -23,16 +23,13 @@
 
 ;; did it rain during the past day?
 (define (24h-rainedB clockE rain-gaugeB)
-  (startsWith
-   (collectE 
-    (mergeE
-     (mapE (λ (e) (list (get-timestamp e) 'midnight)) (filterE clockE (λ (e) (equal? 0 (time-vec->integer e)))))
-     (changes rain-gaugeB))
-    #f
-    (λ (new val) (cond [(equal? new 'midnight) #f]
+  (startsWith #f
+   (collectE #f (λ (new val) (cond [(equal? new 'midnight) #f]
                        [new #t]
-                       [else val])))
-   #f))
+                       [else val]))
+    (mergeE
+     (mapE (λ (e) (list (get-timestamp e) 'midnight)) (filterE (λ (e) (equal? 0 (time-vec->integer e))) clockE))
+     (changes rain-gaugeB)))))
 
 (display "checking 24h-rainedB...")
 (if (equal-behaviors? (24h-rainedB i-clockE i-raingaugeB) o-24h-rained)
@@ -48,18 +45,16 @@
 
 ;; returns # of minutes to count down for sprinklers on
 (define (sprinkler-counter-graph clockB motionSensorB 24h-rainedB start-or-pauseE)
-  (startsWith
-   (collectE
-    start-or-pauseE
-    0
+  (startsWith 0
+   (collectE 0
     (λ (new val) (if (equal? new 10)
                      10
                      (if (equal? val 0)
                          0
                          (if (equal? new 'sensed)
                              val
-                             (sub1 val))))))
-  0))
+                             (sub1 val)))))
+        start-or-pauseE)))
 
 ;; for later: try to write a version that uses timerB
 (define (sprinklers-graph motionSensorB sprinkler-counterB)

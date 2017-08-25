@@ -56,7 +56,7 @@
   (switchE (mergeE moveEe dropEe)))
 
 (define (elt-positionB mouse-up mouse-down mouse-pos init-pos)
-  (startsWith (dragE (moveEe mouse-down mouse-pos) (dropEe mouse-up)) init-pos))
+  (startsWith init-pos (dragE (moveEe mouse-down mouse-pos) (dropEe mouse-up))))
 
 (printf "Checking concrete inputs ... ")
 (if (equal-behaviors? ;(dragE (moveEe i-mouse-down i-mouse-pos) (dropEe i-mouse-up))

@@ -38,7 +38,7 @@
 
 ;; condE
 
-(define (filterE stream pred)
+(define (filterE pred stream)
   (filter (λ (e) (if (pred (get-value e)) (list (get-timestamp e) (pred (get-value e))) #f)) stream))
 
 (define (ifE guard-stream value-stream)
@@ -48,10 +48,10 @@
                                        guard-stream)])
     (filter (λ (e) (member (get-timestamp e) (map get-timestamp filtered-guard-stream))) value-stream)))
 
-(define (constantE evt-stream const)
+(define (constantE const evt-stream)
   (map (λ (s) (list (get-timestamp s) (if (equal? 'no-evt (get-value s)) 'no-evt const))) evt-stream)) ;))
 
-(define (collectE evt-stream init proc)
+(define (collectE init proc evt-stream)
   (letrec ([collect (λ (x-lst prev)
                       (if (equal? (length x-lst) 0)
                           '()
@@ -81,10 +81,10 @@
 
 ;; skipFirstE
 
-(define (delayE evt-stream interval)
+(define (delayE interval evt-stream)
   (map (λ(s) (list (+ (get-timestamp s) interval) (get-value s))) evt-stream))
 
-(define (blindE evt-stream interval)
+(define (blindE interval evt-stream)
   (letrec ([f (λ (evts last-sent)
                 ;; if all events have been processed, done!
                 (cond [(empty? evts) '()]
@@ -96,7 +96,7 @@
                       [else (f (rest evts) last-sent)]))])
     (f evt-stream (- interval))))
 
-(define (calmE evt-stream interval)
+(define (calmE interval evt-stream)
   (letrec ([emit-event (λ (evt) (list (list (+ (get-timestamp evt) interval) (get-value evt))))]
            [f (λ (evts buffered-evt)
                 ;; if all events have been processed, propagate buffered event
@@ -114,7 +114,7 @@
                       [else (f (rest evts) (first evts))]))])
     (f evt-stream #f)))
 
-(define (startsWith evt-stream init-value)
+(define (startsWith init-value evt-stream)
   (behavior init-value evt-stream))
 
 (define (changes behaviorB)

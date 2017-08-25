@@ -16,10 +16,10 @@
     (list (tail-x) (tail-y))))
 
 (define (mouse-tail-y-graph y-evt-stream)
-  (delayE y-evt-stream time-delay))
+  (delayE time-delay y-evt-stream))
 
 (define (mouse-tail-x-graph x-evt-stream)
-  (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) x-offset))) (delayE x-evt-stream time-delay)))
+  (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) x-offset))) (delayE time-delay x-evt-stream)))
 
 (define (concrete-eval x-input y-input)
   (let ([output (mouse-tail-graph (λ () x-input) (λ () y-input))])

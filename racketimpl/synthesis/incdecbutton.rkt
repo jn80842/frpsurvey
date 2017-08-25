@@ -7,22 +7,21 @@
 (require "grammar.rkt")
 
 (define (inc-dec-button-graph inc dec)
- (startsWith (collectE 
-   (mergeE (constantE inc 1) (constantE dec -1))
-   0 +) 0))
+ (startsWith 0 (collectE 0 +
+   (mergeE (constantE 1 inc) (constantE -1 dec)))))
 
 (define (merge-constants-graph inc dec)
-  (mergeE (constantE inc 1) (constantE dec -1)))
+  (mergeE (constantE 1 inc) (constantE -1 dec)))
 #;(define (synth-merge-constants-graph inc dec)
   (flapjaxE-grmr2 inc dec 2))
 
 (define (collect-graph evt-stream)
-  (startsWith (collectE evt-stream 0 +) 0))
+  (startsWith 0 (collectE 0 + evt-stream)))
 (define (synth-collect-graph evt-stream)
   (flapjaxE-grmr evt-stream 3))
 
 (define (outer-graph inc dec)
-  (startsWith (collectE (mergeE (flapjaxE-grmr inc 2) (constantE dec -1)) 0 +) 0))
+  (startsWith 0 (collectE 0 + (mergeE (flapjaxE-grmr inc 2) (constantE -1 dec)))))
 
 (define (synth-inc-dec-button-graph inc dec)
   (flapjaxE-grmr inc dec 4))

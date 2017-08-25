@@ -8,9 +8,9 @@
 (current-bitwidth 5)
 
 (define (inc-dec-button-graph inc dec)
-  (startsWith
-   (collectE 
-   (mergeE (constantE inc 1) (constantE dec -1)) 0 +) 0))
+  (startsWith 0
+   (collectE 0 +
+   (mergeE (constantE 1 inc) (constantE -1 dec)))))
 
 (define concrete-inc-clicks (list (list 1 'click) (list 4 'click)))
 (define concrete-dec-clicks (list (list 2 'no-evt) (list 3 'no-evt) (list 5 'click)))

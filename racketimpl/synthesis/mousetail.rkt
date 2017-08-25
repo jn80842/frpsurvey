@@ -22,7 +22,7 @@
                 ; (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) (??))))
                 ;       (flapjaxE-grmr input-stream ... (sub1 depth)))
                 ; (constantE (flapjaxE-grmr input-stream ... (sub1 depth)) (??))
-                 (delayE (flapjaxE-grmr input-stream ... (sub1 depth)) (??))
+                 (delayE (??) (flapjaxE-grmr input-stream ... (sub1 depth)))
                 ; (mergeE (flapjaxE-grmr input-stream ... (sub1 depth)) (flapjaxE-grmr input-stream ... (sub1 depth)))
                 ; (calmE (flapjaxE-grmr input-stream ... (sub1 depth)) (??))
                 ; (blindE (flapjaxE-grmr input-stream ... (sub1 depth)) (??))
@@ -32,7 +32,7 @@
   #:base (choose input ...)
   #:else (choose input ... (zeroE)
                  ;; E ::= arity-1-op E int
-                 ((choose startsWith constantE delayE blindE calmE) (smaller-grmr input ... (sub1 depth)) (choose 1 2 3 void))
+                 ((choose startsWith constantE delayE blindE calmE) (choose 1 2 3) (smaller-grmr input ... (sub1 depth)))
                  ;; E ::= mapE λ E
                  (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) (??)))) (smaller-grmr input ... (sub1 depth)))
                  ;; E ::= arity-2-op E E
@@ -40,9 +40,9 @@
                  ))
 
 (define (spec-mouse-tail-x-graph x-evt-stream)
-  (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) x-offset))) (delayE x-evt-stream time-delay)))
+  (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) x-offset))) (delayE time-delay x-evt-stream)))
 (define (spec-mouse-tail-y-graph y-evt-stream)
-  (delayE y-evt-stream time-delay))
+  (delayE time-delay y-evt-stream))
 
 (define (synth-mouse-tail-x-graph x-evt-stream)
   (flapjaxE-grmr x-evt-stream 3))

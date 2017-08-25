@@ -23,11 +23,11 @@
     (printf "delay-by is ~a~n" delay-by))
 
 (define (light-graph md-events)
-  (mergeE (blindE (constantE md-events 'on) delay-by) (calmE (constantE md-events 'off) calm-by)))
+  (mergeE (blindE delay-by (constantE 'on md-events)) (calmE calm-by (constantE 'off md-events))))
 
 (define (light-graph2 md-events)
-  (mergeE (blindE (ifE (notE (blindE md-events 2)) (constantE md-events 'on)) delay-by)
-          (calmE (constantE md-events 'off) calm-by)))
+  (mergeE (blindE delay-by (ifE (notE (blindE 2 md-events)) (constantE 'on md-events)))
+          (calmE calm-by (constantE 'off md-events))))
 
 (define concrete-motion (list (list 1 'd) (list 3 'd) (list 10 'd) (list 20 'd)))
 (define m (list (list 18 'd) (list 23 'd)))

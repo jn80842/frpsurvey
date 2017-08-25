@@ -49,7 +49,7 @@
       (list '(2 a) '(11 c) '(15 d)))
 
 ;; filterE tests
-(check-equal? (filterE (list (list 1 #t) (list 2 #f) (list 3 #t) (list 4 #f)) not)
+(check-equal? (filterE not (list (list 1 #t) (list 2 #f) (list 3 #t) (list 4 #f)))
       (list (list 2 #f) (list 4 #f)))
 
 ;; ifE tests
@@ -58,14 +58,14 @@
       (list (list 1 'a)))
 
 ;; constantE tests
-(check-equal? (constantE standard-evt-stream "hello") (list (list 1 "hello") (list 2 "hello") (list 3 "hello")))
-(check-equal? (constantE empty-evt-stream "hello") '())
-(check-equal? (constantE stream-with-no-evts 100) (list (list 1 'no-evt) (list 2 100) (list 5 100) (list 6 'no-evt)))
+(check-equal? (constantE "hello" standard-evt-stream) (list (list 1 "hello") (list 2 "hello") (list 3 "hello")))
+(check-equal? (constantE "hello" empty-evt-stream) '())
+(check-equal? (constantE 100 stream-with-no-evts) (list (list 1 'no-evt) (list 2 100) (list 5 100) (list 6 'no-evt)))
 
 ;; collectE tests
-(check-equal? (collectE standard-evt-stream 0 (λ (old new) (+ old new))) (list (list 1 11) (list 2 23) (list 3 36)))
-(check-equal? (collectE empty-evt-stream 0 (λ (old new) (+ old new))) '())
-(check-equal? (collectE (list (list 1 11) (list 2 'no-evt) (list 3 10)) 0 (λ (old new) (+ old new)))
+(check-equal? (collectE 0 (λ (old new) (+ old new)) standard-evt-stream) (list (list 1 11) (list 2 23) (list 3 36)))
+(check-equal? (collectE 0 (λ (old new) (+ old new)) empty-evt-stream) '())
+(check-equal? (collectE 0 (λ (old new) (+ old new)) (list (list 1 11) (list 2 'no-evt) (list 3 10)))
       (list (list 1 11) (list 2 11) (list 3 21)))
 
 ;; notE tests
@@ -80,31 +80,31 @@
 (check-equal? (snapshotE stream-with-no-evts (behavior 1 '())) (list (list 2 1) (list 5 1)))
 
 ;; delayE tests
-(check-equal? (delayE standard-evt-stream 3) '((4 11) (5 12) (6 13)))
+(check-equal? (delayE 3 standard-evt-stream) '((4 11) (5 12) (6 13)))
 
 ;; calmE tests
-(check-equal? (calmE (list (list 1 'a) (list 5 'b) (list 6 'c) (list 7 'd)) 3)
+(check-equal? (calmE 3 (list (list 1 'a) (list 5 'b) (list 6 'c) (list 7 'd)))
       '((4 a) (10 d)))
-(check-equal? (calmE '() 3) '())
-(check-equal? (calmE (list (list 3 'a)) 3) '((6 a)))
-(check-equal? (calmE (list (list 1 'a) (list 2 'b) (list 3 'c)
-                                                (list 4 'd) (list 5 'e) (list 6 'f)) 3)
+(check-equal? (calmE 3 '()) '())
+(check-equal? (calmE 3 (list (list 3 'a))) '((6 a)))
+(check-equal? (calmE 3 (list (list 1 'a) (list 2 'b) (list 3 'c)
+                                                (list 4 'd) (list 5 'e) (list 6 'f)))
       '((9 f)))
 
 ;; blindE tests
-(check-equal? (blindE (list (list 1 'a) (list 2 'b) (list 3 'c)
-                             (list 7 'd) (list 12 'e) (list 13 'f)) 3)
+(check-equal? (blindE 3 (list (list 1 'a) (list 2 'b) (list 3 'c)
+                             (list 7 'd) (list 12 'e) (list 13 'f)))
       (list (list 1 'a) (list 7 'd) (list 12 'e)))
-(check-equal? (blindE '() 3) '())
-(check-equal? (blindE (list (list 1 'a)) 3) (list (list 1 'a)))
-(check-equal? (blindE (list (list 1 'a) (list 2 'b) (list 3 'c)
-                                                (list 4 'd) (list 5 'e) (list 6 'f)) 3)
+(check-equal? (blindE 3 '()) '())
+(check-equal? (blindE 3 (list (list 1 'a))) (list (list 1 'a)))
+(check-equal? (blindE 3 (list (list 1 'a) (list 2 'b) (list 3 'c)
+                                                (list 4 'd) (list 5 'e) (list 6 'f)))
       '((1 a) (4 d)))
 
 ;; startsWith tests
-(check-equal? (startsWith standard-evt-stream 10) (behavior 10 (list (list 1 11) (list 2 '12) (list 3 13))))
+(check-equal? (startsWith 10 standard-evt-stream) (behavior 10 (list (list 1 11) (list 2 '12) (list 3 13))))
      ; (list (list 0 10) (list 1 11) (list 2 12) (list 3 13)))
-(check-equal? (startsWith empty-evt-stream 'zero) (behavior 'zero '())) ;;(list (list 0 'zero)))
+(check-equal? (startsWith 'zero empty-evt-stream) (behavior 'zero '())) ;;(list (list 0 'zero)))
 
 ;; changes tests
 (check-equal? (changes (behavior 0 (list (list 1 1) (list 2 2) (list 3 3)))) (list (list 1 1) (list 2 2) (list 3 3)))
