@@ -56,9 +56,9 @@
 
 (define stream-length 2)
 
-(define s-clockB (time-vec-behavior stream-length))
-(define s-locationB (location-behavior stream-length))
-(define s-motionSensorB (boolean-behavior stream-length))
+(define s-clockB (new-behavior sym-time-vec stream-length))
+(define s-locationB (new-behavior (sym-union-constructor 'home 'not-at-home) stream-length))
+(define s-motionSensorB (new-behavior sym-boolean stream-length))
 
 (assert (light-color-assumptions s-clockB s-locationB s-motionSensorB))
 ;; limit range of timestamps, lock down minutes
