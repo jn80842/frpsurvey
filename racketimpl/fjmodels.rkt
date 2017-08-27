@@ -148,29 +148,6 @@
          [(eq? n 5) '(1 2 3 4 5)]
          [(eq? n 6) '(1 2 3 4 5 6)]))
 
-(define (boolean-event-stream n)
-  (let ([concrete-list (stream-size n)])
-    (map (λ (c)
-           (define-symbolic* timestamp integer?)
-           (define-symbolic* value boolean?)
-           (list timestamp value)) concrete-list)))
-
-(define (integer-event-stream n)
-  (let ([concrete-list (stream-size n)])
-    (map (λ (c)
-           (define-symbolic* timestamp integer?)
-           (define-symbolic* value integer?)
-           (list timestamp value)) concrete-list)))
-
-(define (positive-integer-event-stream n)
-  (let ([concrete-list (stream-size n)])
-    (map (λ (c)
-           (define-symbolic* timestamp integer?)
-           (define-symbolic* value integer?)
-           (list timestamp value)) concrete-list)))
-
-
-
 (define (sym-boolean)
   (define-symbolic* b boolean?)
   b)
@@ -195,38 +172,10 @@
          (define-symbolic* timestamp integer?)
          (list timestamp (constructor))) (stream-size n)))
 
-(define (time-vec-event-stream n)
-  (let ([concrete-list (stream-size n)])
-    (map (λ (c)
-           (define-symbolic* timestamp integer?)
-           (define-symbolic* hour integer?)
-           (define-symbolic* minute-tens integer?)
-           (define-symbolic* minute-ones integer?)
-           (list timestamp (vector hour minute-tens minute-ones))) concrete-list)))
-
 ;;;;;;;; make symbolic behaviors ;;;;;;;;
 
 (define (new-behavior constructor n)
   (behavior (constructor) (new-event-stream constructor n)))
-
-(define (boolean-behavior n)
-  (define-symbolic* init-val boolean?)
-  (behavior init-val (boolean-event-stream n)))
-
-(define (positive-integer-behavior n)
-  (define-symbolic* init-val integer?)
-  (assert (> init-val 0))
-  (behavior init-val (positive-integer-event-stream n)))
-
-(define (integer-behavior n)
-  (define-symbolic* init-val integer?)
-  (behavior init-val (integer-event-stream n)))
-
-(define (time-vec-behavior n)
-  (define-symbolic* hour integer?)
-  (define-symbolic* minute-tens integer?)
-  (define-symbolic* minute-ones integer?)
-  (behavior (vector hour minute-tens minute-ones) (time-vec-event-stream n)))
 
 (define (check-existence-of-solution spec . inputs)
   (displayln "checking assumptions ....")
