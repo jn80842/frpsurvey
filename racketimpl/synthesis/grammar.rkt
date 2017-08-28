@@ -30,8 +30,10 @@
                  ;; zero arity
                  (zeroE)
                  (constantB (choose 'on 'off (??)))
+                 ;; E ::= arity-1-op E
+                 ((choose oneE switchE notE notB changes) (flapjax-grmr input ... (sub1 depth)))
                  ;; E ::= arity-1-op val E
-                 ((choose startsWith constantE delayE blindE calmE mapE)
+                 ((choose startsWith constantE delayE blindE calmE mapE filterE liftB)
                   (choose (??)
                           (λ (e) (if e 'on 'off))
                           (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
@@ -39,8 +41,11 @@
                           (λ (c) (or (>= (vector-ref c 0) (??)) (>= (??) (vector-ref c 0))))
                           (λ (e) (list (get-timestamp e) (+ (get-value e) (??)))))
                   (flapjax-grmr input ... (sub1 depth)))
+                 ;; E ::= collectE init λ E
+                 (collectE (??) + (flapjax-grmr input ... (sub1 depth)))
                  ;; E ::= arity-2-op E E
-                 (mergeE (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))
+                 ((choose andB mergeE snapshotE) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))
+                 ;; E ::= liftB λ E E
                  (liftB (choose (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
                                 (λ (clock location) (if (or (>= (time-vec->integer clock) 2130) (< (time-vec->integer clock) 800))
                                  'night
@@ -48,8 +53,8 @@
                                      'home
                                      'away))))
                         (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))
-                                
-                                
+                 ;; E ::= arity-3-op E E E               
+                 ((choose ifE ifB) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))          
                  )) 
 
 #;(define-synthax (flapjaxE-grmr input-stream ... depth)
@@ -62,105 +67,3 @@
                  (constantE (flapjaxE-grmr input-stream ... (sub1 depth)) (??))
                  (delayE (flapjaxE-grmr input-stream ... (sub1 depth)) (??))
                  (mergeE (flapjaxE-grmr input-stream ... (sub1 depth)) (flapjaxE-grmr input-stream ... (sub1 depth)))))
-
-#;(define-synthax (flapjaxB-grmr input ... depth)
-  #:base (choose input ...)
-  #:else (choose input ...
-                (liftB (choose (λ (t) (<= t (??)))
-                                (λ (c) (or (>= (vector-ref c 0) (??)) (>= (??) (vector-ref c 0)))))
-                        (flapjaxB-grmr input ... (sub1 depth)))
-                (andB (flapjaxB-grmr input ... (sub1 depth))
-                      (flapjaxB-grmr input ... (sub1 depth)))
-                (ifB (flapjaxB-grmr input ... (sub1 depth))
-                     (flapjaxB-grmr input ... (sub1 depth))
-                     (flapjaxB-grmr input ... (sub1 depth)))
-                (constantB (choose 'on 'off))
-                 ))
-
-#;(define (new-flapjaxE-grmr depth inputs)
-  (let ([base (apply choose* (list inputs))])
-    (if (= 0 depth)
-        base
-        (choose* base
-                 (startsWith (new-flapjaxE-grmr (sub1 depth) inputs))
-                 (collectE (new-flapjaxE-grmr (sub1 depth) inputs) 0 +)
-                 (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) (choose 1 2 3))))
-                       (new-flapjaxE-grmr (sub1 depth) inputs))
-                 (constantE (new-flapjaxE-grmr (sub1 depth) inputs) (choose 0 1 -1))
-                 (delayE (new-flapjaxE-grmr (sub1 depth) inputs) (choose 1 2 3))))))
-
-#;(define (small-grmr depth inputs)
-  (let ([base (apply choose* (list inputs))])
-    (if (= 0 depth)
-        base
-        (choose* base
-                 (delayE (small-grmr (sub1 depth) inputs) (choose* 1 2 3))))))
-
-#;(define-synthax (flapjaxE-grmr input-stream depth)
-  #:base input-stream
-  #:else (choose input-stream
-                 (startsWith (flapjaxE-grmr input-stream (sub1 depth)) (choose 0 1 2 -1))
-                 (collectE (flapjaxE-grmr input-stream (sub1 depth)) 0 +)
-                 (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) (choose 1 2 3))))
-                       (flapjaxE-grmr input-stream (sub1 depth)))
-                 (constantE (flapjaxE-grmr input-stream (sub1 depth)) 1)
-                 (delayE (flapjaxE-grmr input-stream (sub1 depth)) (choose 1 2 3))))
-
-#;(define-synthax (flapjaxE-grmr2 input-stream1 input-stream2 depth)
-  #:base (choose input-stream1 input-stream2)
-  #:else (choose input-stream1
-                 input-stream2
-                 (collectE (flapjaxE-grmr2 input-stream1 input-stream2 (sub1 depth)) 0 +)
-                 (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) (choose 1 2 3))))
-                       (flapjaxE-grmr2 input-stream1 input-stream2 (sub1 depth)))
-                 (constantE (flapjaxE-grmr2 input-stream1 input-stream2 (sub1 depth)) (choose -1 1))
-                 (delayE (flapjaxE-grmr2 input-stream1 input-stream2 (sub1 depth)) (choose 1 2 3))
-                 (startsWith (flapjaxE-grmr2 input-stream1 input-stream2 (sub1 depth)) 0)
-                 (mergeE (flapjaxE-grmr2 input-stream1 input-stream2 (sub1 depth))
-                         (flapjaxE-grmr2 input-stream1 input-stream2 (sub1 depth)))
-                 ))
-
-#;(define-synthax (flapjax-grmrB input-behavior depth)
-  #:base input-behavior
-  #:else (choose input-behavior
-                ; (liftB (λ (t) (<= t 2)) input-behavior)
-                ; (constantB (choose 'on 'off))
-                 (liftB (λ (t) (<= t 2))
-                        (flapjax-grmrB input-behavior (sub1 depth)))
-                 ))
-
-;; there's probably a more elegant way
-#;(define-synthax (flapjax-grmrB2 inputB1 inputB2 depth)
-  #:base (choose inputB1 inputB2)
-  #:else (choose inputB1 inputB2
-                 (constantB (choose 'on 'off))
-                 (liftB (choose (λ (clock location) (if (or (>= (time-vec->integer clock) 2130) (< (time-vec->integer clock) 800))
-                                 'night
-                                 (if (equal? location 'home)
-                                     'home
-                                     'away)))
-                                (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none)))
-                                (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
-                 (liftB (choose (λ (e) (if e 'on 'off))
-                                (λ (t) (<= t 2))
-                                (λ (c) (or (>= (vector-ref c 0) 4) (>= 2 (vector-ref c 0)))))
-                                (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
-                 (andB (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
-                 (ifB (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)) (flapjax-grmrB2 inputB1 inputB2 (sub1 depth)))
-))
-
-#;(define-synthax (flapjax-grmrB3 inputB1 inputB2 inputB3 depth)
-  #:base (choose inputB1 inputB2 inputB3)
-  #:else (choose inputB1 inputB2 inputB3
-                 (constantB (choose 'on 'off))
-                 (liftB (choose (λ (clock location) (if (or (>= (time-vec->integer clock) 2130) (< (time-vec->integer clock) 800))
-                                 'night
-                                 (if (equal? location 'home)
-                                     'home
-                                     'away)))
-                                (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none)))
-                                (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)) (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)))
-                 (liftB (λ (e) (if e 'on 'off)) (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)))
-                 (andB (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)) (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)) (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)))
-                 (ifB (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)) (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)) (flapjax-grmrB3 inputB1 inputB2 inputB3 (sub1 depth)))
-))
