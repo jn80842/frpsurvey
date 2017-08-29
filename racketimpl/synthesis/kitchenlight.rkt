@@ -52,7 +52,7 @@
          clockB userLocationB)))
 
 (define (synth-graph clockB userLocationB motionSensorB)
-  (grmr clockB userLocationB motionSensorB 3))
+  (flapjax-grmr clockB userLocationB motionSensorB 3))
 
 (define stream-length 2)
 
@@ -75,7 +75,9 @@
                         (harvest-behavior s-clockB)
                                (harvest-behavior s-locationB)
                                (harvest-behavior s-motionSensorB))
-              #:guarantee (assert (same kitchen-light-graph synth-graph s-clockB s-locationB s-motionSensorB))))
+              #:guarantee (assert ;(same kitchen-light-graph synth-graph s-clockB s-locationB s-motionSensorB)
+                           (same mode-graph synth-graph s-clockB s-locationB s-motionSensorB)
+                                  )))
 (define end-time (current-seconds))
 (if (unsat? binding)
     (displayln "No binding was found.")
