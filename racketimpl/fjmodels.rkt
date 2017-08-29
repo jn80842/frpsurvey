@@ -177,6 +177,23 @@
 (define (new-behavior constructor n)
   (behavior (constructor) (new-event-stream constructor n)))
 
+(define  (same program1 program2 . inputs)
+  (equal? (apply program1 inputs)
+                  (apply program2 inputs)))
+
+(define (harvest-term v)
+  (cond [(vector? v) (vector->list v)]
+        [(and (union? v) (eq? 2 (length (union-contents v)))) (car (first (union-contents v)))]
+        [(term? v) v]))
+
+(define (harvest-events evt-stream)
+  (flatten
+  (append (map get-timestamp evt-stream)
+          (map harvest-term (map get-value evt-stream)))))
+
+(define (harvest-behavior b)
+  (flatten (append (list (harvest-term (behavior-init b))) (harvest-events (behavior-changes b)))))
+
 (define (check-existence-of-solution spec . inputs)
   (displayln "checking assumptions ....")
   (define solved (solve (assert (apply spec inputs))))
