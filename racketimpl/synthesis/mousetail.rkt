@@ -7,16 +7,67 @@
 (require "../benchmarks/mousetail.rkt")
 (require "grammar.rkt")
 
-(current-bitwidth 5)
-(printf "Current bitwidth: ~a~n" (current-bitwidth))
+;;      mapE                    delayE
+;;   /      \                   /    \
+;; λ        delayE             3     mouse-y
+;;         /      \
+;;        3     mouse-x
 
-(define x-offset 3)
-(define time-delay 3)
-
-(define-synthax (flapjax-grmr input depth)
-  #:base input
-  #:else (choose input
-                 ((choose delayE mapE) (choose (??) (λ (e) (list (get-timestamp e) (+ (get-value e) (??))))) (flapjax-grmr input (sub1 depth)))))
+(define-synthax (flapjax-grmr input ... depth)
+  #:base (choose input ...)
+  #:else (choose input ...
+                 ;; zero arity
+                 ;(zeroE)
+                 ;(constantB (choose 'on 'off (??)))
+                 ;; E ::= arity-1-op E
+                 ;((choose oneE
+                 ;  switchE
+                 ;  notE
+                 ;  changes
+                 ;  ) (flapjax-grmr input ... (sub1 depth)))
+                 ;; E ::= arity-1-op val E
+                 ((choose
+                  ; startsWith
+                  ; constantE
+                   delayE
+                  ; blindE
+                  ; calmE
+                   mapE
+                  ; filterE
+                  ; liftB
+                   )
+                  (choose (??)
+                          ;'on 'off
+                          ;(λ (e) (if e 'on 'off))
+                          ;(λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
+                          ;(λ (t) (<= t (??)))
+                          ;(λ (c) (or (>= (vector-ref c 0) (??)) (>= (??) (vector-ref c 0))))
+                          (λ (e) (list (get-timestamp e) (+ (get-value e) (??))))
+                          ;(λ (e) (list (get-timestamp e)
+                          ; (startBehaviorAtTimestamp (get-timestamp e) (choose input ...))))
+                          ;(λ (e) (list (get-timestamp e) (zeroE)))
+                          )
+                  (flapjax-grmr input ... (sub1 depth)))
+                 ;; E ::= collectE init λ E
+                 ;(collectE (??) + (flapjax-grmr input ... (sub1 depth)))
+                 ;; E ::= arity-2-op E E
+                 ;((choose andB
+                 ;         mergeE
+                 ;         snapshotE
+                 ;         ) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))
+                 ;; E ::= liftB λ E E
+                 ;(liftB (choose (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
+                 ;               (λ (clock location) (if (or (>= (time-vec->integer clock) 2130) (< (time-vec->integer clock) 800))
+                 ;                'night
+                 ;                (if (equal? location 'home)
+                 ;                    'home
+                 ;                    'away))))
+                 ;       (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))
+                 ;; E ::= arity-3-op E E E               
+                 ;((choose ifE
+                 ;         ifB
+                 ;         ) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))          
+                 )) 
 
 (define (spec-mouse-tail-x-graph x-evt-stream)
   (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) x-offset))) (delayE time-delay x-evt-stream)))
@@ -42,12 +93,12 @@
 (define binding
     (time (synthesize #:forall (append (harvest-events s-mouse-x)
                                  (harvest-events s-mouse-y))
-                #:guarantee (begin (assert (same spec-mouse-tail-x-graph
+                #:guarantee (time (begin (assert (same spec-mouse-tail-x-graph
                                          synth-mouse-tail-x-graph
                                          s-mouse-x))
                                   (assert (same spec-mouse-tail-y-graph
                                        synth-mouse-tail-y-graph
-                                         s-mouse-y))))))
+                                         s-mouse-y)))))))
 (if (unsat? binding)
     (displayln "No binding was found.")
     (print-forms binding))
