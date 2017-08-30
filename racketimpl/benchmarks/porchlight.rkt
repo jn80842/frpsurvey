@@ -3,6 +3,7 @@
 (require "../fjmodels.rkt")
 (require "../rosettefjapi.rkt")
 
+(provide light-assumptions)
 
 ;;;;  1 2         7 8
 ;;; f w o         w o

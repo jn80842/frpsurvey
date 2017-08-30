@@ -31,6 +31,7 @@
                    liftB
                    )
                   (choose (??)
+                          'on 'off
                           (λ (e) (if e 'on 'off))
                           (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
                           (λ (t) (<= t (??)))
