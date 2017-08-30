@@ -37,6 +37,9 @@
                           (λ (t) (<= t (??)))
                           (λ (c) (or (>= (vector-ref c 0) (??)) (>= (??) (vector-ref c 0))))
                           (λ (e) (list (get-timestamp e) (+ (get-value e) (??))))
+                          (λ (e) (list (get-timestamp e)
+                           (startBehaviorAtTimestamp (get-timestamp e) (choose input ...))))
+                          (λ (e) (list (get-timestamp e) (zeroE)))
                           )
                   (flapjax-grmr input ... (sub1 depth)))
                  ;; E ::= collectE init λ E
