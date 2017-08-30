@@ -14,20 +14,37 @@
                  (zeroE)
                  (constantB (choose 'on 'off (??)))
                  ;; E ::= arity-1-op E
-                 ((choose oneE switchE notE notB changes) (flapjax-grmr input ... (sub1 depth)))
+                 ((choose oneE
+                   switchE
+                   notE
+                   changes
+                   ) (flapjax-grmr input ... (sub1 depth)))
                  ;; E ::= arity-1-op val E
-                 ((choose startsWith constantE delayE blindE calmE mapE filterE liftB)
+                 ((choose
+                   startsWith
+                   constantE
+                   delayE
+                   blindE
+                   calmE
+                   mapE
+                   filterE
+                   liftB
+                   )
                   (choose (??)
                           (λ (e) (if e 'on 'off))
                           (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
                           (λ (t) (<= t (??)))
                           (λ (c) (or (>= (vector-ref c 0) (??)) (>= (??) (vector-ref c 0))))
-                          (λ (e) (list (get-timestamp e) (+ (get-value e) (??)))))
+                          (λ (e) (list (get-timestamp e) (+ (get-value e) (??))))
+                          )
                   (flapjax-grmr input ... (sub1 depth)))
                  ;; E ::= collectE init λ E
                  (collectE (??) + (flapjax-grmr input ... (sub1 depth)))
                  ;; E ::= arity-2-op E E
-                 ((choose andB mergeE snapshotE) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))
+                 ((choose andB
+                          mergeE
+                          snapshotE
+                          ) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))
                  ;; E ::= liftB λ E E
                  (liftB (choose (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
                                 (λ (clock location) (if (or (>= (time-vec->integer clock) 2130) (< (time-vec->integer clock) 800))
@@ -37,7 +54,9 @@
                                      'away))))
                         (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))
                  ;; E ::= arity-3-op E E E               
-                 ((choose ifE ifB) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))          
+                 ((choose ifE
+                          ifB
+                          ) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))          
                  )) 
 
 #;(define-synthax (flapjaxE-grmr input-stream ... depth)
