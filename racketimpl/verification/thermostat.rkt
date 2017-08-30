@@ -2,20 +2,9 @@
 
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
+(require "../benchmarks/thermostat.rkt")
 
 (provide thermostat-assumptions)
-
-(current-bitwidth 6)
-
-;; to handle bitwidth, constants don't make real-world sense
-(define temp-floor 2)
-(define hour-begin 4)
-(define hour-end 2)
-
-(define temp-top-range 5)
-(define temp-bottom-range -1)
-
-(define midnight (vector 0 0 0))
 
 #;(if (>= hour-begin (sub1 (expt 2 (sub1 (current-bitwidth)))))
     (displayln "HOUR BEGIN IS TOO HIGH and WILL CAUSE OVERFLOW")
@@ -38,27 +27,12 @@
     (displayln "graph is correct on concrete inputs")
     (displayln "graph fails on concrete inputs"))
 
-(define stream-length 2)
-
 (define s-temp (new-behavior sym-integer stream-length))
 (define s-clock (new-behavior sym-time-vec stream-length))
 
 (printf "current bitwidth is: ~a\n" (current-bitwidth))
 (printf "number of temp changes: ~a\n" (length (behavior-changes s-temp)))
 (printf "number of clock changes: ~a\n" (length (behavior-changes s-clock)))
-
-(define (thermostat-assumptions temp clock)
-  (and (valid-behavior? temp)
-       (valid-time-vec-behavior? clock)
-       (behavior-check (λ (v) (and (= 0 (vector-ref v 1)) (= (vector-ref v 2) 2) 0)) clock) ; minutes don't matter
-       (behavior-check (λ (v) (> 5 (vector-ref v 0))) clock) ; limit range of hours
-       (behavior-check (λ (t) (and (< -1 t) (< t 5))) temp) ; limit range of temp
-       (< temp-bottom-range (behavior-init temp))
-       (< (behavior-init temp) temp-top-range)
-       (andmap (λ (t) (and (< temp-bottom-range (get-value t)) (< (get-value t) temp-top-range))) (behavior-changes temp))
-       (andmap (λ (ts) (> 6 ts)) (append (map get-timestamp (behavior-changes temp))
-                                         (map get-timestamp (behavior-changes clock)))) ;; limit range of timestamps
-       ))
 
 (check-existence-of-solution thermostat-assumptions s-temp s-clock)
 

@@ -66,13 +66,8 @@
                           ) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))          
                  ))
 
-(current-bitwidth 6)
 (unless (>= (current-bitwidth) 6)
   (displayln "bitwidth too low for time vec!!!!"))
-
-(define temp-floor 2)
-(define hour-begin 2)
-(define hour-end 1)
 
 (define (thermostat-graph tempB clockB)
   (ifB (andB (liftB (λ (t) (<= t temp-floor)) tempB)
