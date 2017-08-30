@@ -194,6 +194,11 @@
 (define (harvest-behavior b)
   (flatten (append (list (harvest-term (behavior-init b))) (harvest-events (behavior-changes b)))))
 
+(define (harvest x)
+  (if (behavior? x)
+      (harvest-behavior x)
+      (harvest-events x)))
+
 (define (check-existence-of-solution spec . inputs)
   (displayln "checking assumptions ....")
   (define solved (solve (assert (apply spec inputs))))

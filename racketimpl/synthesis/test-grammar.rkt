@@ -6,13 +6,26 @@
 (require "../fjmodels.rkt")
 (require "grammar.rkt")
 
-(define-symbolic* x integer?)
-(define-symbolic* b boolean?)
-(define u (if b 'a 'b))
-(define-symbolic* v1 integer?)
-(define-symbolic* v2 integer?)
-(define-symbolic* v3 integer?)
-(define v (vector v1 v2 v3))
-(define-symbolic* t1 integer?)
-(define-symbolic* t2 integer?)
-(define-symbolic* t3 integer?)
+(define (synthesize-graph spec-graph input)
+  (define (synth-graph input)
+    (flapjax-grmr input 1))
+  (synthesize #:forall (harvest input)
+              #:guarantee (same spec-graph synth-graph input)))
+
+(define s-integer-evts (new-event-stream sym-integer 3))
+(define s-integer-behavior (new-behavior sym-integer 3))
+
+(define (zeroE-graph input)
+  (zeroE))
+
+(check-true (not (unsat? (synthesize-graph zeroE-graph s-integer-evts))))
+
+(define (constantB-graph input)
+  (constantB 1))
+
+(check-true (not (unsat? (synthesize-graph constantB-graph s-integer-behavior))))
+
+(define (notE-graph input)
+  (notE input))
+
+(check-true (not (unsat? (synthesize-graph notE-graph s-integer-evts))))
