@@ -6,8 +6,6 @@
 (require "../benchmarks/kitchenlight.rkt")
 ;(require "grammar.rkt")
 
-(current-bitwidth 6)
-
 ;;            liftB
 ;;         /    |       \
 ;;       λ    liftB         liftB
@@ -98,8 +96,6 @@
 (define (synth-graph clockB userLocationB) ; motionSensorB)
   (flapjax-grmr clockB userLocationB 3))
 
-(define stream-length 2)
-
 (define s-clockB (new-behavior sym-time-vec stream-length))
 (define s-locationB (new-behavior (sym-union-constructor 'home 'away) stream-length))
 (define s-motionSensorB (new-behavior sym-boolean stream-length))
@@ -114,7 +110,7 @@
 (displayln "Synthesize kitchen light program")
 
 (define begin-time (current-seconds))
-(define binding
+#;(define binding
   (synthesize #:forall (append
                         (harvest-behavior s-clockB)
                                (harvest-behavior s-locationB)
@@ -123,7 +119,7 @@
                            (same mode-graph synth-graph s-clockB s-locationB) ;s-motionSensorB)
                                   )))
 (define end-time (current-seconds))
-(if (unsat? binding)
+#;(if (unsat? binding)
     (displayln "No binding was found.")
     (print-forms binding))
 (printf "Took ~a seconds~n" (- end-time begin-time))

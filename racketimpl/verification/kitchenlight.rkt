@@ -2,10 +2,7 @@
 
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
-
-(provide sym-location light-color-assumptions)
-
-(current-bitwidth 6)
+(require "../benchmarks/kitchenlight.rkt")
 
 (define b-clock (behavior (integer->time-vec 0) (list (list 1 (integer->time-vec 2000)) (list 2 (integer->time-vec 2021)) (list 3 (integer->time-vec 2025)) (list 4 (integer->time-vec 2027))
                                   (list 5 (integer->time-vec 2032)) (list 6 (integer->time-vec 2045)) (list 7 (integer->time-vec 2130)) (list 8 (integer->time-vec 2345))
@@ -60,20 +57,6 @@
 (printf "length of motion sensor changes ~a~n" (length (changes s-motion-sensor)))
 (printf "length of location changes ~a~n" (length (changes s-location)))
 (printf "length of clock changes ~a~n" (length (changes s-clock)))
-
-(define (mode-assumptions clockB locationB)
-  (and (valid-behavior? clockB)
-       (valid-time-vec? (behavior-init clockB))
-       (andmap (λ (e) (valid-time-vec? (get-value e))) (behavior-changes clockB))
-       (valid-behavior? locationB)
-       ))
-
-(define (light-status-assumptions motionSensorB)
-  (and (valid-behavior? motionSensorB)))
-
-(define (light-color-assumptions clockB locationB motionSensorB)
-  (and (mode-assumptions clockB locationB)
-       (light-status-assumptions motionSensorB)))
 
 (check-existence-of-solution light-color-assumptions s-clock s-location s-motion-sensor)
 
