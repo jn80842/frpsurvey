@@ -1,4 +1,6 @@
 #lang rosette/safe
+
+(require rosette/lib/synthax)
 (provide (all-defined-out))
 
 (define (get-timestamp item)
@@ -138,16 +140,6 @@
 
 ;;;;; make symbolic event streams ;;;;;;;;;;
 
-;; this is kludgy but i don't want to write a recursive function
-(define (stream-size n)
-  (cond [(eq? n 0) '()]
-         [(eq? n 1) '(1)]
-         [(eq? n 2) '(1 2)]
-         [(eq? n 3) '(1 2 3)]
-         [(eq? n 4) '(1 2 3 4)]
-         [(eq? n 5) '(1 2 3 4 5)]
-         [(eq? n 6) '(1 2 3 4 5 6)]))
-
 (define (sym-boolean)
   (define-symbolic* b boolean?)
   b)
@@ -168,9 +160,12 @@
   (vector hour minute-tens minute-ones))
 
 (define (new-event-stream constructor n)
-  (map (λ (e)
-         (define-symbolic* timestamp integer?)
-         (list timestamp (constructor))) (stream-size n)))
+  (letrec ([f (λ (n) (if (= n 0)
+                         '()
+                         (begin
+                           (define-symbolic* timestamp integer?)
+                           (append (list (list timestamp (constructor)))  (f (sub1 n))))))])
+    (f n)))
 
 ;;;;;;;; make symbolic behaviors ;;;;;;;;
 
