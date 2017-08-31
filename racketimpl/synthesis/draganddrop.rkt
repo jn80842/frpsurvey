@@ -16,7 +16,6 @@
 ;;             /       \            /       \
 ;; (λ) (mouse-pos) mouse-down   (λ) (zeroE) mouse-up
 
-(current-bitwidth 5)
 (printf "Current bitwidth: ~a~n" (current-bitwidth))
 
 (define-synthax (flapjax-grmr input ... depth)
@@ -96,8 +95,6 @@
 
 (define (synth-graph mouse-up mouse-down mouse-pos init-pos)
   (flapjax-grmr mouse-up mouse-down mouse-pos init-pos 3))
-
-(define stream-length 3)
 
 (define s-mouse-up (symbolic-click-event-stream 'up stream-length))
 (define s-mouse-down (symbolic-click-event-stream 'down stream-length))
