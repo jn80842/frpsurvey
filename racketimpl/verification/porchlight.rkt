@@ -2,8 +2,7 @@
 
 (require "../fjmodels.rkt")
 (require "../rosettefjapi.rkt")
-
-(provide light-assumptions)
+(require "../benchmarks/porchlight.rkt")
 
 ;;;;  1 2         7 8
 ;;; f w o         w o
@@ -12,12 +11,6 @@
 ;;;;  1 2         7
 ;;; f w o         w
 ;;;               f
-
-;;;;; motion detector and porch light
-(define delay-by 5)
-(define calm-by 5)
-
-(current-bitwidth 6)
 
 (if (>= delay-by (max-for-current-bitwidth (current-bitwidth)))
     (displayln "DELAY BY IS TOO HIGH and WILL CAUSE OVERFLOW")
@@ -46,13 +39,6 @@
 
 (printf "current bitwidth is: ~a\n" (current-bitwidth))
 (printf "number of motion detector events: ~a\n" stream-length)
-
-(define (light-assumptions motion)
-  (and (valid-timestamps? motion)
-       ;; guard against overflow
-       (andmap (λ (t) (> (max-for-current-bitwidth (current-bitwidth))
-                         (+ delay-by t))) (map get-timestamp motion))
-  ))
 
 (check-existence-of-solution light-assumptions s-motion)
 
