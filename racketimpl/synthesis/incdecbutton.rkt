@@ -9,15 +9,13 @@
 
 ;;         startsWith
 ;;          /       \
-;;      collectE     0
-;;         /   \
-;;      mergeE  λ
-;;     /      \
-;;  constantE constantE
-;;   /     \    /     \
-;;  inc    1   dec    -1
-
-(current-bitwidth 4)
+;;         0       collectE     
+;;                  /   \
+;;                λ     mergeE
+;;                     /      \
+;;                constantE constantE
+;;                 /     \    /     \
+;;                inc    1   dec    -1
 
 (define-synthax (flapjax-grmr input ... depth)
   #:base (choose input ...)
@@ -90,8 +88,6 @@
 
 (define (synth-inc-dec-button-graph inc dec)
   (flapjax-grmr inc dec 4))
-
-(define stream-length 3)
 
 (define s-inc (new-event-stream (sym-union-constructor 'click 'no-evt) stream-length))
 (define s-dec (new-event-stream (sym-union-constructor 'click 'no-evt) stream-length))

@@ -2,10 +2,7 @@
 
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
-
-(provide button-assumptions)
-
-(current-bitwidth 5)
+(require "../benchmarks/incdecbutton.rkt")
 
 (define (inc-dec-button-graph inc dec)
   (startsWith 0
@@ -17,8 +14,6 @@
 
 (displayln (inc-dec-button-graph concrete-inc-clicks concrete-dec-clicks))
 
-(define stream-length 3)
-
 (define s-inc (new-event-stream (sym-union-constructor 'click 'no-evt) stream-length))
 (define s-dec (new-event-stream (sym-union-constructor 'click 'no-evt) stream-length))
 
@@ -29,15 +24,6 @@
 
 (define (concrete-eval inc dec)
   (inc-dec-button-graph (λ () inc) (λ () dec)))
-
-(define (button-assumptions inc-stream dec-stream)
-    (and (valid-timestamps? inc-stream)
-         (valid-timestamps? dec-stream)
-         (timestamps-below-max? (* 2 stream-length) inc-stream)
-         (timestamps-below-max? (* 2 stream-length) dec-stream)
-         ;; TODO: figure out better solutions for simultaneous events
-         (apply distinct? (map get-timestamp (append inc-stream dec-stream)))
-         ))
 
 (define (button-guarantees output-behavior)
   (and (valid-behavior? output-behavior)
