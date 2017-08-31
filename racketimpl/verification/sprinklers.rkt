@@ -15,8 +15,6 @@
 (define o-24h-rained (behavior #f (list (list 1 #t) (list 5 #f))))
 (define o-sprinkler (behavior 'off (list (list 8 'on) (list 10 'off) (list 12 'on) (list 14 'off))))
 
-(current-bitwidth 5)
-
 ;; sprinklers need to run every day for 10 minutes, unless it rains
 ;; sprinklers should go on at 1800
 ;; if motion sensor goes off, pause sprinklers until motion is no longer sensed
@@ -62,8 +60,6 @@
   (condB (list (list motionSensorB (constantB 'off))
           (list (liftB (λ (t) (not (equal? t 0))) sprinkler-counterB) (constantB 'on))
           (list (constantB #t) (constantB 'off)))))
-
-(define stream-length 3)
 
 (define s-raingauge (new-behavior sym-boolean stream-length))
 (define s-clock (new-behavior sym-integer stream-length))
