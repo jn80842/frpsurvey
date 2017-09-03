@@ -117,9 +117,8 @@
                                      'home
                                      'away))))
                         recursive-call1 recursive-call2)
-                 ;; E ::= arity-3-op E E E               
+                 ;; E ::= arity-3-op E E E
                  ((choose ifE
                           ifB
-                          ) recursive-call1 recursive-call2 recursive-call3)          
+                          ) recursive-call1 recursive-call2 recursive-call3)
                  )))
-

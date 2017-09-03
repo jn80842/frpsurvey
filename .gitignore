@@ -5,3 +5,4 @@ rx/node_modules/*
 racketimpl/compiled/
 racketimpl/benchmarks/compiled/
 racketimpl/synthesis/compiled/
+racketimpl/verification/compiled/
