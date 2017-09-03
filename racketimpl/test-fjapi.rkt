@@ -54,8 +54,9 @@
 
 ;; ifE tests
 (check-equal? (ifE (list (list 1 #t) (list 3 #f) (list 7 #t))
-                 (list (list 1 'a) (list 2 'b) (list 3 'c) (list 10 'd)))
-      (list (list 1 'a)))
+                 (list (list 1 'a) (list 2 'b) (list 3 'c) (list 10 'd))
+                 (list (list 2 'x) (list 3 'y) (list 11 'z)))
+      (list (list 1 'a) (list 3 'y)))
 
 ;; constantE tests
 (check-equal? (constantE "hello" standard-evt-stream) (list (list 1 "hello") (list 2 "hello") (list 3 "hello")))

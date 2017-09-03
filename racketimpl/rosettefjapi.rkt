@@ -41,12 +41,21 @@
 (define (filterE pred stream)
   (filter (λ (e) (if (pred (get-value e)) (list (get-timestamp e) (pred (get-value e))) #f)) stream))
 
-(define (ifE guard-stream value-stream)
-  ;; filter both lists to ts they have in common
-  ;; if guard evals to true, propagate corresponding value
-  (let ([filtered-guard-stream (filter (λ (e) (and (get-value e) (member (get-timestamp e) (map get-timestamp value-stream))))
-                                       guard-stream)])
-    (filter (λ (e) (member (get-timestamp e) (map get-timestamp filtered-guard-stream))) value-stream)))
+(define (ifE guard-stream true-stream false-stream)
+  ;; split guard stream into true and false values
+  ;; filter true and false stream by split guard stream respectively
+  ;; merge filtered true and false streams and return
+  (let* ([if-ts (map get-timestamp guard-stream)]
+        [filtered-true (filter (λ (e) (member (get-timestamp e) if-ts)) true-stream)]
+        [filtered-false (filter (λ (e) (member (get-timestamp e) if-ts)) false-stream)]
+        [filtered-if (filter (λ (e) (member (get-timestamp e) (map get-timestamp (append true-stream false-stream)))) guard-stream)])
+    ;; for each entry in guard-stream
+    ;; if true-stream has an entry at that ts and its true, return the true-stream entry
+    ;; else, return the false-stream entry from that ts
+    (map (λ (e) (if (and (member (get-timestamp e) (map get-timestamp filtered-true))
+                       (get-value (findf (λ (n) (= (get-timestamp n) (get-timestamp e))) filtered-if)))
+                  (findf (λ (n) (= (get-timestamp n) (get-timestamp e))) filtered-true)
+                  (findf (λ (n) (= (get-timestamp n) (get-timestamp e))) filtered-false))) filtered-if)))
 
 (define (constantE const evt-stream)
   (map (λ (s) (list (get-timestamp s) (if (equal? 'no-evt (get-value s)) 'no-evt const))) evt-stream)) ;))
