@@ -12,6 +12,10 @@
 (define (max-for-current-bitwidth n)
   (sub1 (expt 2 (sub1 n))))
 
+(define (print-bitwidth-warning)
+  (printf "Current bitwidth is ~a; values larger than ~a will overflow.~n"
+          (current-bitwidth) (max-for-current-bitwidth (current-bitwidth))))
+
 (define (all-but-last lst)
   (reverse (cdr (reverse lst))))
 
