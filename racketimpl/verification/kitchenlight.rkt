@@ -42,18 +42,7 @@
  (equal-behaviors? (kitchen-light-status-graph b-motion-sensor) b-light-status)
  (equal-behaviors? (kitchen-light-color-graph (kitchen-light-status-graph b-motion-sensor) (mode-graph b-clock b-location)) b-light-color))
 
-(define (sym-location)
-  (define-symbolic* b boolean?)
-  (if b 'home 'not-at-home))
-
-(define stream-length 6)
-
-(define s-motion-sensor (new-behavior sym-boolean stream-length))
-(define s-location (new-behavior sym-location stream-length))
-(define s-clock (new-behavior sym-time-vec stream-length))
-
-(printf "current bitwidth ~a, maximum possible value is ~a~n"
-        (current-bitwidth) (max-for-current-bitwidth (current-bitwidth)))
+(print-bitwidth-warning)
 (printf "length of motion sensor changes ~a~n" (length (changes s-motion-sensor)))
 (printf "length of location changes ~a~n" (length (changes s-location)))
 (printf "length of clock changes ~a~n" (length (changes s-clock)))

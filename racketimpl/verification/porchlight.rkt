@@ -33,32 +33,14 @@
     (displayln "graph is correct on concrete inputs")
     (displayln "graph fails on concrete inputs"))
 
-(define stream-length 2)
-
-(define s-motion (new-event-stream (sym-union-constructor 'motion 'no-evt) stream-length))
-
-(printf "current bitwidth is: ~a\n" (current-bitwidth))
+(print-bitwidth-warning)
 (printf "number of motion detector events: ~a\n" stream-length)
 
 (check-existence-of-solution light-assumptions s-motion)
 
-(define (light-guarantees motion)
-  (let ([porchlight (light-graph2 motion)])
-    (and (valid-timestamps? porchlight)
-         ;; for every on event, there is a motion event at that timestamp
-         (andmap (λ (t) (member t (map get-timestamp motion)))
-                 (map get-timestamp (filter (λ (e) (eq? 'on (get-value e))) porchlight)))
-         ;; for every off event, there is a motion event (delay) seconds earlier
-         (andmap (λ (t) (member t (map (λ (e) (+ calm-by (get-timestamp e))) motion)))
-                 (map get-timestamp (filter (λ (e) (eq? 'off (get-value e))) porchlight)))
-         ;; on and off events alternate; on should come first
-         (foldl (λ (new val) (cond [(false? val) #f]
-                                   [(eq? new val) #f]
-                                   [else new])) 'off (map get-value porchlight))
-         )))
 (define begin-time (current-seconds))
 (define verified (verify #:assume (assert (light-assumptions s-motion))
-                         #:guarantee (assert (light-guarantees s-motion))))
+                         #:guarantee (assert (light-guarantees s-motion (light-graph s-motion)))))
 (define end-time (current-seconds))
 (printf "time to verify: ~a seconds~n" (- end-time begin-time))
 (if (unsat? verified)

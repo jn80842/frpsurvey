@@ -4,7 +4,6 @@
 (require "../fjmodels.rkt")
 (require "../rosettefjapi.rkt")
 (require "../benchmarks/kitchenlight.rkt")
-;(require "grammar.rkt")
 
 ;;            liftB
 ;;         /    |       \
@@ -95,10 +94,6 @@
 
 (define (synth-graph clockB userLocationB) ; motionSensorB)
   (flapjax-grmr clockB userLocationB 3))
-
-(define s-clockB (new-behavior sym-time-vec stream-length))
-(define s-locationB (new-behavior (sym-union-constructor 'home 'away) stream-length))
-(define s-motionSensorB (new-behavior sym-boolean stream-length))
 
 (assert (light-color-assumptions s-clockB s-locationB s-motionSensorB))
 ;; limit range of timestamps, lock down minutes

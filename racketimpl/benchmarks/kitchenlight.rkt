@@ -6,6 +6,16 @@
 
 (provide (all-defined-out))
 
+(define stream-length 6)
+
+(define (sym-location)
+  (define-symbolic* b boolean?)
+  (if b 'home 'not-at-home))
+
+(define s-motion-sensorB (new-behavior sym-boolean stream-length))
+(define s-locationB (new-behavior sym-location stream-length))
+(define s-clockB (new-behavior sym-time-vec stream-length))
+
 (define (mode-assumptions clockB locationB)
   (and (valid-behavior? clockB)
        (valid-time-vec? (behavior-init clockB))

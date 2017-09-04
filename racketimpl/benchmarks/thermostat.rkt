@@ -19,6 +19,15 @@
 
 (define stream-length 2)
 
+(define s-tempB (new-behavior sym-integer stream-length))
+(define s-clockB (new-behavior sym-time-vec stream-length))
+
+(define (thermostat-graph tempB clockB)
+  (ifB (andB (liftB (λ (t) (<= t temp-floor)) tempB)
+             (liftB (λ (c) (or (>= (vector-ref c 0) hour-begin) (>= hour-end (vector-ref c 0)))) clockB))
+        (constantB 'on)
+        (constantB 'off)))
+
 (define (thermostat-assumptions temp clock)
   (and (valid-behavior? temp)
        (valid-time-vec-behavior? clock)
@@ -31,3 +40,13 @@
        (andmap (λ (ts) (> 6 ts)) (append (map get-timestamp (behavior-changes temp))
                                          (map get-timestamp (behavior-changes clock)))) ;; limit range of timestamps
        ))
+
+(define (thermostat-guarantees temp clock)
+  (let ([heater (thermostat-graph temp clock)])
+    (and (valid-behavior? heater)
+         (or (equal? (behavior-init heater) 'on) (equal? (behavior-init heater) 'off))
+         (andmap (λ (v) (or (equal? v 'on) (equal? v 'off))) (map get-value (behavior-changes heater)))
+         (behavior-check (λ (heat t) (implication (eq? 'on heat) (<= t temp-floor))) heater temp)
+         (behavior-check (λ (heat c) (implication (eq? 'on heat) (or (>= (vector-ref c 0) hour-begin) (>= hour-end (vector-ref c 0)))))
+                         heater clock)
+         )))

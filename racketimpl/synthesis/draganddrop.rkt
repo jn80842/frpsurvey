@@ -47,7 +47,7 @@
                           ;(λ (e) (if e 'on 'off))
                           ;(λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
                           ;(λ (t) (<= t (??)))
-                          ;(λ (c) (or (>= (vector-ref c 0) (??)) (>= (??) (vector-ref c 0))))
+                          ;(λ (c) (or (>= (coords-x c) (??)) (>= (??) (coords-x c))))
                           ;(λ (e) (list (get-timestamp e) (+ (get-value e) (??))))
                    (λ (e) 
                      (list (get-timestamp e)
@@ -96,8 +96,8 @@
 (define (synth-graph mouse-up mouse-down mouse-pos init-pos)
   (flapjax-grmr mouse-up mouse-down mouse-pos init-pos 3))
 
-(define s-mouse-up (symbolic-click-event-stream 'up stream-length))
-(define s-mouse-down (symbolic-click-event-stream 'down stream-length))
+(define s-mouse-up (new-event-stream sym-coords 'up stream-length))
+(define s-mouse-down (new-event-stream sym-coords 'down stream-length))
 (define s-mouse-pos (new-behavior sym-coords stream-length))
 (define s-init-elt-pos (sym-coords))
 
@@ -105,7 +105,7 @@
 
 (define begin-time (current-seconds))
 (define binding
-    (synthesize #:forall (append (harvest-events s-mouse-up) (harvest-events s-mouse-down) (harvest-behavior s-mouse-pos) (harvest-term s-init-elt-pos))
+    (synthesize #:forall (append (harvest s-mouse-up) (harvest s-mouse-down) (harvest s-mouse-pos) (harvest s-init-elt-pos))
                 #:guarantee (assert (same elt-positionB synth-graph s-mouse-up s-mouse-down s-mouse-pos s-init-elt-pos))))
 (if (unsat? binding)
     (displayln "No binding was found.")

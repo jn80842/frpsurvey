@@ -69,9 +69,7 @@
                 ;          ) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))          
                  ))
 
-(printf "Current bitwidth: ~a~n" (current-bitwidth))
-
-(define s-motion (new-event-stream (sym-union-constructor 'motion 'no-evt) stream-length))
+(print-bitwidth-warning)
 
 (define (light-graph md-events)
   (mergeE (blindE delay-by (constantE 'on md-events)) (calmE calm-by (constantE 'off md-events))))

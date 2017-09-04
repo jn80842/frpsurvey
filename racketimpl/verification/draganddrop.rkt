@@ -4,7 +4,7 @@
 
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
-(require "../benchmarks/draganddrop/rkt")
+(require "../benchmarks/draganddrop.rkt")
 
 ;;;;;; drag and drop ;;;;;
 
@@ -63,70 +63,14 @@
     (printf "ok!\n")
     (printf "something's wrong\n"))
 
-(define s-init-elt-pos (sym-coords))
-
 (if (>= max-timestamp (sub1 (expt 2 (sub1 (current-bitwidth)))))
     (displayln "MAX TIMESTAMP IS TOO HIGH and WILL CAUSE OVERFLOW")
     (printf "max timestamp is ~a~n" max-timestamp))
 
-(define s-mouse-up (new-event-stream (sym-union-constructor 'up 'no-evt) stream-length))
-(define s-mouse-down (new-event-stream (sym-union-constructor 'down 'no-evt) stream-length))
-
-(define s-mouse-pos (new-behavior sym-coords stream-length))
-
-(printf "current bitwidth ~a, maximum possible value is ~a~n"
-        (current-bitwidth) (max-for-current-bitwidth (current-bitwidth)))
+(print-bitwidth-warning)
 (printf "length of mouse up events: ~a~n" (length s-mouse-up))
 (printf "length of mouse down events: ~a~n" (length s-mouse-down))
 (printf "length of changes in mouse position behavior: ~a~n" (length (changes s-mouse-pos)))
-
-(define (click-sequence state transition)
-  (cond [(and (eq? 'waiting-for-up state) (eq? 'up (get-value transition))) 'waiting-for-down]
-        [(and (eq? 'waiting-for-down state) (eq? 'down (get-value transition))) 'waiting-for-up]
-        [else #f]))
-
-(define (dragging-intervals mouse-down mouse-up)
-  (map (λ (down-e) (list (get-timestamp down-e) (get-timestamp (findf (λ (up-e) (and (eq? (get-value up-e) 'up)
-                                                                                     (<= (get-timestamp down-e) (get-timestamp up-e))))
-                                                                      mouse-up))))
-       (filter (λ (e) (eq? (get-value e) 'down)) mouse-down)))
-(define (dropping-intervals mouse-up mouse-down)
-  (map (λ (up-e) (list up-e (findf (λ (down-e) (and (eq? (get-value down-e) 'down)
-                                                    (<= (get-timestamp up-e) (get-timestamp down-e))))
-                                   mouse-down)))
-       (filter (λ (e) (eq? (get-value e) 'up)) mouse-up)))
-(define (bounded-by-events start end evt-stream)
-  (if (and (not start) (not end))
-      evt-stream
-      (if (and start end)
-          (boundedTimestampsStream (get-timestamp start) (get-timestamp end) evt-stream)
-          (if start
-              (startAtTimestamp (get-timestamp start) evt-stream)
-              (endAtTimestamp (get-timestamp end) evt-stream)))))
-
-(define (drag-and-drop-guarantees mouse-up mouse-down mouse-pos init-elt-pos)
-  (let ([output-posB (elt-positionB mouse-up mouse-down mouse-pos init-elt-pos)])
-     (and (valid-behavior? output-posB)
-          (eq? init-elt-pos (behavior-init output-posB))
-          ;; until a mouse down event occurs, the element position never changes
-          (let* ([first-mouse-down (findf (λ (e) (eq? (get-value e) 'down)) mouse-down)]
-                 [until-first-mouse-down-output (if first-mouse-down
-                                                    (endAtTimestamp (get-timestamp first-mouse-down) (changes output-posB))
-                                                    (changes output-posB))])
-            (andmap (λ (e) (eq? (get-value e) (behavior-init output-posB))) until-first-mouse-down-output))
-          ;; for every interval begun with a mouse down and ending with a mouse up
-          ;; the mouse position and the elt position is the same
-          (eq?
-           (map (λ (bounds) (boundedTimestampsStream (list-ref bounds 0) (list-ref bounds 1) (changes output-posB)))
-                (dragging-intervals mouse-down mouse-up))
-           (map (λ (bounds) (boundedTimestampsStream (list-ref bounds 0) (list-ref bounds 1) (changes mouse-pos)))
-                (dragging-intervals mouse-down mouse-up)))
-          ;; for every interval begun with a mouse up and ending with a mouse down
-          ;; the elt position does not change for its initial value
-          (andmap (λ (positions) (eq? 1 (length (remove-duplicates positions))))
-                  (map (λ (pairs) (bounded-by-events (list-ref pairs 0) (list-ref pairs 1) (changes output-posB)))
-                       (dropping-intervals mouse-up mouse-down)))
-          )))
 
 (check-existence-of-solution drag-and-drop-assumptions s-mouse-up s-mouse-down s-mouse-pos s-init-elt-pos)
 

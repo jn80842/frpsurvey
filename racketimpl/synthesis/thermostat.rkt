@@ -66,22 +66,8 @@
                           ) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))          
                  ))
 
-(unless (>= (current-bitwidth) 6)
-  (displayln "bitwidth too low for time vec!!!!"))
-
-(define (thermostat-graph tempB clockB)
-  (ifB (andB (liftB (λ (t) (<= t temp-floor)) tempB)
-             (liftB (λ (c) (or (>= (vector-ref c 0) hour-begin) (>= hour-end (vector-ref c 0)))) clockB))
-       (constantB 'on)
-       (constantB 'off)))
-
 (define (synth-thermostat-graph tempB clockB)
   (flapjax-grmr clockB tempB 3))
-
-(define s-tempB (new-behavior sym-integer 2))
-(define s-clockB (new-behavior sym-time-vec 2))
-
-(check-existence-of-solution thermostat-assumptions s-tempB s-clockB)
 
 (assert (thermostat-assumptions s-tempB s-clockB))
 

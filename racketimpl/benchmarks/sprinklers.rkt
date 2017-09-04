@@ -7,3 +7,7 @@
 
 (current-bitwidth 5)
 (define stream-length 3)
+
+(define s-raingaugeB (new-behavior sym-boolean stream-length))
+(define s-clockB (new-behavior sym-integer stream-length))
+(define s-motion-sensorB (new-behavior sym-boolean stream-length)) ;; or, should this be event stream?

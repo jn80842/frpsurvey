@@ -2,6 +2,7 @@
 
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
+(require "../benchmarks/sprinklers.rkt")
 
 (define i-raingaugeB (behavior #f (list (list 1 #t) (list 3 #f))))
 ;; does it make more sense for motion sensor to be an event stream?
@@ -61,10 +62,6 @@
           (list (liftB (λ (t) (not (equal? t 0))) sprinkler-counterB) (constantB 'on))
           (list (constantB #t) (constantB 'off)))))
 
-(define s-raingauge (new-behavior sym-boolean stream-length))
-(define s-clock (new-behavior sym-integer stream-length))
-(define s-motion-sensor (new-behavior sym-boolean stream-length)) ;; or, should this be event stream?
-
 (define (24h-rainedB-assumptions clockE raingaugeB)
   (and (valid-timestamps? clockE)
        ;; we need midnights to appear explicitly
@@ -77,4 +74,4 @@
        ))
 
 
-(define solved (solve (assert (24h-rainedB-assumptions s-clock s-raingauge))))
+(define solved (solve (assert (24h-rainedB-assumptions s-clockB s-raingaugeB))))
