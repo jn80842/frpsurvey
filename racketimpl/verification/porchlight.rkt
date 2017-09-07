@@ -39,3 +39,8 @@
 (if (unsat? verified)
     (displayln "Spec is verified")
     (printf "Model that violates spec is found: motion ~a~n" (evaluate s-motion verified)))
+
+(check-existence-of-solution light-assumptionsB s-motionB)
+
+(define verifiedB (verify #:assume (assert (light-assumptionsB s-motionB))
+                         #:guarantee (assert (light-guaranteesB s-motionB (light-graphB s-motionB)))))

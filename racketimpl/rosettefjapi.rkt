@@ -132,7 +132,8 @@
 (define (constantB const)
   (behavior const '()))
 
-;; delayB
+(define (delayB interval behavior1)
+  (behavior (behavior-init behavior1) (map (λ (e) (list (+ interval (get-timestamp e)) (get-value e))) (changes behavior1))))
 
 ;; valueNow: since valueNow shouldn't be exposed to end users, it's in fjmodels.rkt
 
@@ -141,16 +142,21 @@
 ;; and returns a behavior: (behavior (behavior-init behavior1) (append (behavior-changes behavior1) (behavior-changes behavior2) ...)))
 
 (define (andB behavior1 behavior2)
-  ;(λ ()
-    (let* ([unique-ts (sort (remove-duplicates (append (map get-timestamp (behavior-changes behavior1))
-                                                       (map get-timestamp (behavior-changes behavior2)))) <)]
-           [enhanced-b1 (project-values behavior1 unique-ts)]
-           [enhanced-b2 (project-values behavior2 unique-ts)])
-      (behavior (and (behavior-init behavior1) (behavior-init behavior2))
-                (map (λ (x y) (list (get-timestamp x) (and (get-value x) (get-value y)))) enhanced-b1 enhanced-b2)))
-    )
+  (let* ([unique-ts (sort (remove-duplicates (append (map get-timestamp (behavior-changes behavior1))
+                                                     (map get-timestamp (behavior-changes behavior2)))) <)]
+         [enhanced-b1 (project-values behavior1 unique-ts)]
+         [enhanced-b2 (project-values behavior2 unique-ts)])
+    (behavior (and (behavior-init behavior1) (behavior-init behavior2))
+              (map (λ (b1 b2) (list (get-timestamp b1) (and (get-value b1) (get-value b2)))) enhanced-b1 enhanced-b2)))
+  )
 
-;; orB
+(define (orB behavior1 behavior2)
+  (let* ([unique-ts (sort (remove-duplicates (append (map get-timestamp (behavior-changes behavior1))
+                                                     (map get-timestamp (behavior-changes behavior2)))) <)]
+         [enhanced-b1 (project-values behavior1 unique-ts)]
+         [enhanced-b2 (project-values behavior2 unique-ts)])
+    (behavior (or (behavior-init behavior1) (behavior-init behavior2))
+              (map (λ (b1 b2) (list (get-timestamp b1) (or (get-value b1) (get-value b2)))) enhanced-b1 enhanced-b2))))
 
 (define (notB behavior1)
   (behavior (not (behavior-init behavior1)) (map (λ (b) (list (get-timestamp b) (not (get-value b)))) (behavior-changes behavior1))))
@@ -190,7 +196,9 @@
 
 ;; timerB
 
-;; blindB
+(define (blindB interval b)
+  (behavior (behavior-init b) (blindE interval (changes b))))
 
-;; calmB
+(define (calmB interval b)
+  (behavior (behavior-init b) (calmE interval (changes b))))
 

@@ -6,15 +6,20 @@
 (provide (all-defined-out))
 
 ;;;;; motion detector and porch light
-(define delay-by 5)
+(define delay-by 2)
 (define calm-by 5)
 
 (current-bitwidth 6)
 
-(define stream-length 2)
+(define stream-length 1)
 
 (define s-motion (new-event-stream (sym-union-constructor 'motion 'no-evt) stream-length (* 2 stream-length)))
-(define s-motionB (new-behavior (sym-union-constructor 'motion 'no-evt) stream-length (* 2 stream-length)))
+(define s-motionB (new-behavior (sym-union-constructor 'motion-sensed 'motion-not-sensed) stream-length (* 2 stream-length)))
+
+(define concrete-motionB (behavior 'motion-not-sensed (list (list 3 'motion-sensed)
+                                                            (list 7 'motion-not-sensed)
+                                                            (list 10 'motion-sensed)
+                                                            (list 11 'motion-not-sensed))))
 
 (define (light-graph md-events)
   (mergeE (blindE delay-by (constantE 'on md-events)) (calmE calm-by (constantE 'off md-events))))
@@ -22,6 +27,12 @@
 (define (light-graph2 md-events)
   (mergeE (blindE delay-by (ifE (notE (blindE 2 md-events)) (constantE 'on md-events)))
           (calmE calm-by (constantE 'off md-events))))
+
+(define (light-graphB mdB)
+  (liftB (λ (b) (if b 'on 'off))
+         (orB (liftB (λ (b) (equal? b 'motion-sensed)) mdB)
+              (orB (delayB 1 (liftB (λ (b) (equal? b 'motion-sensed)) mdB))
+                   (delayB 2 (liftB (λ (b) (equal? b 'motion-sensed)) mdB))))))
 
 (define (light-assumptions motion)
   ;(and
@@ -47,3 +58,13 @@
                                  [(eq? new val) #f]
                                  [else new])) 'off (map get-value porchlight))
          ))
+
+;; let phi(t) be "motion detected at time t"
+;; let psi(t) be "porchlight is on at time t"
+;; for all t, phi(t) -> psi(t) & X psi(t) & XX psi(t) & XXX psi(t)
+;; for all t, ! phi(t) & X ! phi(t) & XX ! phi(t) & XXX ! phi(t) & XXXX ! phi(t) -> XXXX psi(t)
+
+(define (light-guaranteesB motion porchlight)
+  (and (behavior-check (λ (m p) (implication (equal? m 'motion-sensed)) (equal? p 'on)) motion porchlight)
+       
+  ))

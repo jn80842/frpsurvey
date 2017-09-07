@@ -128,10 +128,19 @@
 ;; constantB
 (check-equal? (constantB 'a) (behavior 'a '()))
 
+;; delayB
+(check-equal? (delayB 3 (behavior 'a (list (list 1 'b) (list 2 'c))))
+              (behavior 'a (list (list 4 'b) (list 5 'c))))
+
 ;; andB
 (check-equal? (andB (behavior #t (list (list 1 #t) (list 5 #f) (list 7 #t)))
                    (behavior #t (list (list 1 #t) (list 3 #t) (list 6 #t) (list 7 #f))))
       (behavior #t (list (list 1 #t) (list 3 #t) (list 5 #f) (list 6 #f) (list 7 #f))))
+
+;; orB
+#;(check-equal? (orB (behavior #f (list (list 1 #t) (list 5 #f) (list 10 #t) (list 11 #f)))
+                   (behavior #t (list (list 2 #f) (list 12 #t))))
+              (behavior #t (list (list 1 #t) (list 2 #t) (list 5 #f) (list 10 #t) (list 11 #f) (list 12 #t))))
 
 ;; notB
 (check-equal? (notB (behavior #t (list (list 1 #f) (list 2 #t) (list 3 #f))))
