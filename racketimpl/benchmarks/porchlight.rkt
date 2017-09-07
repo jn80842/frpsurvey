@@ -13,14 +13,26 @@
 
 (define stream-length 2)
 
-(define s-motion (new-event-stream (sym-union-constructor 'motion 'no-evt) stream-length))
+(define s-motion (new-event-stream (sym-union-constructor 'motion 'no-evt) stream-length (* 2 stream-length)))
+(define s-motionB (new-behavior (sym-union-constructor 'motion 'no-evt) stream-length (* 2 stream-length)))
+
+(define (light-graph md-events)
+  (mergeE (blindE delay-by (constantE 'on md-events)) (calmE calm-by (constantE 'off md-events))))
+
+(define (light-graph2 md-events)
+  (mergeE (blindE delay-by (ifE (notE (blindE 2 md-events)) (constantE 'on md-events)))
+          (calmE calm-by (constantE 'off md-events))))
 
 (define (light-assumptions motion)
-  (and (valid-timestamps? motion)
+  ;(and
+   (valid-timestamps? motion)
        ;; guard against overflow
-       (andmap (λ (t) (> (max-for-current-bitwidth (current-bitwidth))
-                         (+ delay-by t))) (map get-timestamp motion))
-  ))
+   ;    (andmap (λ (t) (> (max-for-current-bitwidth (current-bitwidth))
+   ;                      (+ delay-by t))) (map get-timestamp motion))
+  )
+
+(define (light-assumptionsB motionB)
+  (valid-behavior? motionB))
 
 (define (light-guarantees motion porchlight)
   (and (valid-timestamps? porchlight)

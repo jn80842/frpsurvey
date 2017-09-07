@@ -19,8 +19,8 @@
 
 (define stream-length 2)
 
-(define s-tempB (new-behavior sym-integer stream-length))
-(define s-clockB (new-behavior sym-time-vec stream-length))
+(define s-tempB (new-behavior sym-integer stream-length (* 2 stream-length)))
+(define s-clockB (new-behavior sym-time-vec stream-length (* 2 stream-length)))
 
 (define (thermostat-graph tempB clockB)
   (ifB (andB (liftB (λ (t) (<= t temp-floor)) tempB)

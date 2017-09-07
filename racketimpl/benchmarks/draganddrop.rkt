@@ -15,12 +15,16 @@
 
 (define (sym-coords)
   (define-symbolic* x integer?)
+  (assert (>= x 0))
+  (assert (<= x max-mouse-pos))
   (define-symbolic* y integer?)
+  (assert (>= y 0))
+  (assert (<= y max-mouse-pos))
   (coords x y))
 
-(define s-mouse-up (new-event-stream (sym-union-constructor 'up 'no-evt) stream-length))
-(define s-mouse-down (new-event-stream (sym-union-constructor 'down 'no-evt) stream-length))
-(define s-mouse-pos (new-behavior sym-coords stream-length))
+(define s-mouse-up (new-event-stream (sym-union-constructor 'up 'no-evt) stream-length (* 2 stream-length)))
+(define s-mouse-down (new-event-stream (sym-union-constructor 'down 'no-evt) stream-length (* 2 stream-length)))
+(define s-mouse-pos (new-behavior sym-coords stream-length (* 2 stream-length)))
 (define s-init-elt-pos (sym-coords))
 
 (define (drag-and-drop-assumptions mouse-up mouse-down mouse-pos init-elt-pos)
@@ -28,9 +32,6 @@
         [actual-downs (filter (λ (e) (not (eq? 'no-evt (get-value e)))) mouse-down)])
     (and (valid-timestamps? mouse-up)
          (valid-timestamps? mouse-down)
-         ;; timestamps don't need to be bigger than both sets of mouse events together
-         ;(timestamps-below-max? max-timestamp mouse-up)
-         (andmap (λ (t) (>= max-timestamp t)) (append (map get-timestamp mouse-up) (map get-timestamp mouse-down)))
          ;; no up and down can occur at the same time
          (apply distinct? (append (map get-timestamp actual-ups) (map get-timestamp actual-downs)))
          ;; every up has to be followed by a down (and not a second up)
@@ -42,14 +43,6 @@
           #t
           (sort (append actual-ups actual-downs) (λ (e1 e2) (< (get-timestamp e1) (get-timestamp e2)))))
          (valid-behavior? mouse-pos)
-         ;; all mouse positions must be >0
-         ;; and bound upper value to limit verification time
-         (andmap (λ (v) (and (>= (coords-x (get-value v)) 0)
-                             (<= (coords-x (get-value v)) max-mouse-pos)
-                             (>= (coords-y (get-value v)) 0)
-                             (<= (coords-y (get-value v)) max-mouse-pos))) (behavior-changes mouse-pos))
-         ;; limit timestamps on mouse position to limit verification time
-         (andmap (λ (e) (>= max-timestamp (get-timestamp e))) (changes mouse-pos))
          ;; initial placement of element must be >0
          (>= (coords-x init-elt-pos) 0)
          (<= (coords-x init-elt-pos) max-mouse-pos)

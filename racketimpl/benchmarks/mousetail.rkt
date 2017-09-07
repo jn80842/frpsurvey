@@ -1,4 +1,4 @@
-#lang rosette/safe
+#lang rosette
 
 (require "../rosettefjapi.rkt")
 (require "../fjmodels.rkt")
@@ -7,15 +7,14 @@
 
 (current-bitwidth 5)
 
-(define stream-length 3)
-(define max-timestamp 3)
+(define stream-length 1)
 (define time-delay 3)
 (define x-offset 5)
 
-(define (mouse-tail-y-graph y-evt-stream)
+(define (mousetail-y-graph y-evt-stream)
   (delayE time-delay y-evt-stream))
 
-(define (mouse-tail-x-graph x-evt-stream)
+(define (mousetail-x-graph x-evt-stream)
   (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) x-offset))) (delayE time-delay x-evt-stream)))
 
 (define concrete-mouse-x-input (list (list 1 0)
@@ -43,30 +42,20 @@
                                       (list 8 1)
                                       (list 9 1)))
 
-(define mouse-x (new-event-stream sym-integer stream-length))
-(define mouse-y (new-event-stream sym-integer stream-length))
+(define (sym-mouse-coord)
+  (define-symbolic* i integer?)
+  (assert (>= i 0))
+  (assert (<= i (- (max-for-current-bitwidth (current-bitwidth)) x-offset)))
+  i)
+
+(define s-mouse-x (new-event-stream sym-mouse-coord stream-length (add1 stream-length)))
+(define s-mouse-y (new-event-stream sym-mouse-coord stream-length (add1 stream-length)))
 
 (define (mousetail-x-assumptions mx)
-  (and (valid-timestamps? mx)
-       ;; timestamp is no longer than number of events in stream
-       (andmap (λ (e) (<= (get-timestamp e) stream-length)) mx)
-       ;; x coord must be 0 or higher
-       (andmap (λ (n) (>= n 0)) (map get-value mx))
-       ;; to prevent overflow, x coord can't be greater than max minus offset
-       (andmap (λ (n) (<= n (- (max-for-current-bitwidth (current-bitwidth)) x-offset)))
-               (map get-value mx))    
-       ))
+  (timestamps-sorted-and-distinct? mx))
 
 (define (mousetail-y-assumptions my)
-  (and (valid-timestamps? my)
-       ;; timestamp is no longer than number of events in stream
-       (andmap (λ (e) (<= (get-timestamp e) stream-length)) my)
-       ;; y coord must be 0 or higher
-       (andmap (λ (n) (>= n 0)) (map get-value my))
-       ;; to prevent overflow, y coord can't be greater than max
-       (andmap (λ (n) (<= n (max-for-current-bitwidth (current-bitwidth))))
-               (map get-value my))
-       ))
+  (timestamps-sorted-and-distinct? my))
 
 (define (mousetail-assumptions mx my)
   (and (mousetail-x-assumptions mx)

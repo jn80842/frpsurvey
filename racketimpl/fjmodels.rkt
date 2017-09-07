@@ -1,7 +1,9 @@
-#lang rosette/safe
+#lang rosette
 
 (require rosette/lib/synthax)
 (provide (all-defined-out))
+
+(error-print-width 100000000000)
 
 (define (get-timestamp item)
   (first item))
@@ -35,9 +37,7 @@
   (filter (λ (e) (and (>= (first e) ts1) (<= (first e) ts2))) evt-stream))
 
 (define (valid-timestamps? stream)
-  (and (andmap integer? (map get-timestamp stream))
-       (andmap positive? (map get-timestamp stream))
-       (timestamps-sorted-and-distinct? stream)))
+  (timestamps-sorted-and-distinct? stream))
 
 (define (timestamps-below-max? max stream)
   (andmap (λ (t) (>= max t)) (map get-timestamp stream)))
@@ -108,9 +108,7 @@
           (map get-timestamp (behavior-changes b2))))
 
 (define (valid-behavior? b)
-  (and (behavior? b)
-       (andmap positive? (map get-timestamp (behavior-changes b)))
-       (timestamps-sorted-and-distinct? (behavior-changes b))))
+  (timestamps-sorted-and-distinct? (behavior-changes b)))
 
 (define (valid-time-vec-behavior? b)
   (and (valid-behavior? b)
@@ -163,18 +161,17 @@
   (define-symbolic* minute-ones integer?)
   (vector hour minute-tens minute-ones))
 
-(define (new-event-stream constructor n)
-  (letrec ([f (λ (n) (if (= n 0)
-                         '()
-                         (begin
-                           (define-symbolic* timestamp integer?)
-                           (append (list (list timestamp (constructor)))  (f (sub1 n))))))])
-    (f n)))
+(define (new-event-stream constructor n max-ts)
+  (for/list ([i n])
+    (define-symbolic* ts integer?)
+    (assert (positive? ts))
+    (assert (>= max-ts ts))
+    (list ts (constructor))))
 
 ;;;;;;;; make symbolic behaviors ;;;;;;;;
 
-(define (new-behavior constructor n)
-  (behavior (constructor) (new-event-stream constructor n)))
+(define (new-behavior constructor n max-ts)
+  (behavior (constructor) (new-event-stream constructor n max-ts)))
 
 (define  (same program1 program2 . inputs)
   (equal? (apply program1 inputs)
