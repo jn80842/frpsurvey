@@ -34,6 +34,12 @@
               (orB (delayB 1 (liftB (λ (b) (equal? b 'motion-sensed)) mdB))
                    (delayB 2 (liftB (λ (b) (equal? b 'motion-sensed)) mdB))))))
 
+(define (light-graphB2 mdB)
+  (define off-events (constantE #f (filterE (λ (e) (equal? e 'motion-not-sensed)) (changes mdB))))
+  (define on-events (constantE #t (filterE (λ (e) (equal? e 'motion-sensed)) (changes mdB))))
+  (define processedB (startsWith #f (mergeE (delayE 3 off-events) on-events)))
+  (orB (liftB (λ (v) (equal? 'motion-sensed v)) mdB) processedB))
+
 (define (light-assumptions motion)
   ;(and
    (valid-timestamps? motion)
