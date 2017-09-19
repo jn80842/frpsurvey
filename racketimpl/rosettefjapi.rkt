@@ -26,6 +26,13 @@
 (define (mergeE evt-stream1 evt-stream2) ;; note: mergeE can actually take any num of args
   (sort (append evt-stream1 evt-stream2) (λ (x y) (< (get-timestamp x) (get-timestamp y))))) ;))
 
+#;(define (mergeE evt-stream1 evt-stream2)
+  (cond [(empty? evt-stream1) evt-stream2]
+        [(empty? evt-stream2) evt-stream1]
+        [(< (get-timestamp (first evt-stream1)) (get-timestamp (first evt-stream2)))
+         (append (list (first evt-stream1)) (mergeE (rest evt-stream1) evt-stream2))]
+        [else (append (list (first evt-stream2)) (mergeE evt-stream1 (rest evt-stream2)))]))
+
 (define (switchE stream-of-streams)
   (if (empty? stream-of-streams)
       '()
