@@ -69,7 +69,7 @@
 (displayln "Synthesize full program")
 (define begin-time (current-seconds))
 ;; synthesize program that matches benchmark program
-#;(define binding
+(define binding
   (time (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
               #:guarantee (assert (same inc-dec-button-graph synth-inc-dec-button-graph
                                         s-inc s-dec)))))
@@ -98,7 +98,7 @@
                             (assert (not same inc-dec-button-graph
                                          synth-inc-dec-button-graph s-inc s-dec)))))
 (define end-time (current-seconds))
-#;(if (unsat? binding)
+(if (unsat? binding)
     (displayln "No binding was found.")
     (print-forms binding))
 (printf "Took ~a seconds~n" (- end-time begin-time))

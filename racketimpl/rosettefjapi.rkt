@@ -23,10 +23,10 @@
 (define (mapE proc evt-stream) ;; proc operates over both timestamp and value (kind of a cheat)
   (map (λ (e) (proc e)) evt-stream))
 
-(define (mergeE evt-stream1 evt-stream2) ;; note: mergeE can actually take any num of args
+#;(define (mergeE evt-stream1 evt-stream2) ;; note: mergeE can actually take any num of args
   (sort (append evt-stream1 evt-stream2) (λ (x y) (< (get-timestamp x) (get-timestamp y))))) ;))
 
-#;(define (mergeE evt-stream1 evt-stream2)
+(define (mergeE evt-stream1 evt-stream2)
   (cond [(empty? evt-stream1) evt-stream2]
         [(empty? evt-stream2) evt-stream1]
         [(< (get-timestamp (first evt-stream1)) (get-timestamp (first evt-stream2)))
@@ -46,7 +46,7 @@
 ;; condE
 
 (define (filterE pred stream)
-  (filter (λ (e) (if (pred (get-value e)) (list (get-timestamp e) (pred (get-value e))) #f)) stream))
+  (filter (λ (e) (pred (get-value e))) stream))
 
 (define (ifE guard-stream true-stream false-stream)
   ;; split guard stream into true and false values
@@ -140,7 +140,7 @@
   (behavior const '()))
 
 (define (delayB interval behavior1)
-  (behavior (behavior-init behavior1) (map (λ (e) (list (+ interval (get-timestamp e)) (get-value e))) (changes behavior1))))
+  (behavior (behavior-init behavior1) (delayE interval (behavior-changes behavior1))))
 
 ;; valueNow: since valueNow shouldn't be exposed to end users, it's in fjmodels.rkt
 
@@ -166,12 +166,34 @@
               (map (λ (b1 b2) (list (get-timestamp b1) (or (get-value b1) (get-value b2)))) enhanced-b1 enhanced-b2))))
 
 (define (notB behavior1)
-  (behavior (not (behavior-init behavior1)) (map (λ (b) (list (get-timestamp b) (not (get-value b)))) (behavior-changes behavior1))))
+  (behavior (not (behavior-init behavior1)) (notE (behavior-changes behavior1))))
 
 (define (liftB proc . argBs)
   (let* ([unique-ts (sort (remove-duplicates (flatten (map (λ (b) (map get-timestamp (behavior-changes b))) argBs))) <)]
          [enhanced-argBs (map (λ (b) (project-values b unique-ts)) argBs)])
   (behavior (apply proc (map behavior-init argBs)) (apply (curry map (λ e (list (get-timestamp (first e)) (apply proc (map get-value e))))) enhanced-argBs))))
+
+(define (liftB1 proc argB)
+  (behavior (proc (behavior-init argB)) (map (λ (b) (list (get-timestamp b) (proc (get-value b)))) (behavior-changes argB))))
+
+(define (liftB2 proc argB1 argB2)
+  (behavior (proc (behavior-init argB1) (behavior-init argB2))
+            (letrec ([f (λ (b1 b2) (cond [(or (empty? (behavior-changes b1))
+                                              (empty? (behavior-changes b2))) '()]
+                                         [(eq? (get-timestamp (first (behavior-changes b1)))
+                                               (get-timestamp (first (behavior-changes b2))))
+                                          (append (list (list (get-timestamp (first (behavior-changes b1)))
+                                                              (proc (get-value (first (behavior-changes b1))) (get-value (first (behavior-changes b2))))))
+                                                  (f (behavior (get-value (first (behavior-changes b1))) (rest (behavior-changes b1)))
+                                                     (behavior (get-value (first (behavior-changes b2))) (rest (behavior-changes b2)))))]
+                                         [(< (get-timestamp (first (behavior-changes b1))) (get-timestamp (first (behavior-changes b2))))
+                                          (append (list (list (get-timestamp (first (behavior-changes b1)))
+                                                              (proc (get-value (first (behavior-changes b1))) (valueNow b2 (get-timestamp (first (behavior-changes b1)))))))
+                                                        (f (behavior (get-value (first (behavior-changes b1))) (rest (behavior-changes b1))) b2))]
+                                         [else (append (list (list (get-timestamp (first (behavior-changes b2)))
+                                                                   (proc (valueNow b1 (get-timestamp (first (behavior-changes b2)))) (get-value (first (behavior-changes b2))))))
+                                                       (f b1 (behavior (get-value (first (behavior-changes b2))) (rest (behavior-changes b2)))))]))])
+              (f argB1 argB2))))
 
 ;; is there an easier way??
 (define (condB behaviorpairs)

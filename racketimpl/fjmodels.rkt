@@ -82,11 +82,16 @@
   #:transparent
   )
 
-(define (valueNow behavior1 ts) ;; altered a bit for our own use
+#;(define (valueNow behavior1 ts) ;; altered a bit for our own use
   (let ([filtered-changes (filter (λ (t) (<= (get-timestamp t) ts)) (behavior-changes behavior1))])
     (if (empty? filtered-changes)
         (behavior-init behavior1)
         (get-value (last filtered-changes)))))
+
+(define (valueNow behavior1 ts)
+  (cond [(empty? (behavior-changes behavior1)) (behavior-init behavior1)]
+        [(< ts (get-timestamp (first (behavior-changes behavior1)))) (behavior-init behavior1)]
+        [else (valueNow (behavior (get-value (first (behavior-changes behavior1))) (rest (behavior-changes behavior1))) ts)]))
 
 (define (valueNow-List l ts)
   (let ([filtered-changes (filter (λ (t) (<= (get-timestamp t) ts)) l)])

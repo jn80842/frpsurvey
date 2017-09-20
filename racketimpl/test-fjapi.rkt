@@ -149,7 +149,7 @@
 ;; liftB
 (check-equal? (liftB (λ (v) (+ v 3)) (behavior 0 (list (list 1 2) (list 2 3) (list 5 4))))
       (behavior 3 (list (list 1 5) (list 2 6) (list 5 7))))
-(check-equal? (liftB + (behavior 0 (list (list 1 1) (list 2 2) (list 3 3)))
+(check-equal? (liftB2 + (behavior 0 (list (list 1 1) (list 2 2) (list 3 3)))
                                    (behavior 10 (list (list 1 1) (list 2 2) (list 3 3))))
       (behavior 10 (list (list 1 2) (list 2 4) (list 3 6))))
 (check-equal? (liftB (λ (t) (<= t 2)) (behavior 1 (list (list 1 0) (list 3 0))))
