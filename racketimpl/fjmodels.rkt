@@ -3,7 +3,7 @@
 (require rosette/lib/synthax)
 (provide (all-defined-out))
 
-(error-print-width 100000000000)
+;(error-print-width 100000000000)
 
 (define (get-timestamp item)
   (first item))

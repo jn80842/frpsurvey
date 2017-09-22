@@ -17,7 +17,7 @@
 ;;                 /     \    /     \
 ;;                inc    1   dec    -1
 
-(define-synthax (flapjax-grmr input ... depth)
+#;(define-synthax (flapjax-grmr input ... depth)
   #:base (choose input ...)
   #:else (let ([recursive-call1 (flapjax-grmr input ... (sub1 depth))]
                [recursive-call2 (flapjax-grmr input ... (sub1 depth))]
@@ -55,6 +55,14 @@
                   ; (ifE recursive-call1 recursive-call2 recursive-call3)
                   ; (ifB recursive-call1 recursive-call2 recursive-call3)
                    )))
+
+(define-synthax (flapjax-grmr input ... depth)
+  #:base (choose input ... )
+  #:else (choose input ...
+                 (startsWith 0 (flapjax-grmr input ... (sub1 depth)))
+                 (constantE (choose 1 -1) (flapjax-grmr input ... (sub1 depth)))
+                 (collectE 0 + (flapjax-grmr input ... (sub1 depth)))
+                 (mergeE (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))))
 
 (define (synth-inc-dec-button-graph inc dec)
   (flapjax-grmr inc dec 4))

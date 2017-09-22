@@ -23,10 +23,10 @@
 (define (mapE proc evt-stream) ;; proc operates over both timestamp and value (kind of a cheat)
   (map (λ (e) (proc e)) evt-stream))
 
-#;(define (mergeE evt-stream1 evt-stream2) ;; note: mergeE can actually take any num of args
+(define (mergeE evt-stream1 evt-stream2) ;; note: mergeE can actually take any num of args
   (sort (append evt-stream1 evt-stream2) (λ (x y) (< (get-timestamp x) (get-timestamp y))))) ;))
 
-(define (mergeE evt-stream1 evt-stream2)
+#;(define (mergeE evt-stream1 evt-stream2)
   (cond [(empty? evt-stream1) evt-stream2]
         [(empty? evt-stream2) evt-stream1]
         [(< (get-timestamp (first evt-stream1)) (get-timestamp (first evt-stream2)))

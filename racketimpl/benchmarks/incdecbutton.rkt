@@ -6,7 +6,7 @@
 (provide (all-defined-out))
 
 (current-bitwidth 5)
-(define stream-length 1)
+(define stream-length 2)
 
 (define (inc-dec-button-graph inc dec)
   (startsWith 0
