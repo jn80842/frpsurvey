@@ -1,3 +1,5 @@
+var blocksize = 0;
+
 function updateTargetText(target,updateFunction) {
   text = target.innerHTML;
   target.innerHTML = updateFunction(text);
@@ -26,7 +28,17 @@ function switchButtonState(text) {
 
 // draw piece
 function drawPiece() {
+  var canvas = document.getElementById('tetriscanvas');
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgb(251, 180, 20)';
+  ctx.fillRect(10, 10, 30, 30);
+}
 
+function drawNext() {
+  var canvas = document.getElementById('next_tetrimino');
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgb(236, 240, 241)';
+  ctx.fillRect(10, 10, 30, 30);
 }
 
 
@@ -38,5 +50,7 @@ var buttonClickE = clicksE(gameButtonElt)
   var currentState = gameButtonElt.innerHTML;
   updateTargetText(gameButtonElt,switchButtonState);
   setVisibility(infoOverlay,currentState == "Pause");
+  drawPiece();
+  drawNext();
 });
 
