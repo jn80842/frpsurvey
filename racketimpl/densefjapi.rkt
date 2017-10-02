@@ -115,26 +115,12 @@
                               (append (list output) (f (rest evts) (first evts) new-last-sent)))]))])
     (f evt-stream 0 'no-evt)0))
 
-#;(define (calmE interval evt-stream)
-  (letrec ([emit-event (λ (evt) (list (list (+ (get-timestamp evt) interval) (get-value evt))))]
-           [f (λ (evts buffered-evt)
-                ;; if all events have been processed, propagate buffered event
-                (cond [(and (empty? evts) buffered-evt) (emit-event buffered-evt)]
-                      ;; if all events have been processed and no event is buffered, done!
-                      [(empty? evts) '()]
-                      ;; if nothing has been buffered, buffer event and continue
-                      [(false? buffered-evt) (f (rest evts) (first evts))]
-                      ;; if time between buffered event and next event is geq interval
-                      ;; propagate buffered event and continue
-                      [(<= interval (- (get-timestamp (first evts)) (get-timestamp buffered-evt)))
-                       (append (emit-event buffered-evt) (f (rest evts) (first evts)))]
-                      ;; if time between buffered event and next event is too small
-                      ;; discard buffered event and continue
-                      [else (f (rest evts) (first evts))]))])
-    (f evt-stream #f)))
-
-#;(define (startsWith init-value evt-stream)
-  (behavior init-value evt-stream))
+(define (startsWith init-value evt-stream)
+  (letrec ([f (λ (current evts)
+             (if (empty-event? (first evts))
+                 (append (list current) (f current (rest evts)))
+                 (append (list (first evts)) (f (first evts) (rest evts)))))])
+  (behavior init-value (f init-value evt-stream))))
 
 #;(define (changes behaviorB)
     (behavior-changes behaviorB))

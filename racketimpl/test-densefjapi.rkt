@@ -79,9 +79,9 @@
 (check-equal? (blindE 3 '(a b c d e f)) '(d))
 
 ;; startsWith tests
-(check-equal? (startsWith 10 standard-evt-stream) (behavior 10 (list (list 1 11) (list 2 '12) (list 3 13))))
-     ; (list (list 0 10) (list 1 11) (list 2 12) (list 3 13)))
-(check-equal? (startsWith 'zero empty-evt-stream) (behavior 'zero '())) ;;(list (list 0 'zero)))
+(check-equal? (startsWith 10 '(11 12 13)) (behavior 10 '(11 12 13)))
+(check-equal? (startsWith 'zero '()) (behavior 'zero '()))
+(check-equal? (startsWith 'a '(no-evt no-evt 'b no-evt 'c 'd)) (behavior 'a '(a a b b c d)))
 
 ;; changes tests
 (check-equal? (changes (behavior 0 (list (list 1 1) (list 2 2) (list 3 3)))) (list (list 1 1) (list 2 2) (list 3 3)))

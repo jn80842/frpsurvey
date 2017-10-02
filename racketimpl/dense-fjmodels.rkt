@@ -146,6 +146,10 @@
 #;(define (new-behavior constructor n max-ts)
   (behavior (constructor) (new-event-stream constructor n max-ts)))
 
+(define (new-behavior constructor n)
+  (behavior (constructor) (for/list ([i n])
+                            (constructor))))
+
 (define  (same program1 program2 . inputs)
   (equal? (apply program1 inputs)
                   (apply program2 inputs)))
