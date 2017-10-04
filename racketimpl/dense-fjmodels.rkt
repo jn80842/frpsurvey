@@ -164,12 +164,15 @@
   (append (map get-timestamp evt-stream)
           (map harvest-term (map get-value evt-stream)))))
 
+(define (harvest-events evt-stream)
+  (map (λ (s) (caar (union-contents s))) evt-stream))
+
 #;(define (harvest-behavior b)
   (flatten (append (list (harvest-term (behavior-init b))) (harvest-events (behavior-changes b)))))
 
-#;(define (harvest x)
+(define (harvest x)
   (if (behavior? x)
-      (harvest-behavior x)
+      (void) ;(harvest-behavior x)
       (harvest-events x)))
 
 (define (check-existence-of-solution spec . inputs)
