@@ -50,7 +50,7 @@
                                  (collectE-grmr input ... (sub1 depth)))
                          )))
 
-(define-synthax (flapjax-grmr input ... depth)
+#;(define-synthax (flapjax-grmr input ... depth)
   #:base (choose input ...)
   #:else (let ([recursive-call1 (flapjax-grmr input ... (sub1 depth))]
                [recursive-call2 (flapjax-grmr input ... (sub1 depth))]
@@ -62,7 +62,7 @@
                    (mergeE recursive-call1 recursive-call2)
                    )))
 
-#;(define-synthax (flapjax-grmr input ... depth)
+(define-synthax (flapjax-grmr input ... depth)
   #:base (choose input ... )
   #:else (choose input ...
                  (startsWith 0 (flapjax-grmr input ... (sub1 depth)))
@@ -71,8 +71,9 @@
                  (mergeE (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))))
 
 (define (synth-inc-dec-button-graph inc dec)
+  (flapjax-grmr inc dec 4))
   ;(startsWith 0 (event-stream-grmr inc dec 4)))
-  (startsWith 0 (flapjax-grmr inc dec 3)))
+  ;(startsWith 0 (flapjax-grmr inc dec 3)))
 
 (define (manual-synth-inc-dec-button-graph inc dec)
   (choose inc dec
@@ -89,18 +90,20 @@
 
 (print-bitwidth-warning)
 
-(assert (button-assumptions s-inc s-dec))
+;(assert (button-assumptions s-inc s-dec))
 
 (define (test-graph inc dec)
   (mergeE inc dec))
 (define (synth-test-graph inc dec)
-  (event-stream-grmr inc dec 3))
+  (flapjax-grmr inc dec 4))
+
+(assert (andmap (λ (i d) (not (and (equal? i 'click) (equal? d 'click)))) s-inc s-dec))
 
 (displayln "Synthesize inc/dec button program:")
 
-#;(define binding
+(define binding
   (time (synthesize #:forall (append (harvest s-dec) (harvest s-inc))
-                    #:guarantee (assert (same test-graph synth-test-graph s-inc s-dec)))))
+                    #:guarantee (assert (same inc-dec-button-graph synth-inc-dec-button-graph s-inc s-dec)))))
 
 ;; synthesized in 359 seconds
 (displayln "Synthesize full program")
@@ -136,7 +139,7 @@
                             (assert (not same inc-dec-button-graph
                                          synth-inc-dec-button-graph s-inc s-dec)))))
 (define end-time (current-seconds))
-#;(if (unsat? binding)
+(if (unsat? binding)
     (displayln "No binding was found.")
     (print-forms binding))
 (printf "Took ~a seconds~n" (- end-time begin-time))
