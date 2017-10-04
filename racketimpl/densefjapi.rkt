@@ -53,7 +53,7 @@
 ;; condE
 
 (define (filterE pred stream)
-  (filter (λ (e) (if (and (not-empty-event? e) (pred e)) e 'no-evt)) stream))
+  (map (λ (e) (if (and (not-empty-event? e) (pred e)) e 'no-evt)) stream))
 
 (define (ifE guard-stream true-stream false-stream)
   (map (λ (guard true false) (if (empty-event? guard) 'no-evt (if guard true false)))
@@ -68,8 +68,8 @@
                           '()
                           (let ([evt (first x-lst)])
                             (if (empty-event? evt)
-                                (append (list 'no-evt) (collect (rest x-lst) prev))
-                                (append (list (proc evt prev) (collect (rest x-lst) prev)))))))])
+                                (cons 'no-evt (collect (rest x-lst) prev))
+                                (cons (proc evt prev) (collect (rest x-lst) (proc evt prev)))))))])
     (collect evt-stream init)))
 
 ;; andE
@@ -95,31 +95,31 @@
   (append (for/list ([i interval]) 'no-evt) evt-stream))
 
 (define (blindE interval evt-stream)
-  (letrec ([f (λ (evts last-sent)
+  (letrec ([f (λ (evts wait-time)
                 (cond [(empty? evts) '()]
-                      [(empty-event? (first evts)) (append (list 'no-evt) (f (rest evts) (add1 last-sent)))]
-                      [(>= last-sent interval) (append (list (first evts)) (f (rest evts) 0))]
-                      [else (append (list 'no-evt) (f (rest evts) (add1 last-sent)))]))])
+                      [(and (>= 0 wait-time) (not-empty-event? (first evts))) (cons (first evts) (f (rest evts) interval))]
+                      [else (cons 'no-evt (f (rest evts) (sub1 wait-time)))]))])
     (f evt-stream 0)))
 
 (define (calmE interval evt-stream)
   (letrec ([f (λ (evts last-sent buffered-evt)
-                (cond [(and (empty? evts) (not buffered-evt)) '()]
+                (cond [(and (empty? evts) (empty-event? buffered-evt)) '()]
                       [(and (empty? evts) (>= last-sent interval)) (list buffered-evt)]
-                      [(empty? evts) (append (list 'no-evt) (f evts (add1 last-sent) buffered-evt))]
+                      [(empty? evts) (cons 'no-evt (f evts (add1 last-sent) buffered-evt))]
                       [else (let ([output (if (>= last-sent interval) buffered-evt 'no-evt)]
+                                  [new-buffer (if (not-empty-event? (first evts)) (first evts) buffered-evt)]
                                   [new-last-sent (cond [(and (not-empty-event? (first evts))
                                                           (>= last-sent interval)) 0]
                                                        [(< last-sent interval) (add1 last-sent)]
                                                        [else last-sent])])
-                              (append (list output) (f (rest evts) (first evts) new-last-sent)))]))])
-    (f evt-stream 0 'no-evt)0))
+                              (cons output (f (rest evts) new-last-sent new-buffer)))]))])
+    (f evt-stream 0 'no-evt)))
 
 (define (startsWith init-value evt-stream)
   (letrec ([f (λ (current evts)
-             (if (empty-event? (first evts))
-                 (append (list current) (f current (rest evts)))
-                 (append (list (first evts)) (f (first evts) (rest evts)))))])
+             (cond [(empty? evts) '()]
+                   [(empty-event? (first evts)) (cons current (f current (rest evts)))]
+                   [else (cons (first evts) (f (first evts) (rest evts)))]))])
   (behavior init-value (f init-value evt-stream))))
 
 #;(define (changes behaviorB)
