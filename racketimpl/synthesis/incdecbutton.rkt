@@ -50,19 +50,19 @@
                                  (collectE-grmr input ... (sub1 depth)))
                          )))
 
-#;(define-synthax (flapjax-grmr input ... depth)
+(define-synthax (flapjax-grmr input ... depth)
   #:base (choose input ...)
   #:else (let ([recursive-call1 (flapjax-grmr input ... (sub1 depth))]
                [recursive-call2 (flapjax-grmr input ... (sub1 depth))]
                )
            (choose input ...
-                   (startsWith 0 recursive-call1)
+                   (startsWith (??) recursive-call1)
                    (constantE (??) recursive-call1)
                    (collectE (??) + recursive-call1)
                    (mergeE recursive-call1 recursive-call2)
                    )))
 
-(define-synthax (flapjax-grmr input ... depth)
+#;(define-synthax (flapjax-grmr input ... depth)
   #:base (choose input ... )
   #:else (choose input ...
                  (startsWith 0 (flapjax-grmr input ... (sub1 depth)))
@@ -74,6 +74,9 @@
   (flapjax-grmr inc dec 4))
   ;(startsWith 0 (event-stream-grmr inc dec 4)))
   ;(startsWith 0 (flapjax-grmr inc dec 3)))
+
+(define (synth-inc-dec-button-graph2 inc dec)
+  (flapjax-grmr inc dec 4))
 
 (define (manual-synth-inc-dec-button-graph inc dec)
   (choose inc dec
@@ -101,11 +104,6 @@
 
 (displayln "Synthesize inc/dec button program:")
 
-(define binding
-  (time (synthesize #:forall (append (harvest s-dec) (harvest s-inc))
-                    #:guarantee (assert (same inc-dec-button-graph synth-inc-dec-button-graph s-inc s-dec)))))
-
-;; synthesized in 359 seconds
 (displayln "Synthesize full program")
 (define begin-time (current-seconds))
 ;; synthesize program that matches benchmark program
@@ -125,26 +123,26 @@
                             (assert (button-guarantees (synth-inc-dec-button-graph s-inc s-dec)))
                             (assert (not (same inc-dec-button-graph
                                                synth-inc-dec-button-graph s-inc s-dec))))))
+
 ;; synthesize program that matches input/output pair
 #;(define binding
-  (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
+  (synthesize #:forall '() ; (append (harvest s-inc) (harvest s-dec))
               #:guarantee (assert (equal? (synth-inc-dec-button-graph concrete-inc-clicks concrete-dec-clicks)
                                           concrete-counter))))
+
 ;; synthesize program that matches input/output pair but is not equivalent to benchmark program
 #;(define binding
   (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
-              #:guarantee (begin
+              #:guarantee (begin 
                             (assert (equal? (synth-inc-dec-button-graph concrete-inc-clicks concrete-dec-clicks)
                                             concrete-counter))
-                            (assert (not same inc-dec-button-graph
-                                         synth-inc-dec-button-graph s-inc s-dec)))))
+                            #;(assert (equal? (synth-inc-dec-button-graph2 concrete-inc-clicks concrete-dec-clicks)
+                                            concrete-counter))
+                            (assert (same synth-inc-dec-button-graph
+                                         synth-inc-dec-button-graph2 s-inc s-dec)))))
+
 (define end-time (current-seconds))
 (if (unsat? binding)
     (displayln "No binding was found.")
     (print-forms binding))
 (printf "Took ~a seconds~n" (- end-time begin-time))
-
-;(define sym-int (new-event-stream sym-integer 2 2))
-;(define sym-int2 (new-event-stream sym-integer 2 2))
-;(time (flapjax-grmr sym-int sym-int2 4))
-

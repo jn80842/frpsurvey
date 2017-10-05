@@ -6,16 +6,19 @@
 (provide (all-defined-out))
 
 (current-bitwidth 5)
-(define stream-length 2)
+(define stream-length 7)
 
 (define (inc-dec-button-graph inc dec)
   (startsWith 0
    (collectE 0 +
    (mergeE (constantE 1 inc) (constantE -1 dec)))))
 
-(define concrete-inc-clicks (list (list 2 'click) (list 4 'click)))
-(define concrete-dec-clicks (list (list 5 'click) (list 6 'click) (list 7 'click)))
-(define concrete-counter (behavior 0 (list (list 2 1) (list 4 2) (list 5 1) (list 6 0) (list 7 -1))))
+;(define concrete-inc-clicks (list (list 2 'click) (list 4 'click)))
+;(define concrete-dec-clicks (list (list 5 'click) (list 6 'click) (list 7 'click)))
+;(define concrete-counter (behavior 0 (list (list 2 1) (list 4 2) (list 5 1) (list 6 0) (list 7 -1))))
+(define concrete-inc-clicks (list 'click 'no-evt 'click))
+(define concrete-dec-clicks (list 'no-evt 'click 'no-evt))
+(define concrete-counter (behavior 0 (list 1 0 1)))
 
 ;(define s-inc (new-event-stream (sym-union-constructor 'click 'no-evt) stream-length (* 2 stream-length)))
 ;(define s-dec (new-event-stream (sym-union-constructor 'click 'no-evt) stream-length (* 2 stream-length)))
