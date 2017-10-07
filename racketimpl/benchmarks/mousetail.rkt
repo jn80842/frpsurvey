@@ -1,7 +1,7 @@
 #lang rosette
 
-(require "../rosettefjapi.rkt")
-(require "../fjmodels.rkt")
+(require "../densefjapi.rkt")
+(require "../dense-fjmodels.rkt")
 
 (provide (all-defined-out))
 
@@ -15,32 +15,36 @@
   (delayE time-delay y-evt-stream))
 
 (define (mousetail-x-graph x-evt-stream)
-  (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) x-offset))) (delayE time-delay x-evt-stream)))
+  (mapE (λ (e) (+ e x-offset)) (delayE time-delay x-evt-stream)))
 
-(define concrete-mouse-x-input (list (list 1 0)
+#;(define concrete-mouse-x-input (list (list 1 0)
                                      (list 2 5)
                                      (list 3 5)
                                      (list 4 3)
                                      (list 5 3)
                                      (list 6 3)))
-(define concrete-mouse-y-input (list (list 1 0)
+(define concrete-mouse-x-input (list 0 5 5 3 3 3))
+#;(define concrete-mouse-y-input (list (list 1 0)
                                      (list 2 2)
                                      (list 3 2)
                                      (list 4 1)
                                      (list 5 1)
                                      (list 6 1)))
-(define concrete-mouse-x-output (list (list 4 5)
+(define concrete-mouse-y-input (list 0 2 2 1 1 1))
+#;(define concrete-mouse-x-output (list (list 4 5)
                                       (list 5 10)
                                       (list 6 10)
                                       (list 7 8)
                                       (list 8 8)
                                       (list 9 8)))
-(define concrete-mouse-y-output (list (list 4 0)
+(define concrete-mouse-x-output (list 'no-evt 'no-evt 'no-evt 5 10 10 8 8))
+#;(define concrete-mouse-y-output (list (list 4 0)
                                       (list 5 2)
                                       (list 6 2)
                                       (list 7 1)
                                       (list 8 1)
                                       (list 9 1)))
+(define concrete-mouse-y-output (list 'no-evt 'no-evt 'no-evt 0 2 2 1 1 1))
 
 (define (sym-mouse-coord)
   (define-symbolic* i integer?)
@@ -48,36 +52,39 @@
   (assert (<= i (- (max-for-current-bitwidth (current-bitwidth)) x-offset)))
   i)
 
-(define s-mouse-x (new-event-stream sym-mouse-coord stream-length (add1 stream-length)))
-(define s-mouse-y (new-event-stream sym-mouse-coord stream-length (add1 stream-length)))
+(define s-mouse-x (new-event-stream sym-mouse-coord stream-length))
+(define s-mouse-y (new-event-stream sym-mouse-coord stream-length))
 
-(define (mousetail-x-assumptions mx)
+#;(define (mousetail-x-assumptions mx)
   (timestamps-sorted-and-distinct? mx))
-
-(define (mousetail-y-assumptions my)
+(define (mousetail-x-assumptions mx)
+  (andmap (λ (e) (not-empty-event? e)) mx))
+#;(define (mousetail-y-assumptions my)
   (timestamps-sorted-and-distinct? my))
+(define (mousetail-y-assumptions my)
+  (andmap (λ (e) (not-empty-event? e)) my))
 
 (define (mousetail-assumptions mx my)
   (and (mousetail-x-assumptions mx)
-       (mousetail-y-assumptions my)
+       (mousetail-y-assumptions my)))
        ;; there's a value for x and y at every timestamp
-       (andmap (λ (x y) (equal? (get-timestamp x) (get-timestamp y))) mx my)))
+       ;(andmap (λ (x y) (equal? (get-timestamp x) (get-timestamp y))) mx my)))
 
-(define (mousetail-y-guarantees my-in my-out)
+#;(define (mousetail-y-guarantees my-in my-out)
   (and (valid-timestamps? my-out)
        ;; each timestamp is delayed by time-delay value
        (andmap (λ (in out) (equal? (+ (get-timestamp in) time-delay) (get-timestamp out))) my-in my-out)
        ;; y coord for each timestamp is not changed
        (andmap (λ (in out) (equal? (get-value in) (get-value out))) my-in my-out)))
 
-(define (mousetail-x-guarantees mx-in mx-out)
+#;(define (mousetail-x-guarantees mx-in mx-out)
   (and (valid-timestamps? mx-out)
        ;; each timestamp is delayed by time-delay value
        (andmap (λ (in out) (equal? (+ (get-timestamp in) time-delay) (get-timestamp out))) mx-in mx-out)
        ;; x coord for each timestamp is increased by x-offset
        (andmap (λ (in out) (equal? (+ (get-value in) x-offset) (get-value out))) mx-in mx-out)))
 
-(define (mousetail-guarantees mx-in my-in mx-out my-out)
+#;(define (mousetail-guarantees mx-in my-in mx-out my-out)
   (and (mousetail-y-guarantees my-in my-out)
        (mousetail-x-guarantees mx-in mx-out)
        ;; need a value for x and y mouse coordinates for every timestamp

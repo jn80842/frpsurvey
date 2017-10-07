@@ -2,8 +2,8 @@
 
 (require rosette/lib/synthax)
 
-(require "../fjmodels.rkt")
-(require "../rosettefjapi.rkt")
+(require "../dense-fjmodels.rkt")
+(require "../densefjapi.rkt")
 (require "../benchmarks/mousetail.rkt")
 (require "grammar.rkt")
 
@@ -13,14 +13,14 @@
 ;;         /      \
 ;;        3     mouse-x
 
-#;(define-synthax (flapjax-grmr input ... depth)
+(define-synthax (flapjax-grmr input ... depth)
   #:base (choose input ...)
   #:else (let ([recursive-call1 (flapjax-grmr input ... (sub1 depth))])
            (choose input ...
                    (delayE 3 recursive-call1)
-                   (mapE (λ (e) (list (get-timestamp e) (+ (get-value e) 5))) recursive-call1))))
+                   (mapE (λ (e) (+ e 5)) recursive-call1))))
 
-(define-synthax (flapjax-grmr input ... depth)
+#;(define-synthax (flapjax-grmr input ... depth)
   #:base (choose input ...)
   #:else (let ([recursive-call1 (flapjax-grmr input ... (sub1 depth))]
                ;[recursive-call2 (flapjax-grmr input ... (sub1 depth))]
@@ -54,7 +54,7 @@
                           ;(λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
                           ;(λ (t) (<= t possible-ints))
                           ;(λ (c) (or (>= (vector-ref c 0) possible-ints) (>= possible-ints (vector-ref c 0))))
-                          (λ (e) (list (get-timestamp e) (+ (get-value e) 5)))
+                          ;(λ (e) (+ e 5)))
                           ;(λ (e) (list (get-timestamp e)
                           ; (startBehaviorAtTimestamp (get-timestamp e) (choose input ...))))
                           ;(λ (e) (list (get-timestamp e) (zeroE)))

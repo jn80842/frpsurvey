@@ -165,7 +165,8 @@
           (map harvest-term (map get-value evt-stream)))))
 
 (define (harvest-events evt-stream)
-  (map (λ (s) (caar (union-contents s))) evt-stream))
+  (append (map (λ (s) (caar (union-contents s))) evt-stream)
+          (filter term? (map (λ (s) (cdar (union-contents s))) evt-stream))))
 
 #;(define (harvest-behavior b)
   (flatten (append (list (harvest-term (behavior-init b))) (harvest-events (behavior-changes b)))))
