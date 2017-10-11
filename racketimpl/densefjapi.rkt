@@ -191,6 +191,7 @@
                  (pad-behavior-changes conditionB max-len)
                  (pad-behavior-changes trueB max-len)
                  (pad-behavior-changes falseB max-len)))))
+
 ;; timerB
 
 #;(define (blindB interval b)
