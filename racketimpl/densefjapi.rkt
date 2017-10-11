@@ -125,7 +125,7 @@
 #;(define (changes behaviorB)
     (behavior-changes behaviorB))
 
-#;(define (constantB const)
+(define (constantB const)
   (behavior const '()))
 
 #;(define (delayB interval behavior1)
@@ -137,24 +137,21 @@
 ;; switchBB takes a behavior of behaviors: (behavior behavior1 (list behavior2 behavior3 behavior4)))
 ;; and returns a behavior: (behavior (behavior-init behavior1) (append (behavior-changes behavior1) (behavior-changes behavior2) ...)))
 
-#;(define (andB behavior1 behavior2)
-  (let* ([unique-ts (sort (remove-duplicates (append (map get-timestamp (behavior-changes behavior1))
-                                                     (map get-timestamp (behavior-changes behavior2)))) <)]
-         [enhanced-b1 (project-values behavior1 unique-ts)]
-         [enhanced-b2 (project-values behavior2 unique-ts)])
-    (behavior (and (behavior-init behavior1) (behavior-init behavior2))
-              (map (λ (b1 b2) (list (get-timestamp b1) (and (get-value b1) (get-value b2)))) enhanced-b1 enhanced-b2)))
-  )
+(define (andB behavior1 behavior2)
+  (let* ([max-len (max (length (behavior-changes behavior1)) (length (behavior-changes behavior2)))]
+         [padded-b1 (pad-behavior behavior1 max-len)]
+         [padded-b2 (pad-behavior behavior2 max-len)])
+  (behavior (and (behavior-init behavior1) (behavior-init behavior2))
+            (map (λ (b1 b2) (and b1 b2)) (behavior-changes padded-b1) (behavior-changes padded-b2)))))
 
-#;(define (orB behavior1 behavior2)
-  (let* ([unique-ts (sort (remove-duplicates (append (map get-timestamp (behavior-changes behavior1))
-                                                     (map get-timestamp (behavior-changes behavior2)))) <)]
-         [enhanced-b1 (project-values behavior1 unique-ts)]
-         [enhanced-b2 (project-values behavior2 unique-ts)])
+(define (orB behavior1 behavior2)
+  (let* ([max-len (max (length (behavior-changes behavior1)) (length (behavior-changes behavior2)))]
+         [padded-b1 (pad-behavior behavior1 max-len)]
+         [padded-b2 (pad-behavior behavior2 max-len)])
     (behavior (or (behavior-init behavior1) (behavior-init behavior2))
-              (map (λ (b1 b2) (list (get-timestamp b1) (or (get-value b1) (get-value b2)))) enhanced-b1 enhanced-b2))))
+              (map (λ (b1 b2) (or b1 b2)) (behavior-changes padded-b1) (behavior-changes padded-b2)))))
 
-#;(define (notB behavior1)
+(define (notB behavior1)
   (behavior (not (behavior-init behavior1)) (notE (behavior-changes behavior1))))
 
 #;(define (liftB proc . argBs)
@@ -162,27 +159,12 @@
          [enhanced-argBs (map (λ (b) (project-values b unique-ts)) argBs)])
   (behavior (apply proc (map behavior-init argBs)) (apply (curry map (λ e (list (get-timestamp (first e)) (apply proc (map get-value e))))) enhanced-argBs))))
 
-#;(define (liftB1 proc argB)
-  (behavior (proc (behavior-init argB)) (map (λ (b) (list (get-timestamp b) (proc (get-value b)))) (behavior-changes argB))))
+(define (liftB1 proc argB)
+  (behavior (proc (behavior-init argB)) (map proc (behavior-changes argB))))
 
-#;(define (liftB2 proc argB1 argB2)
+(define (liftB2 proc argB1 argB2)
   (behavior (proc (behavior-init argB1) (behavior-init argB2))
-            (letrec ([f (λ (b1 b2) (cond [(or (empty? (behavior-changes b1))
-                                              (empty? (behavior-changes b2))) '()]
-                                         [(eq? (get-timestamp (first (behavior-changes b1)))
-                                               (get-timestamp (first (behavior-changes b2))))
-                                          (append (list (list (get-timestamp (first (behavior-changes b1)))
-                                                              (proc (get-value (first (behavior-changes b1))) (get-value (first (behavior-changes b2))))))
-                                                  (f (behavior (get-value (first (behavior-changes b1))) (rest (behavior-changes b1)))
-                                                     (behavior (get-value (first (behavior-changes b2))) (rest (behavior-changes b2)))))]
-                                         [(< (get-timestamp (first (behavior-changes b1))) (get-timestamp (first (behavior-changes b2))))
-                                          (append (list (list (get-timestamp (first (behavior-changes b1)))
-                                                              (proc (get-value (first (behavior-changes b1))) (valueNow b2 (get-timestamp (first (behavior-changes b1)))))))
-                                                        (f (behavior (get-value (first (behavior-changes b1))) (rest (behavior-changes b1))) b2))]
-                                         [else (append (list (list (get-timestamp (first (behavior-changes b2)))
-                                                                   (proc (valueNow b1 (get-timestamp (first (behavior-changes b2)))) (get-value (first (behavior-changes b2))))))
-                                                       (f b1 (behavior (get-value (first (behavior-changes b2))) (rest (behavior-changes b2)))))]))])
-              (f argB1 argB2))))
+            (map proc (behavior-changes argB1) (behavior-changes argB2))))
 
 ;; is there an easier way??
 #;(define (condB behaviorpairs)
@@ -202,16 +184,13 @@
          )
     (behavior final-init (map (λ (c) (if (get-value c) (list (get-timestamp c) (second (get-value c))) c)) final-changes))))
 
-#;(define (ifB conditionB trueB falseB)
-  (let* ([unique-ts (sort (remove-duplicates (append (map get-timestamp (behavior-changes conditionB))
-                                                     (map get-timestamp (behavior-changes trueB))
-                                                     (map get-timestamp(behavior-changes falseB)))) <)]
-        [enhanced-condB (project-values conditionB unique-ts)]
-        [enhanced-trueB (project-values trueB unique-ts)]
-        [enhanced-falseB (project-values falseB unique-ts)])
+(define (ifB conditionB trueB falseB)
+  (let ([max-len (max (length (behavior-changes conditionB)) (length (behavior-changes trueB)) (length (behavior-changes falseB)))])
   (behavior (if (behavior-init conditionB) (behavior-init trueB) (behavior-init falseB))
-            (map (λ (c t f) (list (get-timestamp c) (if (get-value c) (get-value t) (get-value f)))) enhanced-condB enhanced-trueB enhanced-falseB))))
-
+            (map (λ (cB tB fB) (if cB tB fB))
+                 (pad-behavior-changes conditionB max-len)
+                 (pad-behavior-changes trueB max-len)
+                 (pad-behavior-changes falseB max-len)))))
 ;; timerB
 
 #;(define (blindB interval b)

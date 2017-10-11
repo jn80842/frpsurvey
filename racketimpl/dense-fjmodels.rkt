@@ -45,6 +45,19 @@
 
 (struct behavior (init changes) #:transparent)
 
+(define (last-behavior-value b1)
+  (if (empty? (behavior-changes b1))
+      (behavior-init b1)
+      (last (behavior-changes b1))))
+
+(define (pad-behavior b1 len)
+  (behavior (behavior-init b1) (append (behavior-changes b1) (for/list ([i (- len (length (behavior-changes b1)))])
+                                                               (last-behavior-value b1)))))
+
+(define (pad-behavior-changes b1 len)
+  (append (behavior-changes b1) (for/list ([i (- len (length (behavior-changes b1)))])
+                                  (last-behavior-value b1))))
+
 #;(define (valueNow behavior1 ts) ;; altered a bit for our own use
   (let ([filtered-changes (filter (λ (t) (<= (get-timestamp t) ts)) (behavior-changes behavior1))])
     (if (empty? filtered-changes)
@@ -71,18 +84,10 @@
 #;(define (projected-behavior b ts)
   (behavior (behavior-init b) (project-values b ts)))
 
-#;(define (get-missing-timestamps b1 b2)
-  (filter (λ (t) (not (member t (map get-timestamp (behavior-changes b1)))))
-          (map get-timestamp (behavior-changes b2))))
+(define (valid-time-vec-behavior? b)
+  (behavior-check valid-time-vec-value? b))
 
-#;(define (valid-behavior? b)
-  (timestamps-sorted-and-distinct? (behavior-changes b)))
-
-#;(define (valid-time-vec-behavior? b)
-  (and (valid-behavior? b)
-       (behavior-check valid-time-vec-value? b)))
-
-#;(define (valid-time-vec-value? t)
+(define (valid-time-vec-value? t)
   (and (>= 23 (vector-ref t 0))
        (>= (vector-ref t 0) 0)
        (>= 5 (vector-ref t 1))
@@ -99,11 +104,9 @@
     (and (equal? (behavior-init b1) (behavior-init b2))
          (equal? enhanced-b1 enhanced-b2))))
 
-#;(define (behavior-check proc . behaviors)
-  (let ([all-ts (apply all-unique-timestamps behaviors)])
-    (and (apply proc (map behavior-init behaviors))
-         (andmap (λ (vs) (apply proc vs))
-                 (apply (curry map list) (map (λ (b) (map get-value (project-values b all-ts))) behaviors))))))
+(define (behavior-check proc . behaviors)
+  (and (apply proc (map behavior-init behaviors))
+       (andmap (λ (vs) (apply proc vs)) (apply (curry map list) (map behavior-changes behaviors)))))
 
 (define (implication p q)
   (or (not p) q))
@@ -143,9 +146,6 @@
 
 ;;;;;;;; make symbolic behaviors ;;;;;;;;
 
-#;(define (new-behavior constructor n max-ts)
-  (behavior (constructor) (new-event-stream constructor n max-ts)))
-
 (define (new-behavior constructor n)
   (behavior (constructor) (for/list ([i n])
                             (constructor))))
@@ -154,26 +154,21 @@
   (equal? (apply program1 inputs)
                   (apply program2 inputs)))
 
-#;(define (harvest-term v)
+(define (harvest-term v)
   (cond [(vector? v) (vector->list v)]
         [(and (union? v) (eq? 2 (length (union-contents v)))) (car (first (union-contents v)))]
         [(term? v) v]))
-
-#;(define (harvest-events evt-stream)
-  (flatten
-  (append (map get-timestamp evt-stream)
-          (map harvest-term (map get-value evt-stream)))))
 
 (define (harvest-events evt-stream)
   (append (map (λ (s) (caar (union-contents s))) evt-stream)
           (filter term? (map (λ (s) (cdar (union-contents s))) evt-stream))))
 
-#;(define (harvest-behavior b)
-  (flatten (append (list (harvest-term (behavior-init b))) (harvest-events (behavior-changes b)))))
+(define (harvest-behavior b)
+  (flatten (append (list (harvest-term (behavior-init b))) (map harvest-term (behavior-changes b)))))
 
 (define (harvest x)
   (if (behavior? x)
-      (void) ;(harvest-behavior x)
+      (harvest-behavior x)
       (harvest-events x)))
 
 (define (check-existence-of-solution spec . inputs)

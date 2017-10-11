@@ -102,36 +102,35 @@
 ;(check-equal? (valueNow (behavior 3 (list (list 10 5))) 6) 3)
 
 ;; constantB
-;(check-equal? (constantB 'a) (behavior 'a '()))
+(check-equal? (constantB 'a) (behavior 'a '()))
 
 ;; delayB
 #;(check-equal? (delayB 3 (behavior 'a (list (list 1 'b) (list 2 'c))))
               (behavior 'a (list (list 4 'b) (list 5 'c))))
 
 ;; andB
-;(check-equal? (andB (behavior #t (list (list 1 #t) (list 5 #f) (list 7 #t)))
-;                   (behavior #t (list (list 1 #t) (list 3 #t) (list 6 #t) (list 7 #f))))
-;      (behavior #t (list (list 1 #t) (list 3 #t) (list 5 #f) (list 6 #f) (list 7 #f))))
+(check-equal? (andB (behavior #t (list #t #f #t)) (behavior #t (list #t #t #f)))
+              (behavior #t (list #t #f #f)))
+(check-equal? (andB (behavior #t '()) (behavior #t (list #t #f #t #f)))
+              (behavior #t (list #t #f #t #f)))
 
 ;; orB
-#;(check-equal? (orB (behavior #f (list (list 1 #t) (list 5 #f) (list 10 #t) (list 11 #f)))
-                   (behavior #t (list (list 2 #f) (list 12 #t))))
-              (behavior #t (list (list 1 #t) (list 2 #t) (list 5 #f) (list 10 #t) (list 11 #f) (list 12 #t))))
+(check-equal? (orB (behavior #f (list #t #f #t #f)) (behavior #t (list #f #f #f #t)))
+              (behavior #t (list #t #f #t #t)))
+(check-equal? (orB (behavior #f (list #t)) (behavior #f (list #f #t)))
+              (behavior #f (list #t #t)))
 
 ;; notB
-#;(check-equal? (notB (behavior #t (list (list 1 #f) (list 2 #t) (list 3 #f))))
-                   (behavior #f (list (list 1 #t) (list 2 #f) (list 3 #t))))
+(check-equal? (notB (behavior #t (list #f #t #f))) (behavior #f (list #t #f #t)))
 
 ;; liftB
-#;(check-equal? (liftB (λ (v) (+ v 3)) (behavior 0 (list (list 1 2) (list 2 3) (list 5 4))))
-      (behavior 3 (list (list 1 5) (list 2 6) (list 5 7))))
-#;(check-equal? (liftB2 + (behavior 0 (list (list 1 1) (list 2 2) (list 3 3)))
-                                   (behavior 10 (list (list 1 1) (list 2 2) (list 3 3))))
-      (behavior 10 (list (list 1 2) (list 2 4) (list 3 6))))
-#;(check-equal? (liftB (λ (t) (<= t 2)) (behavior 1 (list (list 1 0) (list 3 0))))
-              (behavior #t (list (list 1 #t) (list 3 #t))))
-#;(check-equal? (liftB (λ (t) (<= t 2)) (behavior 1 '()))
-              (behavior #t '()))
+(check-equal? (liftB1 (λ (v) (+ v 3)) (behavior 0 (list 2 3 4)))
+              (behavior 3 (list 5 6 7)))
+(check-equal? (liftB2 + (behavior 0 (list 1 2 3)) (behavior 10 (list 1 2 3)))
+              (behavior 10 (list 2 4 6)))
+(check-equal? (liftB1 (λ (t) (<= t 2)) (behavior 1 (list 0 5)))
+              (behavior #t (list #t #f)))
+(check-equal? (liftB1 (λ (t) (<= t 2)) (behavior 1 '())) (behavior #t '()))
 
 ;; condB
 #;(check-equal? (condB (list (list (behavior #t (list (list 1 #f))) (behavior 3 (list (list 1 3)))) (list (behavior #f (list (list 1 #t))) (behavior 5 (list (list 1 5))))))
@@ -142,10 +141,10 @@
       (behavior #f (list (list 1 'b))))
 
 ;; ifB
-#;(check-equal? (ifB (behavior #t (list (list 1 #t) (list 3 #f) (list 5 #f) (list 7 #t)))
-                                     (behavior 't (list (list 1 't) (list 3 't) (list 5 't) (list 7 't)))
-                                     (behavior 'f (list (list 1 'f) (list 3 'f) (list 5 'f) (list 7 'f))))
-      (behavior 't (list (list 1 't) (list 3 'f) (list 5 'f) (list 7 't))))
+(check-equal? (ifB (behavior #t (list #t #f #f #t))
+                   (behavior 't (list 't 't 't 't))
+                   (behavior 'f (list 'f 'f 'f 'f)))
+              (behavior 't (list 't 'f 'f 't)))
 
 #;(check-equal? (ifB (behavior #t (list (list 1 #f) (list 5 #t) (list 9 #f)))
                                          (behavior 't (list (list 1 '1) (list 3 '3) (list 5 '5) (list 11 '11)))
