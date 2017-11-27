@@ -166,23 +166,13 @@
   (behavior (proc (behavior-init argB1) (behavior-init argB2))
             (map proc (behavior-changes argB1) (behavior-changes argB2))))
 
-;; is there an easier way??
-#;(define (condB behaviorpairs)
-  (let* ([all-bool-ts (flatten (map (λ (b) (map get-timestamp (behavior-changes (first b)))) behaviorpairs))] ;; every timestamp mentioned in any boolean behavior
-         [all-val-ts (flatten (map (λ (b) (map get-timestamp (behavior-changes (second b)))) behaviorpairs))] ;; every timestamp mentioned in any value behavior
-         [unique-ts (sort (remove-duplicates (append all-bool-ts all-val-ts)) <)] ;; sorted list of all unique timestamps
-         [enhanced-behaviorpairs (map (λ (bp) (list (behavior (behavior-init (first bp)) (project-values (first bp) unique-ts)) ;; every behavior with every timestamp made explicit
-                                                    (behavior (behavior-init (second bp)) (project-values (second bp) unique-ts)))) behaviorpairs)]
-         [fused-pairs (map (λ (bp) (behavior (list (behavior-init (first bp)) (behavior-init (second bp)))
-                                             (map (λ (b1 b2) (list (get-timestamp b1) (list (get-value b1) (get-value b2))))
-                                                  (behavior-changes (first bp)) (behavior-changes (second bp))))) enhanced-behaviorpairs)]
-         [guarded-init (ormap (λ (b) (if (first (behavior-init b)) (behavior-init b) #f)) fused-pairs)]
-         [final-init (if (first guarded-init) (second guarded-init) #f)]
-         [final-changes (map (λ (tsitems) (list (get-timestamp (first tsitems))
-                                                (ormap (λ (item) (if (first (get-value item)) (get-value item) #f)) tsitems)))
-                             (apply (curry map list) (map behavior-changes fused-pairs)))]
-         )
-    (behavior final-init (map (λ (c) (if (get-value c) (list (get-timestamp c) (second (get-value c))) c)) final-changes))))
+(define (condB behaviorpairs)
+  (let* ([all-behaviors (flatten behaviorpairs)]
+         [max-len (apply max (map (λ (b) (length (behavior-changes b))) all-behaviors))])
+    (behavior (second (findf (λ (bp) (first bp)) (map (λ (bp) (list (behavior-init (first bp)) (behavior-init (second bp)))) behaviorpairs)))
+              (map (λ (y) (second (findf (λ (bp) (first bp)) y))) (apply (curry map list) (map (λ (x) (apply (curry map (λ (b1 b2) (list b1 b2))) x))
+                                           (map (λ (bp) (list (behavior-changes (first bp)) (behavior-changes (second bp)))) behaviorpairs)))
+              ))))
 
 (define (ifB conditionB trueB falseB)
   (let ([max-len (max (length (behavior-changes conditionB)) (length (behavior-changes trueB)) (length (behavior-changes falseB)))])

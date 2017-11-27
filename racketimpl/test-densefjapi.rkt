@@ -133,12 +133,12 @@
 (check-equal? (liftB1 (λ (t) (<= t 2)) (behavior 1 '())) (behavior #t '()))
 
 ;; condB
-#;(check-equal? (condB (list (list (behavior #t (list (list 1 #f))) (behavior 3 (list (list 1 3)))) (list (behavior #f (list (list 1 #t))) (behavior 5 (list (list 1 5))))))
-      (behavior 3 (list (list 1 5))))
-#;(check-equal? (condB (list
-                                   (list (behavior #t (list (list 1 #f))) (behavior #f (list (list 1 'a))))
-                                   (list (behavior #t (list (list 1 #t))) (behavior 'wrong (list (list 1 'b))))))
-      (behavior #f (list (list 1 'b))))
+(check-equal? (condB (list (list (behavior #t (list #f)) (behavior 3 (list 3)))
+                           (list (behavior #f (list #t)) (behavior 5 (list 5)))))
+      (behavior 3 (list 5)))
+(check-equal? (condB (list (list (behavior #t (list #f)) (behavior #f (list 'a)))
+                           (list (behavior #t (list #t)) (behavior 'wrong (list 'b)))))
+      (behavior #f (list (list 'b))))
 
 ;; ifB
 (check-equal? (ifB (behavior #t (list #t #f #f #t))

@@ -14,7 +14,7 @@
 ;;   /    \     /   \
 ;;  λ   tempB  λ   clockB
 
-(define (ifB conditionB trueB falseB)
+#;(define (ifB conditionB trueB falseB)
   (behavior (if (behavior-init conditionB) (behavior-init trueB) (behavior-init falseB))
             (map (λ (c t f) (if c t f)) (behavior-changes conditionB) (behavior-changes trueB) (behavior-changes falseB))))
 (define (ifB-list condition-list true-list false-list)
@@ -43,8 +43,8 @@
   #:else (choose input
                 ; (constantB (choose 'on 'off))
                  ;(constantB 'on)
-                 (ifB-list (flapjax-grmr input (sub1 depth))
-                      '(on on) '(off off))))
+                 (ifB (flapjax-grmr input (sub1 depth))
+                      (behavior 'on '(on )) (behavior 'off '(off off)))))
 
 (define-symbolic* b1 boolean?)
 (define-symbolic* b2 boolean?)
@@ -54,16 +54,16 @@
   (flapjax-grmr boolB 2))
 
 (define (component-graph boolB)
-  (ifB-list boolB '(on on) '(off off)))
+  (ifB boolB (behavior 'on '(on on)) (behavior 'off '(off off))))
 
 
 (assert (thermostat-assumptions s-tempB s-clockB))
 
 (define begin-time (current-seconds))
 (define binding
-  (time (synthesize #:forall bool-list
+  (time (synthesize #:forall (harvest s-boolB) ;bool-list
                     #:guarantee (assert (same component-graph synth-thermostat-graph
-                                              bool-list))
+                                              s-boolB))
                     )))
 
 #;(define verified

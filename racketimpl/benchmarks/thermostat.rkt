@@ -30,7 +30,7 @@
 (define concrete-clock (behavior 0 (list 3 3 4 4 5 0 1 2 2)))
 (define concrete-heater (behavior 'on '(off off on off off on on off off)))
 
-(define stream-length 1)
+(define stream-length 2)
 
 (define s-tempB (new-behavior sym-integer stream-length))
 ;(define s-clockB (new-behavior sym-time-vec stream-length))

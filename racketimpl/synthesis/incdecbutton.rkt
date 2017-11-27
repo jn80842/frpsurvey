@@ -17,39 +17,6 @@
 ;;                  /     \    /     \
 ;;                 inc    1   dec    -1
 
-
-(define-synthax (event-stream-grmr input ... depth)
-  #:base (choose input ...)
-  #:else (choose input ...
-                   (constantE-grmr input ... (sub1 depth))
-                   (collectE-grmr input ... (sub1 depth))
-                   (mergeE-grmr input ... (sub1 depth))))
-
-(define-synthax (constantE-grmr input ... depth)
-  #:base (choose input ...)
-  #:else (choose input ...
-                 (constantE (??)
-                            (choose input ...
-                                    (mergeE-grmr input ... (sub1 depth))))))
-
-(define-synthax (collectE-grmr input ... depth)
-  #:base (choose input ...)
-  #:else (choose input ...
-                 (collectE (??) + (choose input ...
-                                       (constantE-grmr input ... (sub1 depth))
-                                       (mergeE-grmr input ... (sub1 depth))))))
-
-(define-synthax (mergeE-grmr input ... depth)
-  #:base (choose input ...)
-  #:else (choose input ...
-                 (mergeE (choose input ...
-                                 (constantE-grmr input ... (sub1 depth))
-                                 (collectE-grmr input ... (sub1 depth)))
-                         (choose input ...
-                                 (constantE-grmr input ... (sub1 depth))
-                                 (collectE-grmr input ... (sub1 depth)))
-                         )))
-
 (define-synthax (flapjax-grmr input ... depth)
   #:base (choose input ...)
   #:else (let ([recursive-call1 (flapjax-grmr input ... (sub1 depth))]
@@ -62,20 +29,14 @@
                    (mergeE recursive-call1 recursive-call2)
                    )))
 
-#;(define-synthax (flapjax-grmr input ... depth)
-  #:base (choose input ... )
-  #:else (choose input ...
-                 (startsWith 0 (flapjax-grmr input ... (sub1 depth)))
-                 (constantE (choose 1 -1) (flapjax-grmr input ... (sub1 depth)))
-                 (collectE 0 + (flapjax-grmr input ... (sub1 depth)))
-                 (mergeE (flapjax-grmr input ... (sub1 depth)) (flapjax-grmr input ... (sub1 depth)))))
+;; r1 - inc button
+;; r2 - dec button
+
+;; r3 := constantE 1 r1
+;; r4 := constantE -1 r2
+;; r5 := mergeE
 
 (define (synth-inc-dec-button-graph inc dec)
-  (flapjax-grmr inc dec 4))
-  ;(startsWith 0 (event-stream-grmr inc dec 4)))
-  ;(startsWith 0 (flapjax-grmr inc dec 3)))
-
-(define (synth-inc-dec-button-graph2 inc dec)
   (flapjax-grmr inc dec 4))
 
 (define (manual-synth-inc-dec-button-graph inc dec)
@@ -117,16 +78,17 @@
   (time (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
               #:guarantee (assert (button-guarantees (synth-inc-dec-button-graph s-inc s-dec))))))
 ;; synthesize program that matches spec but is not equivalent to benchmark program
-#;(define binding
+(define binding
   (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
-              #:guarantee (begin
-                            (assert (button-guarantees (synth-inc-dec-button-graph s-inc s-dec)))
-                            (assert (not (same inc-dec-button-graph
-                                               synth-inc-dec-button-graph s-inc s-dec))))))
+              #:guarantee (let ([synth-graph (synth-inc-dec-button-graph s-inc s-dec)])
+                            (begin
+                              (assert (button-guarantees (synth-inc-dec-button-graph s-inc s-dec)))
+                              (assert (not (same inc-dec-button-graph
+                                               synth-inc-dec-button-graph exist-s-inc exist-s-dec)))))))
 
 ;; synthesize program that matches input/output pair
 #;(define binding
-  (synthesize #:forall '() ; (append (harvest s-inc) (harvest s-dec))
+  (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
               #:guarantee (assert (equal? (synth-inc-dec-button-graph concrete-inc-clicks concrete-dec-clicks)
                                           concrete-counter))))
 

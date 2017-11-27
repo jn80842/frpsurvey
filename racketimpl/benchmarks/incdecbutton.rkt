@@ -24,6 +24,8 @@
 ;(define s-dec (new-event-stream (sym-union-constructor 'click 'no-evt) stream-length (* 2 stream-length)))
 (define s-inc (new-event-stream (λ () 'click) stream-length))
 (define s-dec (new-event-stream (λ () 'click) stream-length))
+(define exist-s-inc (new-event-stream (λ () 'click) stream-length))
+(define exist-s-dec (new-event-stream (λ () 'click) stream-length))
 
 #;(define (button-assumptions inc-stream dec-stream)
     (and (timestamps-sorted-and-distinct? inc-stream)
@@ -31,14 +33,14 @@
          (apply distinct? (map get-timestamp (append inc-stream dec-stream)))
          ))
 
-#;(define (button-guarantees output-behavior)
-  (and (valid-behavior? output-behavior)
+(define (button-guarantees output-behavior)
+  (and ;(valid-behavior? output-behavior)
        ;; starting value of field is 0
        (equal? 0 (behavior-init output-behavior))
        ;; values at each timestamp are integers (needed?)
-       (andmap integer? (map get-value (behavior-changes output-behavior)))
+       ;(andmap integer? (map get-value (behavior-changes output-behavior)))
        ;; the last value is the difference between the number of increase clicks and the number of decrease clicks
        ;; TODO: this should actually be true for every point in the timeline
-       (equal? (get-value (last (behavior-changes output-behavior)))
-               (- (length (filter (λ (e) (equal? 'click (get-value e))) s-inc))
-                  (length (filter (λ (e) (equal? 'click (get-value e))) s-dec))))))
+       (equal? (last (behavior-changes output-behavior))
+               (- (length (filter (λ (e) (equal? 'click e)) s-inc))
+                  (length (filter (λ (e) (equal? 'click e)) s-dec))))))
