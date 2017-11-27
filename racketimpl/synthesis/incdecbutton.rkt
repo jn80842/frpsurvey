@@ -5,6 +5,7 @@
 (require "../densefjapi.rkt")
 (require "../benchmarks/incdecbutton.rkt")
 (require "grammar.rkt")
+(require "straightline.rkt")
 
 
 ;;         startsWith
@@ -71,14 +72,15 @@
 #;(define binding
   (time (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
                     #:guarantee (assert (same inc-dec-button-graph
-                                              synth-inc-dec-button-graph
+                                              fully-expanded-sketch-graph
+                                             ;; synth-inc-dec-button-graph
                                               s-inc s-dec)))))
 ;; synthesize program that matches spec
 #;(define binding
   (time (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
-              #:guarantee (assert (button-guarantees (synth-inc-dec-button-graph s-inc s-dec))))))
+              #:guarantee (assert (button-guarantees (fully-expanded-sketch-graph s-inc s-dec))))))
 ;; synthesize program that matches spec but is not equivalent to benchmark program
-(define binding
+#;(define binding
   (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
               #:guarantee (let ([synth-graph (synth-inc-dec-button-graph s-inc s-dec)])
                             (begin
@@ -87,9 +89,9 @@
                                                synth-inc-dec-button-graph exist-s-inc exist-s-dec)))))))
 
 ;; synthesize program that matches input/output pair
-#;(define binding
+(define binding
   (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
-              #:guarantee (assert (equal? (synth-inc-dec-button-graph concrete-inc-clicks concrete-dec-clicks)
+              #:guarantee (assert (equal? (fully-expanded-sketch-graph concrete-inc-clicks concrete-dec-clicks)
                                           concrete-counter))))
 
 ;; synthesize program that matches input/output pair but is not equivalent to benchmark program
@@ -106,5 +108,5 @@
 (define end-time (current-seconds))
 (if (unsat? binding)
     (displayln "No binding was found.")
-    (print-forms binding))
+    (function-printer binding))
 (printf "Took ~a seconds~n" (- end-time begin-time))
