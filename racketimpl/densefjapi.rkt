@@ -13,6 +13,9 @@
 
 ;;;;; flapjax API ;;;;;
 
+(define (identityE evt-stream)
+  evt-stream)
+
 (define (oneE evt-stream)
   (let ([val (findf not-empty-event? evt-stream)])
     (if val (list val) '())))
