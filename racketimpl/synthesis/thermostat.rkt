@@ -61,8 +61,8 @@
 
 (define begin-time (current-seconds))
 (define binding
-  (time (synthesize #:forall (harvest s-boolB) ;bool-list
-                    #:guarantee (assert (same component-graph synth-thermostat-graph
+  (time (synthesize #:forall (append (harvest s-tempB) (harvest s-clockB))
+                    #:guarantee (assert (same thermostat-graph synth-thermostat-graph
                                               s-boolB))
                     )))
 

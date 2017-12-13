@@ -1,0 +1,84 @@
+#lang rosette
+(require rosette/lib/synthax)
+
+(require "../dense-fjmodels.rkt")
+(require "../densefjapi.rkt")
+(require "../straightline.rkt")
+(require "../benchmarks/thermostat.rkt")
+
+(define (straightline-thermostat-graph tempB clockB)
+  (define r1 tempB)
+  (define r2 clockB)
+  (define r3 (liftB1 (λ (t) (<= t temp-floor)) r1))
+  (define r4 (liftB1 (λ (c) (or (>= c 4) (>= 2 c))) clockB))
+  (define r5 (andB r3 r4))
+  (define r6 (constantB 'on))
+  (define r7 (constantB 'off))
+  (define r8 (ifB r5 r6 r7))
+  r5)
+
+(define (fully-expanded-sketch-graph tempB clockB)
+  (define r1 tempB)
+  (define r2 clockB)
+  (define r3 (choose (constantB (choose 'on 'off))
+                     ((choose (curry andB (list-ref (list r1 r2) (choose 0 1)))
+                              (curry orB (list-ref (list r1 r2) (choose 0 1)))
+                              notB
+                              (curry liftB1 (choose (λ (t) (<= t temp-floor))
+                                                    (λ (c) (or (>= c 4) (>= 2 c)))))
+                      ;; liftB2
+                              (curry ifB (list-ref (list r1 r2) (choose 0 1)) (list-ref (list r1 r2) (choose 0 1))))
+                      (list-ref (list r1 r2) (choose 0 1)))))
+  (define r4 (choose (constantB (choose 'on 'off))
+                     ((choose (curry andB (list-ref (list r1 r2 r3) (choose 0 1 2)))
+                              (curry orB (list-ref (list r1 r2 r3) (choose 0 1 2)))
+                              notB
+                              (curry liftB1 (choose (λ (t) (<= t temp-floor))
+                                                    (λ (c) (or (>= c 4) (>= 2 c)))))
+                      ;; liftB2
+                              (curry ifB (list-ref (list r1 r2 r3) (choose 0 1 2)) (list-ref (list r1 r2 r3) (choose 0 1 2))))
+                      (list-ref (list r1 r2 r3) (choose 0 1 2)))))
+  (define r5 (choose (constantB (choose 'on 'off))
+                     ((choose (curry andB (list-ref (list r1 r2 r3 r4) (choose 0 1 2 3)))
+                              (curry orB (list-ref (list r1 r2 r3 r4) (choose 0 1 2 3)))
+                              notB
+                              (curry liftB1 (choose (λ (t) (<= t temp-floor))
+                                                    (λ (c) (or (>= c 4) (>= 2 c)))))
+                      ;; liftB2
+                              (curry ifB (list-ref (list r1 r2 r3 r4) (choose 0 1 2 3)) (list-ref (list r1 r2 r3 r4) (choose 0 1 2 3))))
+                      (list-ref (list r1 r2 r3 r4) (choose 0 1 2 3)))))
+  (define r6 (choose (constantB (choose 'on 'off))
+                     ((choose (curry andB (list-ref (list r1 r2 r3 r4 r5) (choose 0 1 2 3 4)))
+                      (curry orB (list-ref (list r1 r2 r3 r4 r5) (choose 0 1 2 3 4)))
+                      notB
+                      (curry liftB1 (choose (λ (t) (<= t temp-floor))
+                                           (λ (c) (or (>= c 4) (>= 2 c)))))
+                      ;; liftB2
+                      (curry ifB (list-ref (list r1 r2 r3 r4 r5) (choose 0 1 2 3 4)) (list-ref (list r1 r2 r3 r4 r5) (choose 0 1 2 3 4))))
+              (list-ref (list r1 r2 r3 r4 r5) (choose 0 1 2 3 4)))))
+  (define r7 (choose (constantB (choose 'on 'off))
+                     ((choose (curry andB (list-ref (list r1 r2 r3 r4 r5 r6) (choose 0 1 2 3 4 5)))
+                              (curry orB (list-ref (list r1 r2 r3 r4 r5 r6) (choose 0 1 2 3 4 5)))
+                              notB
+                              (curry liftB1 (choose (λ (t) (<= t temp-floor))
+                                                    (λ (c) (or (>= c 4) (>= 2 c)))))
+                      ;; liftB2
+                              (curry ifB (list-ref (list r1 r2 r3 r4 r5 r6) (choose 0 1 2 3 4 5)) (list-ref (list r1 r2 r3 r4 r5 r6) (choose 0 1 2 3 4 5))))
+                     (list-ref (list r1 r2 r3 r4 r5 r6) (choose 0 1 2 3 4 5)))))
+  (define r8 (choose (constantB (choose 'on 'off))
+                     (ifB r5 r6 r7)
+                     ((choose (curry andB (list-ref (list r1 r2 r3 r4 r5 r6 r7) (choose 0 1 2 3 4 5 6)))
+                              (curry orB (list-ref (list r1 r2 r3 r4 r5 r6 r7) (choose 0 1 2 3 4 5 6)))
+                              notB
+                              (curry liftB1 (choose (λ (t) (<= t temp-floor))
+                                                    (λ (c) (or (>= c 4) (>= 2 c)))))
+                      ;; liftB2
+                              (curry ifB (list-ref (list r1 r2 r3 r4 r5 r6 r7) (choose 0 1 2 3 4 5 6)) (list-ref (list r1 r2 r3 r4 r5 r6 r7) (choose 0 1 2 3 4 5 6))))
+                     (list-ref (list r1 r2 r3 r4 r5 r6 r7) (choose 0 1 2 3 4 5 6)))))
+  r5)
+
+(define binding
+  (time (synthesize #:forall (append (harvest s-tempB) (harvest s-clockB))
+                    #:guarantee (assert (same straightline-thermostat-graph fully-expanded-sketch-graph s-tempB s-clockB)))))
+
+(function-printer binding)
