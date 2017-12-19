@@ -94,8 +94,15 @@
 
 ;; skipFirstE
 
-(define (delayE interval evt-stream)
+;; can't use symbolic variable for for/list!
+#;(define (delayE interval evt-stream)
   (append (for/list ([i interval]) 'no-evt) evt-stream))
+
+(define (delayE interval evt-stream)
+  (letrec ([f (λ (i) (if (> i 0)
+                         (append (list 'no-evt) (f (sub1 i)))
+                         evt-stream))])
+    (f interval)))
 
 (define (blindE interval evt-stream)
   (letrec ([f (λ (evts wait-time)
