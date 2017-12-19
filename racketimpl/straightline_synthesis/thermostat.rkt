@@ -9,7 +9,7 @@
 (define (straightline-thermostat-graph tempB clockB)
   (define r1 tempB)
   (define r2 clockB)
-  (define r3 (liftB1 (λ (t) (<= t temp-floor)) r1))
+  (define r3 (liftB1 (λ (t) (<= t 2)) r1))
   (define r4 (liftB1 (λ (c) (or (>= c 4) (>= 2 c))) clockB))
   (define r5 (andB r3 r4))
   (define r6 (constantB 'on))
@@ -17,7 +17,30 @@
   (define r8 (ifB r5 r6 r7))
   r5)
 
-(define (fully-expanded-sketch-graph tempB clockB)
+;; pass input streams here as args
+(define (holes-based-synthesis depth)
+  (define holes-structure (for/list ([i (range depth)])
+                            (get-holes)))
+  ;; need to generate this 
+  (define (sketch-graph input1 input2)
+    (define r1 input1)
+    (define r2 input2)
+    (define r3 (single-insn (list-ref holes-structure 0) (list r1 r2)))
+    (define r4 (single-insn (list-ref holes-structure 1) (list r1 r2 r3)))
+    (define r5 (single-insn (list-ref holes-structure 2) (list r1 r2 r3 r4)))
+    (define r6 (single-insn (list-ref holes-structure 3) (list r1 r2 r3 r4 r5)))
+    (define r7 (single-insn (list-ref holes-structure 4) (list r1 r2 r3 r4 r5 r6)))
+    (define r8 (single-insn (list-ref holes-structure 4) (list r1 r2 r3 r4 r5 r6 r7)))
+    r8)
+  (define binding (synthesize #:forall (append (harvest s-tempB) (harvest s-clockB))
+                              #:guarantee (assert (same inc-dec-button-graph
+                                                        sketch-graph
+                                                        s-tempB s-clockB))))
+  (if (unsat? binding)
+      "unsat"
+      (print-from-holes holes-structure binding depth)))
+
+#;(define (fully-expanded-sketch-graph tempB clockB)
   (define r1 tempB)
   (define r2 clockB)
   (define r3 (choose (constantB (choose 'on 'off))
@@ -77,8 +100,8 @@
                      (list-ref (list r1 r2 r3 r4 r5 r6 r7) (choose 0 1 2 3 4 5 6)))))
   r5)
 
-(define binding
+#;(define binding
   (time (synthesize #:forall (append (harvest s-tempB) (harvest s-clockB))
                     #:guarantee (assert (same straightline-thermostat-graph fully-expanded-sketch-graph s-tempB s-clockB)))))
 
-(function-printer binding)
+;;(function-printer binding)

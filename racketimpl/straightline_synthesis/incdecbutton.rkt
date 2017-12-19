@@ -16,74 +16,37 @@
   (define r7 (startsWith 0 r6))
   r7)
 
-(define (fully-expanded-sketch-graph inc dec)
-  (define r1 inc)
-  (define r2 dec)
-  (define r3 ((choose identityE
-                      oneE
-                      zeroE
-                      (curry mapE (λ (n) (+ n 1)))
-                      (curry mergeE (list-ref (list r1 r2) (choose 0 1)))
-                      (curry filterE (λ (n) (eq? n (??))))
-                      (curry constantE (??))
-                      (curry collectE (??) + )
-                      notE
-                      (curry delayE (??))
-                      (curry blindE (??))
-                     ;; (curry calmE (??))
-                      (curry startsWith (??))) (list-ref (list r1 r2) (choose 0 1))))
-  (define r4 ((choose identityE
-                      oneE
-                      zeroE
-                      (curry mapE (λ (n) (+ n 1)))
-                      (curry mergeE (list-ref (list r1 r2 r3) (choose 0 1 2)))
-                      (curry filterE (λ (n) (eq? n (??))))
-                      (curry constantE (??))
-                      (curry collectE (??) + )
-                      notE
-                      (curry delayE (??))
-                      (curry startsWith (??))) (list-ref (list r1 r2 r3) (choose 0 1 2))))
-  (define r5 ((choose identityE
-                      oneE
-                      zeroE
-                      (curry mapE (λ (n) (+ n 1)))
-                      (curry mergeE (list-ref (list r1 r2 r3 r4) (choose 0 1 2 3)))
-                      (curry filterE (λ (n) (eq? n (??))))
-                      (curry constantE (??))
-                      (curry collectE (??) + )
-                      notE
-                      (curry delayE (??))
-                      (curry startsWith (??))) (list-ref (list r1 r2 r3 r4) (choose 0 1 2 3))))
-  (define r6 ((choose identityE
-                      oneE
-                      zeroE
-                      (curry mapE (λ (n) (+ n 1)))
-                      (curry mergeE (list-ref (list r1 r2 r3 r4 r5) (choose 0 1 2 3 4)))
-                      (curry filterE (λ (n) (eq? n (??))))
-                      (curry constantE (??))
-                      (curry collectE (??) + )
-                      notE
-                      (curry delayE (??))
-                      (curry startsWith (??))) (list-ref (list r1 r2 r3 r4 r5) (choose 0 1 2 3 4))))
-  (define r7 ((choose identityE
-                      oneE
-                      zeroE
-                      (curry mapE (λ (n) (+ n 1)))
-                      (curry mergeE (list-ref (list r1 r2 r3 r4 r5 r6) (choose 0 1 2 3 4 5)))
-                      (curry filterE (λ (n) (eq? n (??))))
-                      (curry constantE (??))
-                      (curry collectE (??) + )
-                      notE
-                      (curry delayE (??))
-                      (curry startsWith (??))) (list-ref (list r1 r2 r3 r4 r5 r6) (choose 0 1 2 3 4 5))))
-  r7)
+;; pass input streams here as args
+(define (holes-based-synthesis depth)
+  (define holes-structure (for/list ([i (range depth)])
+                            (get-holes)))
+  ;; need to generate this 
+  (define (sketch-graph input1 input2)
+    (define r1 input1)
+    (define r2 input2)
+    (define r3 (single-insn (list-ref holes-structure 0) (list r1 r2)))
+    (define r4 (single-insn (list-ref holes-structure 1) (list r1 r2 r3)))
+    (define r5 (single-insn (list-ref holes-structure 2) (list r1 r2 r3 r4)))
+    (define r6 (single-insn (list-ref holes-structure 3) (list r1 r2 r3 r4 r5)))
+    (define r7 (single-insn (list-ref holes-structure 4) (list r1 r2 r3 r4 r5 r6)))
+    r7)
+  (define binding (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
+                              #:guarantee (assert (same inc-dec-button-graph
+                                                        sketch-graph
+                                                        s-inc s-dec))))
+  (if (unsat? binding)
+      "unsat"
+      (print-from-holes holes-structure binding depth)))
 
+;; parameterize the number of input streams
+(define (print-from-holes holes binding depth)
+  (displayln "(define (synthesized-function input1 input2)")
+  (displayln "  (define r1 input1)")
+  (displayln "  (define r2 input2)")
 
-(define binding
-  (time (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
-                    #:guarantee (assert (same inc-dec-button-graph
-                                              fully-expanded-sketch-graph
-                                              s-inc s-dec)))))
-
-;;(print-forms binding)
-(function-printer binding)
+  (define varlist (for/list ([i (range (+ 2 depth))])
+                    (format "r~a" (add1 i))))
+  (define middle-insns (for/list ([i (range depth)])
+                        (displayln (print-single-insn (list-ref holes i) binding (list-ref varlist (+ 2 i)) (take varlist (+ 2 i))))))
+  
+  (displayln "  r7)"))
