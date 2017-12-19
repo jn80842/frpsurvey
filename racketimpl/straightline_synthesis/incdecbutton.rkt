@@ -19,7 +19,7 @@
 ;; pass input streams here as args
 (define (holes-based-synthesis depth)
   (define holes-structure (for/list ([i (range depth)])
-                            (get-holes)))
+                            (get-insn-holes)))
   ;; need to generate this 
   (define (sketch-graph input1 input2)
     (define r1 input1)
@@ -37,16 +37,3 @@
   (if (unsat? binding)
       "unsat"
       (print-from-holes holes-structure binding depth)))
-
-;; parameterize the number of input streams
-(define (print-from-holes holes binding depth)
-  (displayln "(define (synthesized-function input1 input2)")
-  (displayln "  (define r1 input1)")
-  (displayln "  (define r2 input2)")
-
-  (define varlist (for/list ([i (range (+ 2 depth))])
-                    (format "r~a" (add1 i))))
-  (define middle-insns (for/list ([i (range depth)])
-                        (displayln (print-single-insn (list-ref holes i) binding (list-ref varlist (+ 2 i)) (take varlist (+ 2 i))))))
-  
-  (displayln "  r7)"))

@@ -5,17 +5,6 @@
 
 (provide (all-defined-out))
 
-;; since only 1 insn can be chosen per line,
-;; some of these could be conflated
-(define constantE-const-idx 0)
-(define mergeE-index-idx 1)
-(define collectE-val-idx 2)
-(define startsWith-val-idx 3)
-(define op-index-idx 4)
-(define input-index-idx 5)
-(define liftB1-func-idx 6)
-(define andB-index-idx 7)
-
 (define op-name-hash (make-hash (list (cons 0 "constantE")
                                    (cons 1 "mergeE")
                                    (cons 2 "collectE")
@@ -30,44 +19,58 @@
                           (λ (c) (or (>= c 4) (>= 2 c)))))
 (define constantB-consts (list 'on 'off))
 
+(struct stream-insn (op-index arg-index1 arg-index2 arg-index3 arg-int))
+
+;; TODO add asserts to limit range of indexes
+(define (get-insn-holes)
+  (define-symbolic* op integer?)
+  (define-symbolic* arg1 integer?)
+  (define-symbolic* arg2 integer?)
+  (define-symbolic* arg3 integer?)
+  (define-symbolic* arg4 integer?)
+  (stream-insn op arg1 arg2 arg3 arg4))
+
 (define (single-insn holes past-vars)
-  ((list-ref (list (curry constantE (list-ref holes constantE-const-idx))
-                   (curry mergeE (list-ref past-vars (list-ref holes mergeE-index-idx)))
-                   (curry collectE (list-ref holes collectE-val-idx) +)
-                   (curry startsWith (list-ref holes startsWith-val-idx))
-                   (curry liftB1 (list-ref liftB1-func (list-ref holes liftB1-func-idx)))
-                   (curry andB (list-ref past-vars (list-ref holes andB-index-idx)))) (list-ref holes op-index-idx))
-                   (list-ref past-vars (list-ref holes input-index-idx))))
+  ((list-ref (list (curry constantE (stream-insn-arg-int holes))
+                   (curry mergeE (list-ref past-vars (stream-insn-arg-index2 holes)))
+                   (curry collectE (stream-insn-arg-int holes) +)
+                   (curry startsWith (stream-insn-arg-int holes))) (stream-insn-op-index holes))
+             (list-ref past-vars (stream-insn-arg-index1 holes))))
 
 ;; what's better way to structure this?
 ;; struct?
 ;; shriram-inspired macro/continuation/???
 ;; look at rosette source code (since this is kind of just reimplementing parts of rosette)
-(define (get-holes)
-  (define-symbolic* constantE-const integer?)
-  (define-symbolic* mergeE-index integer?)
-  (define-symbolic* collectE-start-val integer?)
-  (define-symbolic* startsWith-start-val integer?)
-  (define-symbolic* operator-index integer?)
-  (define-symbolic* input-index integer?)
-  (define-symbolic* liftB1-func-idx integer?)
-  (list constantE-const mergeE-index collectE-start-val startsWith-start-val operator-index input-index liftB1-func-idx))
 
 (define (print-single-insn insn-holes binding varname past-vars)
-  (define op (op-lookup (evaluate (list-ref insn-holes op-index-idx) binding)))
-  (define op-args (get-args-by-op op insn-holes past-vars binding))
-  (define input-name (list-ref past-vars (evaluate  (list-ref insn-holes input-index-idx) binding)))
-  (format "  (define ~a (~a ~a ~a)" varname op op-args input-name))
+  (define op (op-lookup (evaluate (stream-insn-op-index insn-holes) binding)))
+  (define op-args (get-args-by-op op insn-holes binding past-vars))
+  (format "  (define ~a (~a ~a)" varname op op-args))
 
-(define (get-args-by-op op-name holes past-vars binding)
+(define (get-args-by-op op-name holes binding past-vars)
   (case op-name
-    [("constantE") (format "~a" (evaluate  (list-ref holes constantE-const-idx) binding))]
-    [("mergeE") (format "~a" (list-ref past-vars (evaluate  (list-ref holes mergeE-index-idx) binding)))]
-    [("collectE") (format "~a +" (evaluate  (list-ref holes collectE-val-idx) binding))]
-    [("startsWith") (format "~a" (evaluate  (list-ref holes startsWith-val-idx) binding))]
+    [("constantE") (format "~a ~a" (evaluate (stream-insn-arg-int holes) binding)
+                           (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
+    [("mergeE") (format "~a ~a" (list-ref past-vars (evaluate (stream-insn-arg-index2 holes) binding))
+                        (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
+    [("collectE") (format "~a + ~a" (evaluate (stream-insn-arg-int holes) binding)
+                          (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
+    [("startsWith") (format "~a ~a" (evaluate (stream-insn-arg-int holes) binding)
+                            (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
     [else "fail"]))
 
+;; better parameterize the number of input streams
+(define (print-from-holes holes binding depth)
+  (displayln "(define (synthesized-function input1 input2)")
+  (displayln "  (define r1 input1)")
+  (displayln "  (define r2 input2)")
 
+  (define varlist (for/list ([i (range (+ 2 depth))])
+                    (format "r~a" (add1 i))))
+  (define middle-insns (for/list ([i (range depth)])
+                        (displayln (print-single-insn (list-ref holes i) binding (list-ref varlist (+ 2 i)) (take varlist (+ 2 i))))))
+  
+  (displayln (format "  r~a)" (+ 2 depth))))
 ;;;; previous, macro style ;;;;;
 
 

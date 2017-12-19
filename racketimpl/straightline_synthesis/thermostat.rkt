@@ -33,12 +33,13 @@
     (define r8 (single-insn (list-ref holes-structure 4) (list r1 r2 r3 r4 r5 r6 r7)))
     r8)
   (define binding (synthesize #:forall (append (harvest s-tempB) (harvest s-clockB))
-                              #:guarantee (assert (same inc-dec-button-graph
+                              #:guarantee (assert (same thermostat-graph
                                                         sketch-graph
                                                         s-tempB s-clockB))))
   (if (unsat? binding)
       "unsat"
       (print-from-holes holes-structure binding depth)))
+
 
 #;(define (fully-expanded-sketch-graph tempB clockB)
   (define r1 tempB)
