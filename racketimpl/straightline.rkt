@@ -96,17 +96,21 @@
     [else "fail"]))
 
 ;; better parameterize the number of input streams
-(define (print-from-holes holes binding depth)
-  (displayln "(define (synthesized-function input1 input2)")
-  (displayln "  (define r1 input1)")
-  (displayln "  (define r2 input2)")
+(define (print-from-holes holes retval binding depth input-count)
+  (define arg-list (for/list ([i (range input-count)])
+    (format "input~a" (add1 i))))
+  (displayln (format "(define (synthesized-function ~a)" (string-join arg-list)))
 
-  (define varlist (for/list ([i (range (+ 2 depth))])
+  (for ([i (range input-count)])
+    (displayln (format "  (define r~a input~a)" (add1 i) (add1 i))))
+
+  (define varlist (for/list ([i (range (+ input-count depth))])
                     (format "r~a" (add1 i))))
   (define middle-insns (for/list ([i (range depth)])
-                        (displayln (print-single-insn (list-ref holes i) binding (list-ref varlist (+ 2 i)) (take varlist (+ 2 i))))))
+                        (displayln (print-single-insn (list-ref holes i) binding (list-ref varlist (+ input-count i))
+                                                      (take varlist (+ input-count i))))))
   
-  (displayln (format "  r~a)" (+ 2 depth))))
+  (displayln (format "  ~a)" (list-ref varlist (evaluate retval binding)))))
 ;;;; previous, macro style ;;;;;
 
 
