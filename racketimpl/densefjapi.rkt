@@ -98,11 +98,16 @@
 #;(define (delayE interval evt-stream)
   (append (for/list ([i interval]) 'no-evt) evt-stream))
 
-(define (delayE interval evt-stream)
+#;(define (delayE interval evt-stream)
   (letrec ([f (λ (i) (if (> i 0)
                          (append (list 'no-evt) (f (sub1 i)))
                          evt-stream))])
     (f interval)))
+
+;; this is embarrassing
+(define no-evt-stream '(no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt))
+(define (delayE interval evt-stream)
+  (append (take no-evt-stream interval) evt-stream))
 
 (define (blindE interval evt-stream)
   (letrec ([f (λ (evts wait-time)

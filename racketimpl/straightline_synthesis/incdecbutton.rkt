@@ -30,10 +30,10 @@
     (define r6 (single-insn (list-ref holes-structure 3) (list r1 r2 r3 r4 r5)))
     (define r7 (single-insn (list-ref holes-structure 4) (list r1 r2 r3 r4 r5 r6)))
     r7)
-  (define binding (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
+ (define binding (time (synthesize #:forall (append (harvest s-inc) (harvest s-dec))
                               #:guarantee (assert (same inc-dec-button-graph
                                                         sketch-graph
-                                                        s-inc s-dec))))
+                                                        s-inc s-dec)))))
   (if (unsat? binding)
       "unsat"
       (print-from-holes holes-structure binding depth)))

@@ -9,12 +9,12 @@
                                    (cons 1 "mergeE")
                                    (cons 2 "collectE")
                                    (cons 3 "startsWith")
-                                   ;(cons 4 "delayE")
                                    (cons 4 "mapE")
                                    (cons 5 "liftB1")
                                    (cons 6 "andB")
                                    (cons 7 "ifB")
                                    (cons 8 "constantB")
+                                   (cons 9 "delayE")
                                    )))
 
 (define (op-lookup idx)
@@ -53,6 +53,7 @@
                    (curry ifB (guarded-access past-vars (stream-insn-arg-index2 holes)) ;; 7
                           (guarded-access past-vars (stream-insn-arg-index3 holes)))
                    (curry constantB (guarded-access constantB-consts (stream-insn-arg-index2 holes))) ;; 8
+                ;   (curry delayE (stream-insn-arg-int holes))
                    ) (stream-insn-op-index holes))
              (guarded-access past-vars (stream-insn-arg-index1 holes))))
 
@@ -91,6 +92,7 @@
                      (list-ref past-vars (evaluate (stream-insn-arg-index3 holes) binding))
                      (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
     [("constantB") (format "~a" (list-ref constantB-consts (evaluate (stream-insn-arg-index1 holes) binding)))]
+    [("delayE") (format "~a" (evaluate (stream-insn-arg-int holes) binding))]
     [else "fail"]))
 
 ;; better parameterize the number of input streams
