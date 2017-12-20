@@ -82,16 +82,16 @@
                           (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
     [("startsWith") (format "~a ~a" (evaluate (stream-insn-arg-int holes) binding)
                             (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    [("mapE") (format "~a ~a" (list-ref function-list-string (evaluate (stream-insn-arg-index2 holes) binding))
+    [("mapE") (format "~a ~a" (guarded-access function-list-string (evaluate (stream-insn-arg-index2 holes) binding))
                       (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    [("liftB1") (format "~a ~a" (list-ref function-list-string (evaluate (stream-insn-arg-index2 holes) binding))
+    [("liftB1") (format "~a ~a" (guarded-access function-list-string (evaluate (stream-insn-arg-index2 holes) binding))
                       (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
     [("andB") (format "~a ~a" (list-ref past-vars (evaluate (stream-insn-arg-index2 holes) binding))
                       (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
     [("ifB") (format "~a ~a ~a" (list-ref past-vars (evaluate (stream-insn-arg-index2 holes) binding))
                      (list-ref past-vars (evaluate (stream-insn-arg-index3 holes) binding))
                      (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    [("constantB") (format "~a" (list-ref constantB-consts (evaluate (stream-insn-arg-index1 holes) binding)))]
+    [("constantB") (format "~a" (guarded-access constantB-consts (evaluate (stream-insn-arg-index2 holes) binding)))]
     [("delayE") (format "~a" (evaluate (stream-insn-arg-int holes) binding))]
     [else "fail"]))
 

@@ -38,7 +38,9 @@
       "unsat"
       (print-from-holes holes-structure retval-idx binding depth input-count)))
 
-(define (input-output-synthesis depth)
+;(define (input-output-synthesis depth input-count)
+(define depth 5)
+(define input-count 2)
   (define holes-structure (for/list ([i (range depth)])
                             (get-insn-holes)))
   (define-symbolic* return-index integer?)
@@ -68,10 +70,20 @@
   (define output (inc-dec-button-graph input-inc-button input-dec-button))
   (define distinguishing-input-inc (new-event-stream (λ () 'click) stream-length))
   (define distinguishing-input-dec (new-event-stream (λ () 'click) stream-length))
+(for ([i (range stream-length)])
+  (assert (or (eq? 'no-evt (list-ref distinguishing-input-inc i))
+              (eq? 'no-evt (list-ref distinguishing-input-dec i)))))
   (define binding (time (synthesize #:forall '()
                                     #:guarantee (assert (and (eq? (sketch-graph input-inc-button input-dec-button) output)
                                                  (eq? (sketch-graph2 input-inc-button input-dec-button) output)
-                                                 (not (same (sketch-graph sketch-graph2 distinguishing-input-inc
-                                                                          distinguishing-input-dec)))
-                                                 )))))
-  binding)
+                                                 (not (same sketch-graph sketch-graph2 distinguishing-input-inc
+                                                                          distinguishing-input-dec))))
+                                                 )))
+(if (unsat? binding)
+    (displayln "unsat")
+    (begin
+      (print-from-holes holes-structure return-index binding depth input-count)
+      (print-from-holes holes-structure2 return-index2 binding depth input-count)
+      (displayln (format "distinguishing input inc button: ~a" (evaluate distinguishing-input-inc binding)))
+      (displayln (format "distinguishing input dec button: ~a" (evaluate distinguishing-input-dec binding)))))
+  ;binding)
