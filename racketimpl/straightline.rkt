@@ -9,17 +9,28 @@
                                    (cons 1 "mergeE")
                                    (cons 2 "collectE")
                                    (cons 3 "startsWith")
-                                   (cons 4 "liftB1")
-                                   (cons 5 "andB"))))
+                                   ;(cons 4 "delayE")
+                                   (cons 4 "mapE")
+                                   (cons 5 "liftB1")
+                                   (cons 6 "andB")
+                                   (cons 7 "ifB")
+                                   (cons 8 "constantB")
+                                   )))
 
 (define (op-lookup idx)
   (hash-ref op-name-hash idx))
 
-(define liftB1-func (list (λ (t) (<= t 2))
-                          (λ (c) (or (>= c 4) (>= 2 c)))))
+(define function-list (list (λ (e) (+ e 5))
+                            (λ (t) (<= t 2))
+                            (λ (c) (or (>= c 4) (>= 2 c)))))
+(define function-list-string (list "(λ (e) (+ e 5))"
+                                   "(λ (t) (<= t 2))"
+                                   "(λ (c) (or (>= c 4) (>= 2 c)))))"))
+
 (define constantB-consts (list 'on 'off))
 
-(struct stream-insn (op-index arg-index1 arg-index2 arg-index3 arg-int))
+(struct stream-insn 
+  (op-index arg-index1 arg-index2 arg-index3 arg-int) #:transparent)
 
 ;; TODO add asserts to limit range of indexes
 (define (get-insn-holes)
@@ -31,11 +42,24 @@
   (stream-insn op arg1 arg2 arg3 arg4))
 
 (define (single-insn holes past-vars)
-  ((list-ref (list (curry constantE (stream-insn-arg-int holes))
-                   (curry mergeE (list-ref past-vars (stream-insn-arg-index2 holes)))
-                   (curry collectE (stream-insn-arg-int holes) +)
-                   (curry startsWith (stream-insn-arg-int holes))) (stream-insn-op-index holes))
-             (list-ref past-vars (stream-insn-arg-index1 holes))))
+  ((list-ref (list (curry constantE (stream-insn-arg-int holes)) ;; 0
+                   (curry mergeE (guarded-access past-vars (stream-insn-arg-index2 holes))) ;; 1
+                   (curry collectE (stream-insn-arg-int holes) +) ;; 2
+                   (curry startsWith (stream-insn-arg-int holes)) ;; 3
+                  ; (curry delayE (stream-insn-arg-int holes))
+                   (curry mapE (guarded-access function-list (stream-insn-arg-index2 holes))) ;; 4
+                   (curry liftB1 (guarded-access function-list (stream-insn-arg-index2 holes))) ;; 5
+                   (curry andB (guarded-access past-vars (stream-insn-arg-index2 holes)))  ;; 6
+                   (curry ifB (guarded-access past-vars (stream-insn-arg-index2 holes)) ;; 7
+                          (guarded-access past-vars (stream-insn-arg-index3 holes)))
+                   (curry constantB (guarded-access constantB-consts (stream-insn-arg-index2 holes))) ;; 8
+                   ) (stream-insn-op-index holes))
+             (guarded-access past-vars (stream-insn-arg-index1 holes))))
+
+(define (guarded-access lst idx)
+  (if (<= (length lst) idx)
+      "bad input"
+      (list-ref lst idx)))
 
 ;; what's better way to structure this?
 ;; struct?
@@ -57,6 +81,16 @@
                           (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
     [("startsWith") (format "~a ~a" (evaluate (stream-insn-arg-int holes) binding)
                             (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
+    [("mapE") (format "~a ~a" (list-ref function-list-string (evaluate (stream-insn-arg-index2 holes) binding))
+                      (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
+    [("liftB1") (format "~a ~a" (list-ref function-list-string (evaluate (stream-insn-arg-index2 holes) binding))
+                      (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
+    [("andB") (format "~a ~a" (list-ref past-vars (evaluate (stream-insn-arg-index2 holes) binding))
+                      (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
+    [("ifB") (format "~a ~a ~a" (list-ref past-vars (evaluate (stream-insn-arg-index2 holes) binding))
+                     (list-ref past-vars (evaluate (stream-insn-arg-index3 holes) binding))
+                     (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
+    [("constantB") (format "~a" (list-ref constantB-consts (evaluate (stream-insn-arg-index1 holes) binding)))]
     [else "fail"]))
 
 ;; better parameterize the number of input streams

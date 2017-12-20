@@ -135,7 +135,7 @@
 #;(define (changes behaviorB)
     (behavior-changes behaviorB))
 
-(define (constantB const)
+(define (constantB const input) ;; input just gets thrown away
   (behavior const '()))
 
 #;(define (delayB interval behavior1)
