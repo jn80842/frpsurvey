@@ -166,7 +166,10 @@
 (define (harvest-behavior b)
   (flatten (append (list (harvest-term (behavior-init b))) (map harvest-term (behavior-changes b)))))
 
-(define (harvest x)
+(define (harvest . x)
+  (append (map harvest-stream x)))
+
+(define (harvest-stream x)
   (if (behavior? x)
       (harvest-behavior x)
       (harvest-events x)))
