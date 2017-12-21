@@ -75,8 +75,8 @@
               (eq? 'no-evt (list-ref distinguishing-input-dec i)))))
   (define binding (time (synthesize #:forall '()
                                     #:guarantee (assert (and (eq? (sketch-graph input-inc-button input-dec-button) output)
-                                                 (eq? (sketch-graph2 input-inc-button input-dec-button) output)
-                                                 (not (same sketch-graph sketch-graph2 distinguishing-input-inc
+                                                             (eq? (sketch-graph2 input-inc-button input-dec-button) output)
+                                                             (not (same sketch-graph sketch-graph2 distinguishing-input-inc
                                                                           distinguishing-input-dec))))
                                                  )))
 (if (unsat? binding)

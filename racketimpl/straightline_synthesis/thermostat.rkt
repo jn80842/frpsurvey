@@ -32,9 +32,10 @@
                       s-tempB s-clockB))))
 
 ;; pass input streams here as args
-(define (holes-based-synthesis depth)
+(define (holes-based-synthesis depth input-count)
   (define holes-structure (for/list ([i (range depth)])
                             (get-insn-holes)))
+  (define-symbolic* retval-idx integer?)
   ;; need to generate this 
   (define (sketch-graph input1 input2)
     (define r1 input1)
@@ -47,14 +48,14 @@
    ; (define r6 (single-insn (list-ref holes-structure 3) (list r1 r2 r3 r4 r5)))
    ; (define r7 (single-insn (list-ref holes-structure 4) (list r1 r2 r3 r4 r5 r6)))
    ; (define r8 (single-insn (list-ref holes-structure 5) (list r1 r2 r3 r4 r5 r6 r7)))
-    r5)
+    (list-ref (list r1 r2 r3 r4 r5) retval-idx))
   (define binding (synthesize #:forall (append (harvest s-tempB) (harvest s-clockB))
                               #:guarantee (assert (same straightline-thermostat-graph
                                                         sketch-graph
                                                         s-tempB s-clockB))))
   (if (unsat? binding)
       "unsat"
-      (print-from-holes holes-structure binding depth)))
+      (print-from-holes holes-structure retval-idx binding depth input-count)))
 
 
 #;(define (fully-expanded-sketch-graph tempB clockB)
