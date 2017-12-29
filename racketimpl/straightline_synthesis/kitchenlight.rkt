@@ -29,7 +29,7 @@
   (define r6 (single-insn (list-ref holes 2) (list r1 r2 r3 r4 r5)))
   (list-ref (list r1 r2 r3 r4 r5 r6) retval-idx))
 
-(define binding (time (synthesize #:forall (append (harvest s-clockB) (harvest s-locationB) (harvest s-motion-sensorB))
+(define binding (time (synthesize #:forall (harvest s-clockB s-locationB s-motion-sensorB)
                                   #:guarantee (assert (same straightline-kitchenlight-graph sketch-graph
                                                             s-clockB s-locationB s-motion-sensorB)))))
 
