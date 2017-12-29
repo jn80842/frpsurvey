@@ -53,7 +53,7 @@
                    (curry ifB (guarded-access past-vars (stream-insn-arg-index2 holes)) ;; 7
                           (guarded-access past-vars (stream-insn-arg-index3 holes)))
                    (curry constantB (guarded-access constantB-consts (stream-insn-arg-index2 holes))) ;; 8
-                ;   (curry delayE (stream-insn-arg-int holes))
+                   (curry delayE (stream-insn-arg-int holes)) ;; 9
                    ) (stream-insn-op-index holes))
              (guarded-access past-vars (stream-insn-arg-index1 holes))))
 
