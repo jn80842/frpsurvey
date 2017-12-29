@@ -5,6 +5,16 @@
 
 (provide (all-defined-out))
 
+;;         startsWith
+;;          /       \
+;;         0       collectE     
+;;                  /  |  \
+;;                λ    0  mergeE
+;;                       /      \
+;;                 constantE constantE
+;;                  /     \    /     \
+;;                 inc    1   dec    -1
+
 (current-bitwidth 5)
 (define stream-length 7)
 

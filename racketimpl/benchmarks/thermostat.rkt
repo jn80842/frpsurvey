@@ -5,6 +5,14 @@
 
 (provide (all-defined-out))
 
+;;                    ifB
+;;            /        |         \
+;;          andB    constantB    constantB
+;;        /    \        |            |
+;;    liftB    liftB   'on          'off
+;;   /    \     /   \
+;;  λ   tempB  λ   clockB
+
 (current-bitwidth 6)
 
 ;; to handle bitwidth, constants don't make real-world sense

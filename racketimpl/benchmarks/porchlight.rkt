@@ -5,6 +5,14 @@
 
 (provide (all-defined-out))
 
+;;                    mergeE
+;;               /            \
+;;            blindE          calmE
+;;          /      \          /    \
+;;         int   constantE   int   constantE
+;;               /      \           /       \
+;;              'on   md-events   'off     md-events
+
 ;;;;; motion detector and porch light
 (define delay-by 2)
 (define calm-by 5)

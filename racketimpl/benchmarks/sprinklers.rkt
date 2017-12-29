@@ -5,6 +5,14 @@
 
 (provide (all-defined-out))
 
+;;                              condB
+;;            /                   |                      \
+;;          pair                 pair                     pair
+;;     /           \            /    \                   /    \
+;;  motionSensorB  constantB  liftB   constantB    constantB    constantB
+;;                     |       /    \      |            |            |
+;;                    'off    λ  counterB  'on          #t          'off
+
 (current-bitwidth 5)
 (define stream-length 3)
 

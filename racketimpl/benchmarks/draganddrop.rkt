@@ -6,6 +6,16 @@
 
 (provide (all-defined-out))
 
+;;                startsWith
+;;                /         \
+;;             init-pos    switchE
+;;                           |
+;;                         mergeE
+;;                      /          \
+;;                 mapE               mapE
+;;             /       \            /       \
+;; (λ) (mouse-pos) mouse-down   (λ) (zeroE) mouse-up
+
 (current-bitwidth 5)
 (define stream-length 3)
 (define max-timestamp (* 2 stream-length))

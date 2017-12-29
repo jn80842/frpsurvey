@@ -6,6 +6,12 @@
 
 (provide (all-defined-out))
 
+;;            liftB
+;;         /    |       \
+;;       λ    liftB         liftB
+;;        /     |          /  |   \
+;;      λ  motionSensorB  λ clockB locationB
+
 (current-bitwidth 5)
 (define stream-length 2)
 

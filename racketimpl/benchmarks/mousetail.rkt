@@ -5,6 +5,12 @@
 
 (provide (all-defined-out))
 
+;;      mapE                    delayE
+;;   /      \                   /    \
+;; λ        delayE             3     mouse-y
+;;         /      \
+;;        3     mouse-x
+
 (current-bitwidth 5)
 
 (define stream-length 1)
