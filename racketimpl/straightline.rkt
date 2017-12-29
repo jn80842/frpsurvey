@@ -15,6 +15,7 @@
                                    (cons 7 "ifB")
                                    (cons 8 "constantB")
                                    (cons 9 "delayE")
+                                   (cons 10 "liftB2")
                                    )))
 
 (define (op-lookup idx)
@@ -22,10 +23,26 @@
 
 (define function-list (list (λ (e) (+ e 5))
                             (λ (t) (<= t 2))
-                            (λ (c) (or (>= c 4) (>= 2 c)))))
+                            (λ (c) (or (>= c 4) (>= 2 c)))
+                            (λ (e) (if e 'on 'off))))
+(define function-2arg-list (list (λ (clock location) (if (or (>= clock 4) (< clock 4))
+                                 'night
+                                 (if (equal? location 'home)
+                                     'home
+                                     'away)))
+                                 (λ (elt1 elt2) (+ elt1 elt2))
+                                 (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))))
 (define function-list-string (list "(λ (e) (+ e 5))"
                                    "(λ (t) (<= t 2))"
-                                   "(λ (c) (or (>= c 4) (>= 2 c)))))"))
+                                   "(λ (c) (or (>= c 4) (>= 2 c)))))"
+                                   "(λ (e) (if e 'on 'off))"))
+(define function-2arg-list-string (list "(λ (clock location) (if (or (>= clock hour-begin) (< clock hour-end))
+                                 'night
+                                 (if (equal? location 'home)
+                                     'home
+                                     'away))"
+                                        "(λ (elt1 elt2) (+ elt1 elt2))"
+                                        "(λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))"))
 
 (define constantB-consts (list 'on 'off))
 
@@ -54,6 +71,8 @@
                           (guarded-access past-vars (stream-insn-arg-index3 holes)))
                    (curry constantB (guarded-access constantB-consts (stream-insn-arg-index2 holes))) ;; 8
                    (curry delayE (stream-insn-arg-int holes)) ;; 9
+                   (curry liftB2 (guarded-access function-2arg-list (stream-insn-arg-index2 holes))
+                          (guarded-access past-vars (stream-insn-arg-index3 holes))) ;; 10
                    ) (stream-insn-op-index holes))
              (guarded-access past-vars (stream-insn-arg-index1 holes))))
 
@@ -93,6 +112,9 @@
                      (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
     [("constantB") (format "~a" (guarded-access constantB-consts (evaluate (stream-insn-arg-index2 holes) binding)))]
     [("delayE") (format "~a" (evaluate (stream-insn-arg-int holes) binding))]
+    [("liftB2") (format "~a ~a ~a" (guarded-access function-2arg-list-string (evaluate (stream-insn-arg-index2 holes) binding))
+                        (list-ref past-vars (evaluate (stream-insn-arg-index3 holes) binding))
+                        (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
     [else "fail"]))
 
 ;; better parameterize the number of input streams

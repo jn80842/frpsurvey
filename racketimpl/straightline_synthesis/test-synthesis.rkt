@@ -135,6 +135,23 @@
     (begin (displayln "* liftB1 graph successfully synthesized")
            (print-from-holes holes retval-idx b-liftB1 1 1)))
 
+;; liftB2
+
+(define (liftB2-graph b1 b2)
+  (define r1 b1)
+  (define r2 b2)
+  (define r3 (liftB2 (λ (elt1 elt2) (+ elt1 elt2)) r1 r2))
+  r3)
+
+(define b-liftB2 (synthesize #:forall (append (harvest int-behavior) (harvest int-behavior2))
+                             #:guarantee (assert (same liftB2-graph
+                                                       sketch-graph1-2
+                                                       int-behavior int-behavior2))))
+(if (unsat? b-liftB2)
+    (displayln "!!!!! liftB2 graph not synthesized !!!!!")
+    (begin (displayln "* liftB2 graph successfully synthesized")
+           (print-from-holes holes retval-idx b-liftB2 1 2)))
+
 ;; andB
 
 (define (andB-graph b1 b2)
