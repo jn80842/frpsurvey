@@ -139,7 +139,10 @@
       (behavior 3 (list 5)))
 (check-equal? (condB (list (list (behavior #t (list #f)) (behavior #f (list 'a)))
                            (list (behavior #t (list #t)) (behavior 'wrong (list 'b)))))
-      (behavior #f (list (list 'b))))
+      (behavior #f (list 'b)))
+(check-equal? (condB (list (list (behavior #t (list #f)) (behavior 'a (list 'b)))
+                           (list (behavior #f (list #t #t)) (behavior 'no (list 'okay 'okay2)))))
+              (behavior 'a (list 'okay 'okay2)))
 
 ;; ifB
 (check-equal? (ifB (behavior #t (list #t #f #f #t))

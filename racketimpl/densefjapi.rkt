@@ -154,7 +154,7 @@
 #;(define (changes behaviorB)
     (behavior-changes behaviorB))
 
-(define (constantB const input) ;; input just gets thrown away
+(define (constantB const [input 0]) ;; input just gets thrown away
   (behavior const '()))
 
 #;(define (delayB interval behavior1)
@@ -195,12 +195,13 @@
   (behavior (proc (behavior-init argB1) (behavior-init argB2))
             (map proc (behavior-changes argB1) (behavior-changes argB2))))
 
-(define (condB behaviorpairs)
+;; note: isn't condB equiv to nested ifBs?
+(define (condB behaviorpairs [dummyinput 0])
   (let* ([all-behaviors (flatten behaviorpairs)]
          [max-len (apply max (map (λ (b) (length (behavior-changes b))) all-behaviors))])
     (behavior (second (findf (λ (bp) (first bp)) (map (λ (bp) (list (behavior-init (first bp)) (behavior-init (second bp)))) behaviorpairs)))
               (map (λ (y) (second (findf (λ (bp) (first bp)) y))) (apply (curry map list) (map (λ (x) (apply (curry map (λ (b1 b2) (list b1 b2))) x))
-                                           (map (λ (bp) (list (behavior-changes (first bp)) (behavior-changes (second bp)))) behaviorpairs)))
+                                           (map (λ (bp) (list (pad-behavior-changes (first bp) max-len) (pad-behavior-changes (second bp) max-len))) behaviorpairs)))
               ))))
 
 (define (ifB conditionB trueB falseB)

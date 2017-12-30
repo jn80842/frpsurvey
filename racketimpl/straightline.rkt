@@ -16,6 +16,7 @@
                                    (cons 8 "constantB")
                                    (cons 9 "delayE")
                                    (cons 10 "liftB2")
+                                   (cons 11 "condB")
                                    )))
 
 (define (op-lookup idx)
@@ -44,10 +45,10 @@
                                         "(λ (elt1 elt2) (+ elt1 elt2))"
                                         "(λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))"))
 
-(define constantB-consts (list 'on 'off))
+(define constantB-consts (list 'on 'off #t #f))
 
 (struct stream-insn 
-  (op-index arg-index1 arg-index2 arg-index3 arg-int) #:transparent)
+  (op-index arg-index1 arg-index2 arg-index3 arg-int arg-index4) #:transparent)
 
 ;; TODO add asserts to limit range of indexes
 (define (get-insn-holes)
@@ -56,14 +57,14 @@
   (define-symbolic* arg2 integer?)
   (define-symbolic* arg3 integer?)
   (define-symbolic* arg4 integer?)
-  (stream-insn op arg1 arg2 arg3 arg4))
+  (define-symbolic* arg5 integer?)
+  (stream-insn op arg1 arg2 arg3 arg4 arg5))
 
 (define (single-insn holes past-vars)
   ((list-ref (list (curry constantE (stream-insn-arg-int holes)) ;; 0
                    (curry mergeE (guarded-access past-vars (stream-insn-arg-index2 holes))) ;; 1
                    (curry collectE (stream-insn-arg-int holes) +) ;; 2
                    (curry startsWith (stream-insn-arg-int holes)) ;; 3
-                  ; (curry delayE (stream-insn-arg-int holes))
                    (curry mapE (guarded-access function-list (stream-insn-arg-index2 holes))) ;; 4
                    (curry liftB1 (guarded-access function-list (stream-insn-arg-index2 holes))) ;; 5
                    (curry andB (guarded-access past-vars (stream-insn-arg-index2 holes)))  ;; 6
@@ -73,6 +74,12 @@
                    (curry delayE (stream-insn-arg-int holes)) ;; 9
                    (curry liftB2 (guarded-access function-2arg-list (stream-insn-arg-index2 holes))
                           (guarded-access past-vars (stream-insn-arg-index3 holes))) ;; 10
+                   (curry condB (list (list (guarded-access past-vars (stream-insn-arg-index1 holes))
+                                            (guarded-access past-vars (stream-insn-arg-index2 holes)))
+                                      (list (guarded-access past-vars (stream-insn-arg-index3 holes))
+                                            (guarded-access past-vars (stream-insn-arg-index4 holes)))
+                                      (list (constantB #t)
+                                            (guarded-access past-vars (stream-insn-arg-int holes))))) ;; 11
                    ) (stream-insn-op-index holes))
              (guarded-access past-vars (stream-insn-arg-index1 holes))))
 
@@ -115,6 +122,11 @@
     [("liftB2") (format "~a ~a ~a" (guarded-access function-2arg-list-string (evaluate (stream-insn-arg-index2 holes) binding))
                         (list-ref past-vars (evaluate (stream-insn-arg-index3 holes) binding))
                         (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
+    [("condB") (format "(~a ~a) (~a ~a) ((constantB #t) ~a)" (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding))
+                       (list-ref past-vars (evaluate (stream-insn-arg-index2 holes) binding))
+                       (list-ref past-vars (evaluate (stream-insn-arg-index3 holes) binding))
+                       (list-ref past-vars (evaluate (stream-insn-arg-index4 holes) binding))
+                       (list-ref past-vars (evaluate (stream-insn-arg-int holes) binding)))]
     [else "fail"]))
 
 ;; better parameterize the number of input streams

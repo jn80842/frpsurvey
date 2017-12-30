@@ -14,6 +14,7 @@
 
 (define int-behavior (new-behavior sym-integer stream-length))
 (define int-behavior2 (new-behavior sym-integer stream-length))
+(define int-behavior3 (new-behavior sym-integer stream-length))
 (define bool-behavior (new-behavior sym-boolean stream-length))
 (define bool-behavior2 (new-behavior sym-boolean stream-length))
 
@@ -34,6 +35,15 @@
   (define r3 e3)
   (define r4 (single-insn (list-ref holes 0) (list r1 r2 r3)))
   (list-ref (list r1 r2 r3 r4) retval-idx))
+
+(define (sketch-graph1-5 e1 e2 e3 e4 e5)
+  (define r1 e1)
+  (define r2 e2)
+  (define r3 e3)
+  (define r4 e4)
+  (define r5 e5)
+  (define r6 (single-insn (list-ref holes 0) (list r1 r2 r3 r4 r5)))
+  (list-ref (list r1 r2 r3 r4 r5 r6) retval-idx))
 
 ;; constantE
 
@@ -151,6 +161,26 @@
     (displayln "!!!!! liftB2 graph not synthesized !!!!!")
     (begin (displayln "* liftB2 graph successfully synthesized")
            (print-from-holes holes retval-idx b-liftB2 1 2)))
+
+;; condB
+
+(define (condB-graph b1 b2 b3 b4 b5)
+  (define r1 b1)
+  (define r2 b2)
+  (define r3 b3)
+  (define r4 b4)
+  (define r5 b5)
+  (define r6 (condB (list (list r1 r2) (list r3 r4) (list (constantB #t) r5))))
+  r6)
+
+(define b-condB (synthesize #:forall (harvest bool-behavior bool-behavior2 int-behavior int-behavior2 int-behavior3)
+                            #:guarantee (assert (same condB-graph sketch-graph1-5
+                                                      bool-behavior int-behavior
+                                                      bool-behavior2 int-behavior2 int-behavior3))))
+(if (unsat? b-condB)
+    (displayln "!!!!! condB graph not synthesized !!!!!")
+    (begin (displayln "* condB graph successfully synthesized")
+           (print-from-holes holes retval-idx b-condB 1 5)))
 
 ;; andB
 
