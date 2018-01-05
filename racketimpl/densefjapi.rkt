@@ -144,6 +144,8 @@
                               (cons output (f (rest evts) new-last-sent new-buffer)))]))])
     (f evt-stream 0 'no-evt)))
 
+;; timerE
+
 (define (startsWith init-value evt-stream)
   (letrec ([f (λ (current evts)
              (cond [(empty? evts) '()]
@@ -151,7 +153,7 @@
                    [else (cons (first evts) (f (first evts) (rest evts)))]))])
   (behavior init-value (f init-value evt-stream))))
 
-#;(define (changes behaviorB)
+(define (changes behaviorB)
     (behavior-changes behaviorB))
 
 (define (constantB const [input 0]) ;; input just gets thrown away
@@ -165,6 +167,13 @@
 ;; switchB
 ;; switchBB takes a behavior of behaviors: (behavior behavior1 (list behavior2 behavior3 behavior4)))
 ;; and returns a behavior: (behavior (behavior-init behavior1) (append (behavior-changes behavior1) (behavior-changes behavior2) ...)))
+
+;; assumption is that all behaviors are complete for full timeline
+(define (switchB inputBB)
+  (let ([n (length (behavior-changes inputBB))])
+    (behavior (behavior-init (behavior-init inputBB))
+              (for/list ([i (range n)])
+                (list-ref (behavior-changes (list-ref (behavior-changes inputBB) i)) i)))))
 
 (define (andB behavior1 behavior2)
   (let* ([max-len (max (length (behavior-changes behavior1)) (length (behavior-changes behavior2)))]
@@ -219,4 +228,23 @@
 
 #;(define (calmB interval b)
   (behavior (behavior-init b) (calmE interval (changes b))))
+
+#;(define (collectE init proc evt-stream)
+  (letrec ([collect (λ (x-lst prev)
+                      (if (empty? x-lst)
+                          '()
+                          (let ([evt (first x-lst)])
+                            (if (empty-event? evt)
+                                (cons 'no-evt (collect (rest x-lst) prev))
+                                (cons (proc evt prev) (collect (rest x-lst) (proc evt prev)))))))])
+    (collect evt-stream init)))
+
+;; this is an original operator!
+(define (collectB init-val proc b1)
+  (let ([b-init (proc init-val (behavior-init b1))])
+         (letrec ([collect (λ (lst prev)
+                       (if (empty? lst)
+                           '()
+                           (cons (proc (first lst) prev) (collect (rest lst) (proc (first lst) prev)))))])
+           (behavior b-init (collect (behavior-changes b1) b-init)))))
 

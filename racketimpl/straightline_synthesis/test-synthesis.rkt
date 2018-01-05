@@ -234,3 +234,19 @@
     (displayln "!!!!! constantB graph not synthesized !!!!!")
     (begin (displayln "* constantB graph successfully synthesized")
            (print-from-holes holes retval-idx b-constantB 1 1)))
+
+;; collectB
+
+(define (collectB-graph b1)
+  (define r1 b1)
+  (define r2 (collectB 0 + b1))
+  r2)
+
+(define b-collectB (synthesize #:forall (harvest int-behavior)
+                               #:guarantee (assert (same collectB-graph
+                                                         sketch-graph1-1
+                                                         int-behavior))))
+(if (unsat? b-collectB)
+    (displayln "!!!!!! collectB graph not synthesized !!!!!")
+    (begin (displayln "* collectB graph successfully synthesized")
+           (print-from-holes holes retval-idx b-collectB 1 1)))

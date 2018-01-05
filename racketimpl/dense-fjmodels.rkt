@@ -22,6 +22,18 @@
   (define-symbolic* minute-ones integer?)
   (vector hour minute-tens minute-ones))
 
+(define (is-midnight? time-vec)
+  (and (eq? (vector-ref time-vec 0) 0)
+       (eq? (vector-ref time-vec 1) 0)
+       (eq? (vector-ref time-vec 2) 0)))
+
+(define (time-vec-hour v)
+  (vector-ref v 0))
+(define (time-vec-min1 v)
+  (vector-ref v 1))
+(define (time-vec-min2 v)
+  (vector-ref v 2))
+
 (define (time-vec->integer vec)
   (+ (* (vector-ref vec 0) 100) (* (vector-ref vec 1) 10) (vector-ref vec 2)))
 (define (integer->time-vec t)
@@ -167,7 +179,7 @@
   (flatten (append (list (harvest-term (behavior-init b))) (map harvest-term (behavior-changes b)))))
 
 (define (harvest . x)
-  (append (map harvest-stream x)))
+  (apply append (map harvest-stream x)))
 
 (define (harvest-stream x)
   (if (behavior? x)

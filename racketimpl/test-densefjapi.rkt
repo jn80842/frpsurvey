@@ -105,6 +105,12 @@
 ;; constantB
 (check-equal? (constantB 'a) (behavior 'a '()))
 
+;; switchB
+(check-equal? (switchB (behavior (behavior 'a '(a a a)) (list (behavior 1 (list 1 1 1))
+                                                              (behavior 1 (list 1 1 1))
+                                                              (behavior 'b '(b b b)))))
+              (behavior 'a (list 1 1 'b)))
+
 ;; delayB
 #;(check-equal? (delayB 3 (behavior 'a (list (list 1 'b) (list 2 'c))))
               (behavior 'a (list (list 4 'b) (list 5 'c))))
@@ -154,3 +160,7 @@
                                          (behavior 't (list (list 1 '1) (list 3 '3) (list 5 '5) (list 11 '11)))
                                          (behavior 'f (list (list 1 'no) (list 2 '2) (list 5 'no) (list 6 '6) (list 8 '8))))
       (behavior 't (list (list 1 'no) (list 2 '2) (list 3 '2) (list 5 '5) (list 6 '5) (list 8 '5) (list 9 '8) (list 11 '8))))
+
+;; collectB
+(check-equal? (collectB 0 + (behavior 1 '(2 3 4)))
+              (behavior 1 '(3 6 10)))

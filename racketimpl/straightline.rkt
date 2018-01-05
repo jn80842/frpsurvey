@@ -17,6 +17,7 @@
                                    (cons 9 "delayE")
                                    (cons 10 "liftB2")
                                    (cons 11 "condB")
+                                   (cons 12 "collectB")
                                    )))
 
 (define (op-lookup idx)
@@ -32,7 +33,14 @@
                                      'home
                                      'away)))
                                  (λ (elt1 elt2) (+ elt1 elt2))
-                                 (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))))
+                                 (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
+                                 (λ (rain clock) (if (is-midnight? clock) 'midnight rain))
+                                 (λ (r prev) (if (eq? r 'midnight) #f
+                                                 (if r #t prev)))
+                                 (λ (rain clock) (and (not rain)
+                                                  (eq? (time-vec-hour clock) 18)
+                                                  (< (time-vec-min1 clock) 1)))
+                                 ))
 (define function-list-string (list "(λ (e) (+ e 5))"
                                    "(λ (t) (<= t 2))"
                                    "(λ (c) (or (>= c 4) (>= 2 c)))))"
@@ -43,7 +51,14 @@
                                      'home
                                      'away))"
                                         "(λ (elt1 elt2) (+ elt1 elt2))"
-                                        "(λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))"))
+                                        "(λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))"
+                                        "(λ (rain clock) (if (is-midnight? clock) 'midnight rain))"
+                                        "(λ (r prev) (if (eq? r 'midnight) #f
+                                                     (if r #t prev)))"
+                                        "(λ (rain clock) (and (not rain)
+                                                  (eq? (time-vec-hour clock) 18)
+                                                  (< (time-vec-min1 clock) 1)))"
+                                        ))
 
 (define constantB-consts (list 'on 'off #t #f))
 
@@ -80,6 +95,7 @@
                                             (guarded-access past-vars (stream-insn-arg-index4 holes)))
                                       (list (constantB #t)
                                             (guarded-access past-vars (stream-insn-arg-int holes))))) ;; 11
+                   (curry collectB (stream-insn-arg-int holes) (guarded-access function-2arg-list (stream-insn-arg-index2 holes)))
                    ) (stream-insn-op-index holes))
              (guarded-access past-vars (stream-insn-arg-index1 holes))))
 
@@ -96,7 +112,7 @@
 (define (print-single-insn insn-holes binding varname past-vars)
   (define op (op-lookup (evaluate (stream-insn-op-index insn-holes) binding)))
   (define op-args (get-args-by-op op insn-holes binding past-vars))
-  (format "  (define ~a (~a ~a)" varname op op-args))
+  (format "  (define ~a (~a ~a))" varname op op-args))
 
 (define (get-args-by-op op-name holes binding past-vars)
   (case op-name
@@ -118,7 +134,8 @@
                      (list-ref past-vars (evaluate (stream-insn-arg-index3 holes) binding))
                      (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
     [("constantB") (format "~a" (guarded-access constantB-consts (evaluate (stream-insn-arg-index2 holes) binding)))]
-    [("delayE") (format "~a" (evaluate (stream-insn-arg-int holes) binding))]
+    [("delayE") (format "~a ~a" (evaluate (stream-insn-arg-int holes) binding)
+                        (guarded-access past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
     [("liftB2") (format "~a ~a ~a" (guarded-access function-2arg-list-string (evaluate (stream-insn-arg-index2 holes) binding))
                         (list-ref past-vars (evaluate (stream-insn-arg-index3 holes) binding))
                         (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
@@ -127,6 +144,9 @@
                        (list-ref past-vars (evaluate (stream-insn-arg-index3 holes) binding))
                        (list-ref past-vars (evaluate (stream-insn-arg-index4 holes) binding))
                        (list-ref past-vars (evaluate (stream-insn-arg-int holes) binding)))]
+    [("collectB") (format "~a ~a ~a" (evaluate (stream-insn-arg-int holes) binding)
+                          (guarded-access function-2arg-list-string (evaluate (stream-insn-arg-index2 holes) binding))
+                          (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
     [else "fail"]))
 
 ;; better parameterize the number of input streams
@@ -140,10 +160,9 @@
 
   (define varlist (for/list ([i (range (+ input-count depth))])
                     (format "r~a" (add1 i))))
-  (define middle-insns (for/list ([i (range depth)])
-                        (displayln (print-single-insn (list-ref holes i) binding (list-ref varlist (+ input-count i))
-                                                      (take varlist (+ input-count i))))))
-  
+  (for/list ([i (range depth)])
+    (displayln (print-single-insn (list-ref holes i) binding (list-ref varlist (+ input-count i))
+                                  (take varlist (+ input-count i)))))
   (displayln (format "  ~a)" (list-ref varlist (evaluate retval binding)))))
 ;;;; previous, macro style ;;;;;
 
@@ -160,6 +179,8 @@
 (define r6 'r6)
 (define r7 'r7)
 (define r8 'r8)
+(define r9 'r9)
+(define r10 'r10)
 
 (define (insn-printer insn-stx)
   (eval (syntax-case insn-stx ()
