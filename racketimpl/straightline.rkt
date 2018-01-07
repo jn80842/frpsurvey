@@ -27,7 +27,7 @@
                             (λ (t) (<= t 2))
                             (λ (c) (or (>= c 4) (>= 2 c)))
                             (λ (e) (if e 'on 'off))))
-(define function-2arg-list (list (λ (clock location) (if (or (>= clock 4) (< clock 4))
+(define function-2arg-list (list (λ (clock location) (if (or (>= clock 4) (< clock 2))
                                  'night
                                  (if (equal? location 'home)
                                      'home
@@ -86,18 +86,19 @@
                    (curry ifB (guarded-access past-vars (stream-insn-arg-index2 holes)) ;; 7
                           (guarded-access past-vars (stream-insn-arg-index3 holes)))
                    (curry constantB (guarded-access constantB-consts (stream-insn-arg-index2 holes))) ;; 8
-                   (curry delayE (stream-insn-arg-int holes)) ;; 9
+                   identityE ;;   (curry delayE (stream-insn-arg-int holes)) ;; 9
                    (curry liftB2 (guarded-access function-2arg-list (stream-insn-arg-index2 holes))
                           (guarded-access past-vars (stream-insn-arg-index3 holes))) ;; 10
-                   (curry condB (list (list (guarded-access past-vars (stream-insn-arg-index1 holes))
-                                            (guarded-access past-vars (stream-insn-arg-index2 holes)))
-                                      (list (guarded-access past-vars (stream-insn-arg-index3 holes))
-                                            (guarded-access past-vars (stream-insn-arg-index4 holes)))
-                                      (list (constantB #t)
-                                            (guarded-access past-vars (stream-insn-arg-int holes))))) ;; 11
-                   (curry collectB (stream-insn-arg-int holes) (guarded-access function-2arg-list (stream-insn-arg-index2 holes)))
+                   identityE
+                  ;; (curry condB (list (list (guarded-access past-vars (stream-insn-arg-index1 holes))
+                  ;;                          (guarded-access past-vars (stream-insn-arg-index2 holes)))
+                  ;;                    (list (guarded-access past-vars (stream-insn-arg-index3 holes))
+                  ;;                          (guarded-access past-vars (stream-insn-arg-index4 holes)))
+                  ;;                    (list (constantB #t)
+                  ;;                          (guarded-access past-vars (stream-insn-arg-int holes))))) ;; 11
+                   (curry collectB (stream-insn-arg-int holes) (guarded-access function-2arg-list (stream-insn-arg-index2 holes))) ;; 12
                    ) (stream-insn-op-index holes))
-             (guarded-access past-vars (stream-insn-arg-index1 holes))))
+   (guarded-access past-vars (stream-insn-arg-index1 holes))))
 
 (define (guarded-access lst idx)
   (if (<= (length lst) idx)
