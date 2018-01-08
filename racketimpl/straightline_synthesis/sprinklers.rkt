@@ -5,6 +5,8 @@
 (require "../straightline.rkt")
 (require "../benchmarks/sprinklers.rkt")
 
+(current-bitwidth 6)
+
 (define (straightline-sprinklers-graph clockB motionSensorB raingaugeB)
   (define r1 clockB)
   (define r2 motionSensorB)
@@ -21,12 +23,14 @@
   (define r10 (condB (list (list r2 r8)
                            (list r7 r6)
                            (list r9 r8))))
-  r1)
+  r10)
+(define hour-begin 4)
+(define hour-end 2)
 
-#;(define v-binding (verify (assert (same sprinklers-graph
+(define v-binding (verify (assert (same sprinklers-graph
                                         straightline-sprinklers-graph
                                         s-clockB s-motionSensorB s-raingaugeB))))
-#;(if (unsat? v-binding)
+(if (unsat? v-binding)
     (displayln "straightline program and implementation program are equal")
     (displayln "no"))
 
@@ -45,6 +49,23 @@
   (define r9 (single-insn (list-ref holes 5) (list r1 r2 r3 r4 r5 r6 r7 r8)))
   (define r10 (single-insn (list-ref holes 6) (list r1 r2 r3 r4 r5 r6 r7 r8 r9)))
   (list-ref (list r1 r2 r3 r4 r5 r6 r7 r8 r9 r10) retval-idx))
+
+(assert (and (>= (stream-insn-arg-index1 (list-ref holes 0)) 0)
+             (< (stream-insn-arg-index1 (list-ref holes 0)) 3)
+             (>= (stream-insn-arg-index1 (list-ref holes 1)) 0)
+             (< (stream-insn-arg-index1 (list-ref holes 1)) 4)
+             (>= (stream-insn-arg-index1 (list-ref holes 2)) 0)
+             (< (stream-insn-arg-index1 (list-ref holes 2)) 5)
+             (>= (stream-insn-arg-index1 (list-ref holes 3)) 0)
+             (< (stream-insn-arg-index1 (list-ref holes 3)) 6)
+             (>= (stream-insn-arg-index1 (list-ref holes 4)) 0)
+             (< (stream-insn-arg-index1 (list-ref holes 4)) 7)
+             (>= (stream-insn-arg-index1 (list-ref holes 5)) 0)
+             (< (stream-insn-arg-index1 (list-ref holes 5)) 8)
+             (>= (stream-insn-arg-index1 (list-ref holes 6)) 0)
+             (< (stream-insn-arg-index1 (list-ref holes 6)) 9)
+             (>= retval-idx 0)
+             (< retval-idx 10)))
 
 (define binding (time (synthesize #:forall (harvest s-clockB s-motionSensorB s-raingaugeB)
                                   #:guarantee (same straightline-sprinklers-graph sketch-graph

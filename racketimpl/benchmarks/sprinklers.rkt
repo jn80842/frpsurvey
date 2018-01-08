@@ -17,7 +17,7 @@
 ;;                                 /    |    \
 ;;                              λ  raingaugeB clockB
 
-(current-bitwidth 5)
+;(current-bitwidth 5)
 (define stream-length 3)
 
 (define s-raingaugeB (new-behavior sym-boolean stream-length))
