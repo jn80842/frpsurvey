@@ -5,6 +5,11 @@
 
 (provide (all-defined-out))
 
+;; a stream insn needs to know
+;; the 5-odd (symbolic) integers that define it
+;; how to execute itself
+;; how to print itself
+
 (define op-name-hash (make-hash (list (cons 0 "constantE")
                                    (cons 1 "mergeE")
                                    (cons 2 "collectE")
@@ -168,39 +173,3 @@
     (displayln (print-single-insn (list-ref holes i) binding (list-ref varlist (+ input-count i))
                                   (take varlist (+ input-count i)))))
   (displayln (format "  ~a)" (list-ref varlist (evaluate retval binding)))))
-;;;; previous, macro style ;;;;;
-
-
-(define-namespace-anchor anc)
-(define ns (namespace-anchor->namespace anc))
-;; top level definitions of SSA variables
-;; hack to make eval of rewrites work
-(define r1 'r1)
-(define r2 'r2)
-(define r3 'r3)
-(define r4 'r4)
-(define r5 'r5)
-(define r6 'r6)
-(define r7 'r7)
-(define r8 'r8)
-(define r9 'r9)
-(define r10 'r10)
-
-(define (insn-printer insn-stx)
-  (eval (syntax-case insn-stx ()
-          [(define r1 ((curry op ARG) INPUT-STREAM))
-          #'(format "  (define ~a (~a ~a ~a))" 'r1 'op ARG INPUT-STREAM)]
-          [(define r1 ((curry collectE int-arg op-arg) INPUT-STREAM))
-          #'(format "  (define ~a (collectE ~a ~a ~a))" 'r1 'int-arg 'op-arg INPUT-STREAM)]
-          [(define r1 (op INPUT-STREAM)) #'(format "  (define ~a (~a ~a))" 'r1 'op INPUT-STREAM)]
-          [(define r1 v1) #'(format "  (define ~a ~a)" 'r1 'v1)]
-          [retval #'(format "  ~a)" 'retval)]
-          [_ #'(format "no match")]) ns))
-
-(define (function-printer binding)
-  (let ([syntax-lst (syntax-e (list-ref (generate-forms binding) 0))])
-    (begin
-      (displayln (format "(~a ~a" (syntax->datum (list-ref syntax-lst 0))
-                         (syntax->datum (list-ref syntax-lst 1))))
-      (for ([s (list-tail syntax-lst 2)])
-        (displayln (insn-printer s))))))
