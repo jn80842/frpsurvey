@@ -26,7 +26,7 @@
 
 (define small-raingaugeB (behavior #f (list #t #f)))
 (define small-clockB (behavior (vector 17 5 9) (list (vector 18 0 1) (vector 18 2 0))))
-(define small-motionSensorB (behavior 'off (list 'off 'off)))
+(define small-motionSensorB (behavior #f (list #f #f)))
 (define small-sprinklersB (behavior 'off '(off off)))
 
 (define concrete-raingaugeB (behavior #f (list #t #t #f #f #f #f #f #f #f #f #f #f #f)))
