@@ -56,6 +56,9 @@
                                   (guarded-access past-vars (stream-insn-arg-int insn)))))]
     [("collectB") ((curry collectB (stream-insn-arg-int insn) (guarded-access function-2arg-list (stream-insn-arg-index2 insn)))
                   (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("delayE1") (delayE1 (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("delayE2") (delayE1 (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("delayE3") (delayE1 (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     ))
 
 (define (print-single-insn insn-holes binding varname past-vars)
@@ -96,6 +99,9 @@
     [("collectB") (format "~a ~a ~a" (stream-insn-arg-int insn)
                           (guarded-access function-2arg-list-string (stream-insn-arg-index2 insn))
                           (list-ref past-vars (stream-insn-arg-index1 insn)))]
+    [("delayE1") (format "~a" (guarded-access (stream-insn-arg-index1 insn)))]
+    [("delayE2") (format "~a" (guarded-access (stream-insn-arg-index1 insn)))]
+    [("delayE3") (format "~a" (guarded-access (stream-insn-arg-index1 insn)))]
     ))
 
 (define op-list (list "constantE"
@@ -107,10 +113,14 @@
                       "andB"
                       "ifB"
                       "constantB"
-                      "delayE"
+                     ; "delayE"
                       "liftB2"
                       "condB"
-                      "collectB"))
+                      "collectB"
+                    ;  "delayE1"
+                    ;  "delayE2"
+                    ;  "delayE3"
+                      ))
 
 (define (op-lookup idx)
   (list-ref op-list idx))

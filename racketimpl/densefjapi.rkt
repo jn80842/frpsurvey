@@ -108,6 +108,13 @@
 (define no-evt-stream '(no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt))
 #;(define (delayE interval evt-stream)
   (append (take no-evt-stream interval) evt-stream))
+
+(define (delayE1 evt-stream)
+  (append (list 'no-evt) evt-stream))
+(define (delayE2 evt-stream)
+  (append (list 'no-evt 'no-evt) evt-stream))
+(define (delayE3 evt-stream)
+  (append (list 'no-evt 'no-evt 'no-evt) evt-stream))  
 (define (delayE interval evt-stream)
   evt-stream)
 #;(define (delayE interval evt-stream)
@@ -115,13 +122,13 @@
     [(1) (append (list 'no-evt) evt-stream)]
     [(2) (append (list 'no-evt 'no-evt) evt-stream)]
     [(3) (append (list 'no-evt 'no-evt 'no-evt) evt-stream)]
-    [(4) (append (list 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
-    [(5) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
-    [(6) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
-    [(7) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
-    [(8) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
-    [(9) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
-    [(10) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
+;    [(4) (append (list 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
+;    [(5) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
+;    [(6) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
+;    [(7) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
+;    [(8) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
+;    [(9) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
+;    [(10) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
     ))
 
 (define (blindE interval evt-stream)
