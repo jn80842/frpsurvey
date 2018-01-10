@@ -13,12 +13,12 @@
 
 (current-bitwidth 5)
 
-(define stream-length 1)
+(define stream-length 2)
 (define time-delay 3)
 (define x-offset 5)
 
 (define (mousetail-y-graph y-evt-stream)
-  (delayE time-delay y-evt-stream))
+  (delayE3 y-evt-stream))
 
 (define (ssa-mousetail-y-graph y-evt-stream)
   (define r1 y-evt-stream)
@@ -26,11 +26,11 @@
   r2)
 
 (define (mousetail-x-graph x-evt-stream)
-  (mapE (λ (e) (+ e x-offset)) (delayE time-delay x-evt-stream)))
+  (mapE (λ (e) (+ e x-offset)) (delayE3 x-evt-stream)))
 
 (define (ssa-mousetail-x-graph x-evt-stream)
   (define r1 x-evt-stream)
-  (define r2 (delayE time-delay r1))
+  (define r2 (delayE3 r1))
   (define r3 (mapE (λ (e) (+ e x-offset)) r2))
   r3)
 
