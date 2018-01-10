@@ -13,7 +13,7 @@
 
 (current-bitwidth 5)
 
-(define stream-length 2)
+(define stream-length 1)
 (define time-delay 3)
 (define x-offset 5)
 
@@ -36,7 +36,7 @@
 
 (define concrete-mouse-x-input (list 0 5 5 3 3 3))
 (define concrete-mouse-y-input (list 0 2 2 1 1 1))
-(define concrete-mouse-x-output (list 'no-evt 'no-evt 'no-evt 5 10 10 8 8))
+(define concrete-mouse-x-output (list 'no-evt 'no-evt 'no-evt 5 10 10 8 8 8))
 (define concrete-mouse-y-output (list 'no-evt 'no-evt 'no-evt 0 2 2 1 1 1))
 
 (define (sym-mouse-coord)
