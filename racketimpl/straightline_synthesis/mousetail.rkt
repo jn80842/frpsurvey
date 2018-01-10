@@ -8,7 +8,7 @@
 
 (define (straightline-mousetail-y-graph y-stream)
   (define r1 y-stream)
-  (define r2 ((curry delayE time-delay) r1))
+  (define r2 (delayE time-delay r1))
   r2)
 
 (define (straightline-mousetail-x-graph x-stream)
@@ -36,12 +36,12 @@
 (define-symbolic* y-retval-idx integer?)
 (define (x-sketch-graph input)
   (define r1 input)
-  (define r2 (single-insn (list-ref x-holes 0) (list r1)))
-  (define r3 (single-insn (list-ref x-holes 1) (list r1 r2)))
+  (define r2 (call-stream-insn (list-ref x-holes 0) (list r1)))
+  (define r3 (call-stream-insn (list-ref x-holes 1) (list r1 r2)))
   (list-ref (list r1 r2 r3) x-retval-idx))
 (define (y-sketch-graph input)
   (define r1 input)
-  (define r2 (single-insn (list-ref y-holes 0) (list r1)))
+  (define r2 (call-stream-insn (list-ref y-holes 0) (list r1)))
   (list-ref (list r1 r2) y-retval-idx))
 (define binding (time (synthesize #:forall (append (harvest s-mouse-x) (harvest s-mouse-y))
                                   #:guarantee (assert (and (same mousetail-x-graph

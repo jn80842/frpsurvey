@@ -20,20 +20,20 @@
 
 (define (sketch-graph1-1 e)
   (define r1 e)
-  (define r2 (single-insn (list-ref holes 0) (list r1)))
+  (define r2 (call-stream-insn (list-ref holes 0) (list r1)))
   (list-ref (list r1 r2) retval-idx))
 
 (define (sketch-graph1-2 e1 e2)
   (define r1 e1)
   (define r2 e2)
-  (define r3 (single-insn (list-ref holes 0) (list r1 r2)))
+  (define r3 (call-stream-insn (list-ref holes 0) (list r1 r2)))
   (list-ref (list r1 r2 r3) retval-idx))
 
 (define (sketch-graph1-3 e1 e2 e3)
   (define r1 e1)
   (define r2 e2)
   (define r3 e3)
-  (define r4 (single-insn (list-ref holes 0) (list r1 r2 r3)))
+  (define r4 (call-stream-insn (list-ref holes 0) (list r1 r2 r3)))
   (list-ref (list r1 r2 r3 r4) retval-idx))
 
 (define (sketch-graph1-5 e1 e2 e3 e4 e5)
@@ -42,7 +42,7 @@
   (define r3 e3)
   (define r4 e4)
   (define r5 e5)
-  (define r6 (single-insn (list-ref holes 0) (list r1 r2 r3 r4 r5)))
+  (define r6 (call-stream-insn (list-ref holes 0) (list r1 r2 r3 r4 r5)))
   (list-ref (list r1 r2 r3 r4 r5 r6) retval-idx))
 
 ;; constantE

@@ -5,29 +5,117 @@
 
 (provide (all-defined-out))
 
-;; a stream insn needs to know
-;; the 5-odd (symbolic) integers that define it
-;; how to execute itself
-;; how to print itself
+(struct stream-insn 
+  (op-index arg-index1 arg-index2 arg-index3 arg-int arg-index4) #:transparent)
 
-(define op-name-hash (make-hash (list (cons 0 "constantE")
-                                   (cons 1 "mergeE")
-                                   (cons 2 "collectE")
-                                   (cons 3 "startsWith")
-                                   (cons 4 "mapE")
-                                   (cons 5 "liftB1")
-                                   (cons 6 "andB")
-                                   (cons 7 "ifB")
-                                   (cons 8 "constantB")
-                                   (cons 9 "delayE")
-                                   (cons 10 "liftB2")
-                                   (cons 11 "condB")
-                                   (cons 12 "collectB")
-                                   )))
+(define (get-insn-holes)
+  (define-symbolic* op integer?)
+  (define-symbolic* arg1 integer?)
+  (define-symbolic* arg2 integer?)
+  (define-symbolic* arg3 integer?)
+  (define-symbolic* arg4 integer?)
+  (define-symbolic* arg5 integer?)
+  (stream-insn op arg1 arg2 arg3 arg4 arg5))
+
+;; what's better way to structure this?
+;; struct?
+;; shriram-inspired macro/continuation/???
+;; look at rosette source code (since this is kind of just reimplementing parts of rosette)
+
+;; for both: what is desired behavior if a bad index is chosen?
+;; or, better to constrain with asserts?
+
+;; note: putting index1 arg on every insn is repetitive, but not every instruction has one
+;; maybe factor out and add a check that insn needs this arg?
+;; also if we DON'T factor out index1 arg, no need for currying
+
+;; note: preferrable to use asserts to guard size of indexes rather than using guarded-access
+(define (call-stream-insn insn past-vars)
+  (case (op-lookup (stream-insn-op-index insn))
+    [("constantE") ((curry constantE (stream-insn-arg-int insn)) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("mergeE") ((curry mergeE (guarded-access past-vars (stream-insn-arg-index2 insn)))
+                 (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("collectE") ((curry collectE (stream-insn-arg-int insn) +) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("startsWith") ((curry startsWith (stream-insn-arg-int insn)) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("mapE") ((curry mapE (guarded-access function-list (stream-insn-arg-index2 insn)))
+               (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("liftB1") ((curry liftB1 (guarded-access function-list (stream-insn-arg-index2 insn)))
+                (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("andB") ((curry andB (guarded-access past-vars (stream-insn-arg-index2 insn))) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("ifB") ((curry ifB (guarded-access past-vars (stream-insn-arg-index2 insn)) ;; 7
+                          (guarded-access past-vars (stream-insn-arg-index3 insn))) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("constantB") (constantB (guarded-access constantB-consts (stream-insn-arg-index2 insn)))]
+    [("delayE") ((curry delayE (stream-insn-arg-int insn)) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("liftB2") ((curry liftB2 (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
+                          (guarded-access past-vars (stream-insn-arg-index3 insn))) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("condB") (condB (list (list (guarded-access past-vars (stream-insn-arg-index1 insn))
+                                  (guarded-access past-vars (stream-insn-arg-index2 insn)))
+                            (list (guarded-access past-vars (stream-insn-arg-index3 insn))
+                                  (guarded-access past-vars (stream-insn-arg-index4 insn)))
+                            (list (constantB #t)
+                                  (guarded-access past-vars (stream-insn-arg-int insn)))))]
+    [("collectB") ((curry collectB (stream-insn-arg-int insn) (guarded-access function-2arg-list (stream-insn-arg-index2 insn)))
+                  (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    ))
+
+(define (print-single-insn insn-holes binding varname past-vars)
+  (define op (op-lookup (evaluate (stream-insn-op-index insn-holes) binding)))
+  (define op-args (print-stream-insn (evaluate insn-holes binding) past-vars))
+  (format "  (define ~a (~a ~a))" varname op op-args))
+
+(define (print-stream-insn insn past-vars)
+  (case (op-lookup (stream-insn-op-index insn))
+    [("constantE") (format "~a ~a" (stream-insn-arg-int insn) (list-ref past-vars (stream-insn-arg-index1 insn)))]
+    [("mergeE") (format "~a ~a" (list-ref past-vars (stream-insn-arg-index2 insn))
+                        (list-ref past-vars (stream-insn-arg-index1 insn)))]
+    [("collectE") (format "~a + ~a" (stream-insn-arg-int insn)
+                          (list-ref past-vars (stream-insn-arg-index1 insn)))]
+    [("startsWith") (format "~a ~a" (stream-insn-arg-int insn)
+                            (list-ref past-vars (stream-insn-arg-index1 insn)))]
+    [("mapE") (format "~a ~a" (guarded-access function-list-string (stream-insn-arg-index2 insn))
+                      (list-ref past-vars (stream-insn-arg-index1 insn)))]
+    [("liftB1") (format "~a ~a" (guarded-access function-list-string (stream-insn-arg-index2 insn))
+                      (list-ref past-vars (stream-insn-arg-index1 insn)))]
+    [("andB") (format "~a ~a" (list-ref past-vars (stream-insn-arg-index2 insn))
+                      (list-ref past-vars (stream-insn-arg-index1 insn)))]
+    [("ifB") (format "~a ~a ~a" (list-ref past-vars (stream-insn-arg-index2 insn))
+                     (list-ref past-vars (stream-insn-arg-index3 insn))
+                     (list-ref past-vars (stream-insn-arg-index1 insn)))]
+    ;; NB: doesn't print symbols correctly
+    [("constantB") (format "~a" (guarded-access constantB-consts (stream-insn-arg-index2 insn)))]
+    [("delayE") (format "~a ~a" (stream-insn-arg-int insn)
+                        (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("liftB2") (format "~a ~a ~a" (guarded-access function-2arg-list-string (stream-insn-arg-index2 insn))
+                        (list-ref past-vars (stream-insn-arg-index3 insn))
+                        (list-ref past-vars (stream-insn-arg-index1 insn)))]
+    [("condB") (format "(~a ~a) (~a ~a) ((constantB #t) ~a)" (list-ref past-vars (stream-insn-arg-index1 insn))
+                       (list-ref past-vars (stream-insn-arg-index2 insn))
+                       (list-ref past-vars (stream-insn-arg-index3 insn))
+                       (list-ref past-vars (stream-insn-arg-index4 insn))
+                       (list-ref past-vars (stream-insn-arg-int insn)))]
+    [("collectB") (format "~a ~a ~a" (stream-insn-arg-int insn)
+                          (guarded-access function-2arg-list-string (stream-insn-arg-index2 insn))
+                          (list-ref past-vars (stream-insn-arg-index1 insn)))]
+    ))
+
+(define op-list (list "constantE"
+                      "mergeE"
+                      "collectE"
+                      "startsWith"
+                      "mapE"
+                      "liftB1"
+                      "andB"
+                      "ifB"
+                      "constantB"
+                      "delayE"
+                      "liftB2"
+                      "condB"
+                      "collectB"))
 
 (define (op-lookup idx)
-  (hash-ref op-name-hash idx))
+  (list-ref op-list idx))
 
+;; these lists are very unsatisfactory
 (define function-list (list (λ (e) (+ e 5))
                             (λ (t) (<= t 2))
                             (λ (c) (or (>= c 4) (>= 2 c)))
@@ -67,96 +155,13 @@
 
 (define constantB-consts (list 'on 'off #t #f))
 
-(struct stream-insn 
-  (op-index arg-index1 arg-index2 arg-index3 arg-int arg-index4) #:transparent)
-
-;; TODO add asserts to limit range of indexes
-(define (get-insn-holes)
-  (define-symbolic* op integer?)
-  (define-symbolic* arg1 integer?)
-  (define-symbolic* arg2 integer?)
-  (define-symbolic* arg3 integer?)
-  (define-symbolic* arg4 integer?)
-  (define-symbolic* arg5 integer?)
-  (stream-insn op arg1 arg2 arg3 arg4 arg5))
-
-(define (single-insn holes past-vars)
-  ((list-ref (list (curry constantE (stream-insn-arg-int holes)) ;; 0
-                   (curry mergeE (guarded-access past-vars (stream-insn-arg-index2 holes))) ;; 1
-                   (curry collectE (stream-insn-arg-int holes) +) ;; 2
-                   (curry startsWith (stream-insn-arg-int holes)) ;; 3
-                   (curry mapE (guarded-access function-list (stream-insn-arg-index2 holes))) ;; 4
-                   (curry liftB1 (guarded-access function-list (stream-insn-arg-index2 holes))) ;; 5
-                   (curry andB (guarded-access past-vars (stream-insn-arg-index2 holes)))  ;; 6
-                   (curry ifB (guarded-access past-vars (stream-insn-arg-index2 holes)) ;; 7
-                          (guarded-access past-vars (stream-insn-arg-index3 holes)))
-                   (curry constantB (guarded-access constantB-consts (stream-insn-arg-index2 holes))) ;; 8
-                   (curry delayE (stream-insn-arg-int holes)) ;; 9
-                   (curry liftB2 (guarded-access function-2arg-list (stream-insn-arg-index2 holes))
-                          (guarded-access past-vars (stream-insn-arg-index3 holes))) ;; 10
-                   (curry condB (list (list (guarded-access past-vars (stream-insn-arg-index1 holes))
-                                            (guarded-access past-vars (stream-insn-arg-index2 holes)))
-                                      (list (guarded-access past-vars (stream-insn-arg-index3 holes))
-                                            (guarded-access past-vars (stream-insn-arg-index4 holes)))
-                                      (list (constantB #t)
-                                            (guarded-access past-vars (stream-insn-arg-int holes))))) ;; 11
-                   (curry collectB (stream-insn-arg-int holes) (guarded-access function-2arg-list (stream-insn-arg-index2 holes))) ;; 12
-                   ) (stream-insn-op-index holes))
-   (guarded-access past-vars (stream-insn-arg-index1 holes))))
-
-;; the currys above are not lazily evaluated, so a lot of them are nonsense for any insn
-;; abuse dynamic typing below to carry on with nonsense values
+;; prevent rosette from picking illegal indexes
+;; (unless asserts are used to do this)
 
 (define (guarded-access lst idx)
   (if (<= (length lst) idx)
       "bad input"
       (list-ref lst idx)))
-
-;; what's better way to structure this?
-;; struct?
-;; shriram-inspired macro/continuation/???
-;; look at rosette source code (since this is kind of just reimplementing parts of rosette)
-
-(define (print-single-insn insn-holes binding varname past-vars)
-  (define op (op-lookup (evaluate (stream-insn-op-index insn-holes) binding)))
-  (define op-args (get-args-by-op op insn-holes binding past-vars))
-  (format "  (define ~a (~a ~a))" varname op op-args))
-
-(define (get-args-by-op op-name holes binding past-vars)
-  (case op-name
-    [("constantE") (format "~a ~a" (evaluate (stream-insn-arg-int holes) binding)
-                           (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    [("mergeE") (format "~a ~a" (list-ref past-vars (evaluate (stream-insn-arg-index2 holes) binding))
-                        (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    [("collectE") (format "~a + ~a" (evaluate (stream-insn-arg-int holes) binding)
-                          (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    [("startsWith") (format "~a ~a" (evaluate (stream-insn-arg-int holes) binding)
-                            (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    [("mapE") (format "~a ~a" (guarded-access function-list-string (evaluate (stream-insn-arg-index2 holes) binding))
-                      (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    [("liftB1") (format "~a ~a" (guarded-access function-list-string (evaluate (stream-insn-arg-index2 holes) binding))
-                      (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    [("andB") (format "~a ~a" (list-ref past-vars (evaluate (stream-insn-arg-index2 holes) binding))
-                      (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    [("ifB") (format "~a ~a ~a" (list-ref past-vars (evaluate (stream-insn-arg-index2 holes) binding))
-                     (list-ref past-vars (evaluate (stream-insn-arg-index3 holes) binding))
-                     (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    ;; NB: doesn't print symbols correctly
-    [("constantB") (format "~a" (guarded-access constantB-consts (evaluate (stream-insn-arg-index2 holes) binding)))]
-    [("delayE") (format "~a ~a" (evaluate (stream-insn-arg-int holes) binding)
-                        (guarded-access past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    [("liftB2") (format "~a ~a ~a" (guarded-access function-2arg-list-string (evaluate (stream-insn-arg-index2 holes) binding))
-                        (list-ref past-vars (evaluate (stream-insn-arg-index3 holes) binding))
-                        (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    [("condB") (format "(~a ~a) (~a ~a) ((constantB #t) ~a)" (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding))
-                       (list-ref past-vars (evaluate (stream-insn-arg-index2 holes) binding))
-                       (list-ref past-vars (evaluate (stream-insn-arg-index3 holes) binding))
-                       (list-ref past-vars (evaluate (stream-insn-arg-index4 holes) binding))
-                       (list-ref past-vars (evaluate (stream-insn-arg-int holes) binding)))]
-    [("collectB") (format "~a ~a ~a" (evaluate (stream-insn-arg-int holes) binding)
-                          (guarded-access function-2arg-list-string (evaluate (stream-insn-arg-index2 holes) binding))
-                          (list-ref past-vars (evaluate (stream-insn-arg-index1 holes) binding)))]
-    [else "fail"]))
 
 ;; better parameterize the number of input streams
 (define (print-from-holes holes retval binding depth input-count)
