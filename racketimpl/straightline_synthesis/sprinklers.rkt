@@ -19,11 +19,10 @@
                                                   (eq? (time-vec-hour clock) 18)
                                                   (< (time-vec-min1 clock) 1))) r5 r1))
   (define r8 (constantB 'off))
-  (define r9 (constantB #t))
-  (define r10 (condB (list (list r2 r8)
+  (define r9 (condB (list (list r2 r8)
                            (list r7 r6)
-                           (list r9 r8))))
-  r10)
+                           (list (constantB #t) r8))))
+  r9)
 (define hour-begin 4)
 (define hour-end 2)
 
@@ -34,7 +33,7 @@
     (displayln "straightline program and implementation program are equal")
     (displayln "no"))
 
-(define holes (for/list ([i (range 7)]) (get-insn-holes)))
+(define holes (for/list ([i (range 6)]) (get-insn-holes)))
 (define-symbolic* retval-idx integer?)
 
 (define (sketch-graph input1 input2 input3)
@@ -47,8 +46,7 @@
   (define r7 (call-stream-insn (list-ref holes 3) (list r1 r2 r3 r4 r5 r6)))
   (define r8 (call-stream-insn (list-ref holes 4) (list r1 r2 r3 r4 r5 r6 r7)))
   (define r9 (call-stream-insn (list-ref holes 5) (list r1 r2 r3 r4 r5 r6 r7 r8)))
-  (define r10 (call-stream-insn (list-ref holes 6) (list r1 r2 r3 r4 r5 r6 r7 r8 r9)))
-  (list-ref (list r1 r2 r3 r4 r5 r6 r7 r8 r9 r10) retval-idx))
+  (list-ref (list r1 r2 r3 r4 r5 r6 r7 r8 r9) retval-idx))
 
 (assert (and (>= (stream-insn-arg-index1 (list-ref holes 0)) 0)
              (< (stream-insn-arg-index1 (list-ref holes 0)) 3)
@@ -62,10 +60,8 @@
              (< (stream-insn-arg-index1 (list-ref holes 4)) 7)
              (>= (stream-insn-arg-index1 (list-ref holes 5)) 0)
              (< (stream-insn-arg-index1 (list-ref holes 5)) 8)
-             (>= (stream-insn-arg-index1 (list-ref holes 6)) 0)
-             (< (stream-insn-arg-index1 (list-ref holes 6)) 9)
              (>= retval-idx 0)
-             (< retval-idx 10)))
+             (< retval-idx 9)))
 
 (define binding (time (synthesize #:forall (harvest s-clockB s-motionSensorB s-raingaugeB)
                                   #:guarantee (same straightline-sprinklers-graph sketch-graph
@@ -73,5 +69,5 @@
 
 (if (unsat? binding)
     (displayln "unsat")
-    (print-from-holes holes retval-idx binding 7 3))
+    (print-from-holes holes retval-idx binding 6 3))
 

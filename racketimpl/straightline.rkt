@@ -119,7 +119,10 @@
 (define function-list (list (λ (e) (+ e 5))
                             (λ (t) (<= t 2))
                             (λ (c) (or (>= c 4) (>= 2 c)))
-                            (λ (e) (if e 'on 'off))))
+                            (λ (e) (if e 'on 'off))
+                            (λ (c) (or (>= (time-vec-hour c) 4)
+                                       (>= 2 (time-vec-hour c))))
+                            ))
 (define function-2arg-list (list (λ (clock location) (if (or (>= clock 4) (< clock 2))
                                  'night
                                  (if (equal? location 'home)
@@ -137,7 +140,10 @@
 (define function-list-string (list "(λ (e) (+ e 5))"
                                    "(λ (t) (<= t 2))"
                                    "(λ (c) (or (>= c 4) (>= 2 c)))))"
-                                   "(λ (e) (if e 'on 'off))"))
+                                   "(λ (e) (if e 'on 'off))"
+                                   "(λ (c) (or (>= (time-vec-hour c) 4)
+                                               (>= 2 (time-vec-hour c))))"
+                                   ))
 (define function-2arg-list-string (list "(λ (clock location) (if (or (>= clock hour-begin) (< clock hour-end))
                                  'night
                                  (if (equal? location 'home)
