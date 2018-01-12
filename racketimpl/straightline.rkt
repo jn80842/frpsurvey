@@ -42,8 +42,9 @@
     [("liftB1") ((curry liftB1 (guarded-access function-list (stream-insn-arg-index2 insn)))
                 (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("andB") ((curry andB (guarded-access past-vars (stream-insn-arg-index2 insn))) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
-    [("ifB") ((curry ifB (guarded-access past-vars (stream-insn-arg-index2 insn)) ;; 7
-                          (guarded-access past-vars (stream-insn-arg-index3 insn))) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("ifB") (ifB (guarded-access past-vars (stream-insn-arg-index1 insn))
+                  (guarded-access past-vars (stream-insn-arg-index2 insn))
+                  (guarded-access past-vars (stream-insn-arg-index3 insn)))]
     [("constantB") (constantB (guarded-access constantB-consts (stream-insn-arg-index2 insn)))]
     [("delayE") ((curry delayE (stream-insn-arg-int insn)) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("liftB2") ((curry liftB2 (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
@@ -104,22 +105,22 @@
     [("delayE3") (format "~a" (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     ))
 
-(define op-list (list "constantE"
-                      "mergeE"
-                      "collectE"
-                      "startsWith"
-                      "mapE"
-                      "liftB1"
-                      "andB"
-                      "ifB"
-                      "constantB"
+(define op-list (list "constantE" ;; 0
+                      "mergeE" ;; 1
+                      "collectE" ;; 2
+                      "startsWith" ;; 3
+                      "mapE" ;; 4
+                      "liftB1" ;; 5
+                      "andB" ;; 6
+                      "ifB" ;; 7
+                      "constantB" ;; 8
                      ; "delayE"
                       "liftB2"
                       "condB"
                       "collectB"
-                      "delayE1"
-                      "delayE2"
-                      "delayE3"
+                     ; "delayE1"
+                     ; "delayE2"
+                     ; "delayE3"
                       ))
 
 (define (op-lookup idx)
