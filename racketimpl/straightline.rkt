@@ -45,7 +45,7 @@
     [("ifB") (ifB (guarded-access past-vars (stream-insn-arg-index1 insn))
                   (guarded-access past-vars (stream-insn-arg-index2 insn))
                   (guarded-access past-vars (stream-insn-arg-index3 insn)))]
-    [("constantB") (constantB (guarded-access constantB-consts (stream-insn-arg-index2 insn)))]
+    [("constantB") (constantB (guarded-access constantB-consts (stream-insn-arg-index2 insn)) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("delayE") ((curry delayE (stream-insn-arg-int insn)) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("liftB2") ((curry liftB2 (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
                           (guarded-access past-vars (stream-insn-arg-index3 insn))) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
@@ -82,9 +82,9 @@
                       (list-ref past-vars (stream-insn-arg-index1 insn)))]
     [("andB") (format "~a ~a" (list-ref past-vars (stream-insn-arg-index2 insn))
                       (list-ref past-vars (stream-insn-arg-index1 insn)))]
-    [("ifB") (format "~a ~a ~a" (list-ref past-vars (stream-insn-arg-index2 insn))
-                     (list-ref past-vars (stream-insn-arg-index3 insn))
-                     (list-ref past-vars (stream-insn-arg-index1 insn)))]
+    [("ifB") (format "~a ~a ~a" (list-ref past-vars (stream-insn-arg-index1 insn))
+                     (list-ref past-vars (stream-insn-arg-index2 insn))
+                     (list-ref past-vars (stream-insn-arg-index3 insn)))]
     ;; NB: doesn't print symbols correctly
     [("constantB") (format "~a" (guarded-access constantB-consts (stream-insn-arg-index2 insn)))]
     [("delayE") (format "~a ~a" (stream-insn-arg-int insn)
@@ -105,7 +105,7 @@
     [("delayE3") (format "~a" (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     ))
 
-(define op-list (list "constantE" ;; 0
+(define op-list (list  "constantE" ;; 0
                       "mergeE" ;; 1
                       "collectE" ;; 2
                       "startsWith" ;; 3
@@ -114,7 +114,7 @@
                       "andB" ;; 6
                       "ifB" ;; 7
                       "constantB" ;; 8
-                     ; "delayE"
+                      "delayE"
                       "liftB2"
                       "condB"
                       "collectB"
@@ -150,7 +150,7 @@
                                  ))
 (define function-list-string (list "(λ (e) (+ e 5))"
                                    "(λ (t) (<= t 2))"
-                                   "(λ (c) (or (>= c 4) (>= 2 c)))))"
+                                   "(λ (c) (or (>= c 4) (>= 2 c)))"
                                    "(λ (e) (if e 'on 'off))"
                                    "(λ (c) (or (>= (time-vec-hour c) 4)
                                                (>= 2 (time-vec-hour c))))"

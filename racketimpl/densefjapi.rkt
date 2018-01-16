@@ -115,9 +115,9 @@
   (append (list 'no-evt 'no-evt) evt-stream))
 (define (delayE3 evt-stream)
   (append (list 'no-evt 'no-evt 'no-evt) evt-stream))  
-(define (delayE interval evt-stream)
-  evt-stream)
 #;(define (delayE interval evt-stream)
+  evt-stream)
+(define (delayE interval evt-stream)
   (case interval
     [(1) (append (list 'no-evt) evt-stream)]
     [(2) (append (list 'no-evt 'no-evt) evt-stream)]
@@ -164,8 +164,8 @@
 (define (changes behaviorB)
     (behavior-changes behaviorB))
 
-(define (constantB const [input 0]) ;; input just gets thrown away
-  (behavior const '()))
+(define (constantB const inputB) ;; input just gets thrown away
+  (behavior const (constantE const (changes inputB))))
 
 #;(define (delayB interval behavior1)
   (behavior (behavior-init behavior1) (delayE interval (behavior-changes behavior1))))
@@ -183,19 +183,27 @@
               (for/list ([i (range n)])
                 (list-ref (behavior-changes (list-ref (behavior-changes inputBB) i)) i)))))
 
-(define (andB behavior1 behavior2)
+#;(define (andB behavior1 behavior2)
   (let* ([max-len (max (length (behavior-changes behavior1)) (length (behavior-changes behavior2)))]
          [padded-b1 (pad-behavior behavior1 max-len)]
          [padded-b2 (pad-behavior behavior2 max-len)])
   (behavior (and (behavior-init behavior1) (behavior-init behavior2))
             (map (λ (b1 b2) (and b1 b2)) (behavior-changes padded-b1) (behavior-changes padded-b2)))))
 
-(define (orB behavior1 behavior2)
+(define (andB behavior1 behavior2)
+  (behavior (and (behavior-init behavior1) (behavior-init behavior2))
+            (map (λ (b1 b2) (and b1 b2)) (behavior-changes behavior1) (behavior-changes behavior2))))
+
+#;(define (orB behavior1 behavior2)
   (let* ([max-len (max (length (behavior-changes behavior1)) (length (behavior-changes behavior2)))]
          [padded-b1 (pad-behavior behavior1 max-len)]
          [padded-b2 (pad-behavior behavior2 max-len)])
     (behavior (or (behavior-init behavior1) (behavior-init behavior2))
               (map (λ (b1 b2) (or b1 b2)) (behavior-changes padded-b1) (behavior-changes padded-b2)))))
+
+(define (orB behavior1 behavior2)
+  (behavior (or (behavior-init behavior1) (behavior-init behavior2))
+            (map (λ (b1 b2) (or b1 b2)) (behavior-changes behavior1) (behavior-changes behavior2))))
 
 (define (notB behavior1)
   (behavior (not (behavior-init behavior1)) (notE (behavior-changes behavior1))))
@@ -221,13 +229,20 @@
                                            (map (λ (bp) (list (pad-behavior-changes (first bp) max-len) (pad-behavior-changes (second bp) max-len))) behaviorpairs)))
               ))))
 
-(define (ifB conditionB trueB falseB)
+#;(define (ifB conditionB trueB falseB)
   (let ([max-len (max (length (behavior-changes conditionB)) (length (behavior-changes trueB)) (length (behavior-changes falseB)))])
   (behavior (if (behavior-init conditionB) (behavior-init trueB) (behavior-init falseB))
             (map (λ (cB tB fB) (if cB tB fB))
                  (pad-behavior-changes conditionB max-len)
                  (pad-behavior-changes trueB max-len)
                  (pad-behavior-changes falseB max-len)))))
+
+(define (ifB conditionB trueB falseB)
+  (behavior (if (behavior-init conditionB) (behavior-init trueB) (behavior-init falseB))
+            (map (λ (cB tB fB) (if cB tB fB))
+                 (behavior-changes conditionB)
+                 (behavior-changes trueB)
+                 (behavior-changes falseB))))
 
 ;; timerB
 
