@@ -52,9 +52,9 @@
             (liftB2 (λ (rain clock) (if (is-midnight? clock) 'midnight rain)) raingaugeB clockB)))
 
 (define (sprinklers-graph clockB motionSensorB raingaugeB)
-  (condB (list (list motionSensorB (constantB 'off))
+  (condB (list (list motionSensorB (constantB 'off clockB))
                (list (liftB2 (λ (rain clock) (and (not rain)
                                                   (eq? (time-vec-hour clock) 18)
                                                   (< (time-vec-min1 clock) 1)))
-                             (saw-rain-last-dayB raingaugeB clockB) clockB) (constantB 'on))
-               (list (constantB #t) (constantB 'off)))))
+                             (saw-rain-last-dayB raingaugeB clockB) clockB) (constantB 'on clockB))
+               (list (constantB #t clockB) (constantB 'off clockB)))))

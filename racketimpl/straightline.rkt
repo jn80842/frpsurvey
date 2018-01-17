@@ -32,31 +32,39 @@
 ;; note: preferrable to use asserts to guard size of indexes rather than using guarded-access
 (define (call-stream-insn insn past-vars)
   (case (op-lookup (stream-insn-op-index insn))
-    [("constantE") ((curry constantE (stream-insn-arg-int insn)) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("constantE") ((curry constantE (stream-insn-arg-int insn)) 
+                    (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("mergeE") ((curry mergeE (guarded-access past-vars (stream-insn-arg-index2 insn)))
                  (guarded-access past-vars (stream-insn-arg-index1 insn)))]
-    [("collectE") ((curry collectE (stream-insn-arg-int insn) +) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
-    [("startsWith") ((curry startsWith (stream-insn-arg-int insn)) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("collectE") ((curry collectE (stream-insn-arg-int insn) +)
+                   (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("startsWith") ((curry startsWith (stream-insn-arg-int insn))
+                     (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("mapE") ((curry mapE (guarded-access function-list (stream-insn-arg-index2 insn)))
                (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("liftB1") ((curry liftB1 (guarded-access function-list (stream-insn-arg-index2 insn)))
-                (guarded-access past-vars (stream-insn-arg-index1 insn)))]
-    [("andB") ((curry andB (guarded-access past-vars (stream-insn-arg-index2 insn))) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+                 (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("andB") ((curry andB (guarded-access past-vars (stream-insn-arg-index2 insn)))
+               (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("ifB") (ifB (guarded-access past-vars (stream-insn-arg-index1 insn))
                   (guarded-access past-vars (stream-insn-arg-index2 insn))
                   (guarded-access past-vars (stream-insn-arg-index3 insn)))]
-    [("constantB") (constantB (guarded-access constantB-consts (stream-insn-arg-index2 insn)) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
-    [("delayE") ((curry delayE (stream-insn-arg-int insn)) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("constantB") (constantB (guarded-access constantB-consts (stream-insn-arg-index2 insn))
+                              (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("delayE") ((curry delayE (stream-insn-arg-int insn))
+                 (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("liftB2") ((curry liftB2 (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
-                          (guarded-access past-vars (stream-insn-arg-index3 insn))) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+                        (guarded-access past-vars (stream-insn-arg-index3 insn))) 
+                 (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("condB") (condB (list (list (guarded-access past-vars (stream-insn-arg-index1 insn))
                                   (guarded-access past-vars (stream-insn-arg-index2 insn)))
                             (list (guarded-access past-vars (stream-insn-arg-index3 insn))
                                   (guarded-access past-vars (stream-insn-arg-index4 insn)))
-                            (list (constantB #t)
+                            (list (constantB #t (guarded-access past-vars (stream-insn-arg-index1 insn)))
                                   (guarded-access past-vars (stream-insn-arg-int insn)))))]
-    [("collectB") ((curry collectB (stream-insn-arg-int insn) (guarded-access function-2arg-list (stream-insn-arg-index2 insn)))
-                  (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("collectB") (collectB (guarded-access constantB-consts (stream-insn-arg-index2 insn))
+                            (guarded-access function-2arg-list (stream-insn-arg-index3 insn))
+                            (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("delayE1") (delayE1 (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("delayE2") (delayE2 (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("delayE3") (delayE3 (guarded-access past-vars (stream-insn-arg-index1 insn)))]
@@ -97,8 +105,8 @@
                        (list-ref past-vars (stream-insn-arg-index3 insn))
                        (list-ref past-vars (stream-insn-arg-index4 insn))
                        (list-ref past-vars (stream-insn-arg-int insn)))]
-    [("collectB") (format "~a ~a ~a" (stream-insn-arg-int insn)
-                          (guarded-access function-2arg-list-string (stream-insn-arg-index2 insn))
+    [("collectB") (format "~a ~a ~a" (guarded-access constantB-consts (stream-insn-arg-index2 insn))
+                          (guarded-access function-2arg-list-string (stream-insn-arg-index3 insn))
                           (list-ref past-vars (stream-insn-arg-index1 insn)))]
     [("delayE1") (format "~a" (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("delayE2") (format "~a" (guarded-access past-vars (stream-insn-arg-index1 insn)))]
@@ -114,10 +122,10 @@
                       "andB" ;; 6
                       "ifB" ;; 7
                       "constantB" ;; 8
-                      "delayE"
-                      "liftB2"
-                      "condB"
-                      "collectB"
+                      "delayE" ;; 9
+                      "liftB2" ;; 10
+                      "condB" ;; 11
+                      "collectB" ;; 12
                      ; "delayE1"
                      ; "delayE2"
                      ; "delayE3"
@@ -170,7 +178,7 @@
                                                   (< (time-vec-min1 clock) 1)))"
                                         ))
 
-(define constantB-consts (list 'on 'off #t #f))
+(define constantB-consts (list 'on 'off #t #f 0))
 
 ;; prevent rosette from picking illegal indexes
 ;; (unless asserts are used to do this)

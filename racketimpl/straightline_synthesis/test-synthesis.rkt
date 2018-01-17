@@ -170,7 +170,7 @@
   (define r3 b3)
   (define r4 b4)
   (define r5 b5)
-  (define r6 (condB (list (list r1 r2) (list r3 r4) (list (constantB #t) r5))))
+  (define r6 (condB (list (list r1 r2) (list r3 r4) (list (constantB #t r1) r5))))
   r6)
 
 (define b-condB (synthesize #:forall (harvest bool-behavior bool-behavior2 int-behavior int-behavior2 int-behavior3)

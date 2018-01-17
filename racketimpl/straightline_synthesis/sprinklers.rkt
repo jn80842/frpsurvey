@@ -5,6 +5,8 @@
 (require "../straightline.rkt")
 (require "../benchmarks/sprinklers.rkt")
 
+;(error-print-width 100000000000)
+
 (current-bitwidth 6)
 
 (define (straightline-sprinklers-graph clockB motionSensorB raingaugeB)
@@ -13,18 +15,17 @@
   (define r3 raingaugeB)
   (define r4 (liftB2 (λ (rain clock) (if (is-midnight? clock) 'midnight rain)) r3 r1))
   (define r5 (collectB #f (λ (r prev) (if (eq? r 'midnight) #f
-                               (if r #t prev))) r4))
-  (define r6 (constantB 'on))
+                                          (if r #t prev))) r4))
+  (define r6 (constantB 'on r1))
   (define r7 (liftB2 (λ (rain clock) (and (not rain)
-                                                  (eq? (time-vec-hour clock) 18)
-                                                  (< (time-vec-min1 clock) 1))) r5 r1))
-  (define r8 (constantB 'off))
+                                          (eq? (time-vec-hour clock) 18)
+                                          (< (time-vec-min1 clock) 1))) r5 r1))
+  (define r8 (constantB 'off r1))
   (define r9 (condB (list (list r2 r8)
-                           (list r7 r6)
-                           (list (constantB #t) r8))))
+                          (list r7 r6)
+                          (list (constantB #t r1) r8))))
   r9)
-(define hour-begin 4)
-(define hour-end 2)
+
 
 (define v-binding (verify (assert (same sprinklers-graph
                                         straightline-sprinklers-graph
@@ -48,7 +49,7 @@
   (define r9 (call-stream-insn (list-ref holes 5) (list r1 r2 r3 r4 r5 r6 r7 r8)))
   (list-ref (list r1 r2 r3 r4 r5 r6 r7 r8 r9) retval-idx))
 
-(assert (and (>= (stream-insn-arg-index1 (list-ref holes 0)) 0)
+#;(assert (and (>= (stream-insn-arg-index1 (list-ref holes 0)) 0)
              (< (stream-insn-arg-index1 (list-ref holes 0)) 3)
              (>= (stream-insn-arg-index1 (list-ref holes 1)) 0)
              (< (stream-insn-arg-index1 (list-ref holes 1)) 4)
@@ -64,8 +65,8 @@
              (< retval-idx 9)))
 
 (define binding (time (synthesize #:forall (harvest s-clockB s-motionSensorB s-raingaugeB)
-                                  #:guarantee (same straightline-sprinklers-graph sketch-graph
-                                                    s-clockB s-motionSensorB s-raingaugeB))))
+                                  #:guarantee (assert (same straightline-sprinklers-graph sketch-graph
+                                                    s-clockB s-motionSensorB s-raingaugeB)))))
 
 (if (unsat? binding)
     (displayln "unsat")
