@@ -33,7 +33,7 @@
   (define r4 (call-stream-insn (list-ref holes 1) (list r1 r2 r3)))
   (define r5 (call-stream-insn (list-ref holes 2) (list r1 r2 r3 r4)))
   (define r6 (call-stream-insn (list-ref holes 3) (list r1 r2 r3 r4 r5)))
-  (define r7 (call-stream-insn (list-ref holes 4) (list r1 r2 r3 r4 r5 r6)))
+  (define r7 (call-stream-insn-full (list-ref holes 4) (list r1 r2 r3 r4 r5 r6)))
   (list-ref (list r1 r2 r3 r4 r5 r6 r7) retval-idx))
 
 ;; note: adding these assertions makes synthesis ~10s slower (z3 time)

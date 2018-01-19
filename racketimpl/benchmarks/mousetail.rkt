@@ -13,7 +13,7 @@
 
 (current-bitwidth 5)
 
-(define stream-length 1)
+(define stream-length 2)
 (define time-delay 3)
 (define x-offset 5)
 

@@ -70,13 +70,19 @@
     [("delayE3") (delayE3 (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     ))
 
+(define (call-stream-insn-full insn past-vars)
+  (case (full-lookup (stream-insn-op-index insn))
+    [("delayE") ((curry delayE (stream-insn-arg-int insn))
+                 (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [else (call-stream-insn insn past-vars)]))
+
 (define (print-single-insn insn-holes binding varname past-vars)
-  (define op (op-lookup (evaluate (stream-insn-op-index insn-holes) binding)))
+  (define op (full-lookup (evaluate (stream-insn-op-index insn-holes) binding)))
   (define op-args (print-stream-insn (evaluate insn-holes binding) past-vars))
   (format "  (define ~a (~a ~a))" varname op op-args))
 
 (define (print-stream-insn insn past-vars)
-  (case (op-lookup (stream-insn-op-index insn))
+  (case (full-lookup (stream-insn-op-index insn))
     [("constantE") (format "~a ~a" (stream-insn-arg-int insn) (list-ref past-vars (stream-insn-arg-index1 insn)))]
     [("mergeE") (format "~a ~a" (list-ref past-vars (stream-insn-arg-index2 insn))
                         (list-ref past-vars (stream-insn-arg-index1 insn)))]
@@ -122,7 +128,7 @@
                       "andB" ;; 6
                       "ifB" ;; 7
                       "constantB" ;; 8
-                      "delayE" ;; 9
+                     ; "delayE" ;; 9
                       "liftB2" ;; 10
                       "condB" ;; 11
                       "collectB" ;; 12
@@ -131,8 +137,14 @@
                      ; "delayE3"
                       ))
 
+
 (define (op-lookup idx)
   (list-ref op-list idx))
+(define (full-lookup idx)
+  (case idx
+    [(-1) "delayE"]
+    [else (op-lookup idx)]))
+
 
 ;; these lists are very unsatisfactory
 (define function-list (list (λ (e) (+ e 5))
