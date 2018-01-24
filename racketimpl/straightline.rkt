@@ -133,7 +133,7 @@
                       "condB" ;; 9
                       "collectB" ;; 10
                       "constantE" ;; 11
-                   ;   "delayE" ;; 12
+                      "delayE" ;; 12
                       ))
 
 
