@@ -119,6 +119,7 @@
   evt-stream)
 (define (delayE interval evt-stream)
   (case interval
+    [(0) evt-stream]
     [(1) (append (list 'no-evt) evt-stream)]
     [(2) (append (list 'no-evt 'no-evt) evt-stream)]
     [(3) (append (list 'no-evt 'no-evt 'no-evt) evt-stream)]

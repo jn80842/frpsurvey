@@ -64,7 +64,7 @@
 
 ;; delayE tests
 (check-equal? (delayE 3 (list 1 'no-evt 'no-evt 2 3)) (list 'no-evt 'no-evt 'no-evt 1 'no-evt 'no-evt 2 3))
-
+(check-equal? (delayE 0 (list 'no-evt 1 'no-evt 2 3)) (list 'no-evt 1 'no-evt 2 3))
 
 ;; calmE tests
 ;(check-equal? (calmE 3 '(a no-evt no-evt no-evt b c d)) '(no-evt no-evt no-evt a no-evt no-evt no-evt d))
@@ -85,8 +85,8 @@
 (check-equal? (startsWith 'a '(no-evt no-evt b no-evt c d)) (behavior 'a '(a a b b c d)))
 
 ;; changes tests
-;(check-equal? (changes (behavior 0 (list (list 1 1) (list 2 2) (list 3 3)))) (list (list 1 1) (list 2 2) (list 3 3)))
-;(check-equal? (changes (behavior 0 '())) '())
+(check-equal? (changes (behavior 0 (list (list 1 1) (list 2 2) (list 3 3)))) (list (list 1 1) (list 2 2) (list 3 3)))
+(check-equal? (changes (behavior 0 '())) '())
 
 ;; behavior
 (check-equal? (behavior-init (behavior 'a '())) 'a)
