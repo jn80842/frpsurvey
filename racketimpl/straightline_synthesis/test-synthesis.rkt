@@ -57,7 +57,8 @@
 (if (unsat? b)
     (displayln "!!!!! constantE graph not synthesized !!!!!")
     (begin (displayln "* constantE graph successfully synthesized")
-           (print-from-holes holes retval-idx b 1 1)))
+           (print-from-holes (evaluate holes b)
+                             (evaluate retval-idx b) 1)))
 
 ;; mergeE
 
@@ -77,7 +78,8 @@
 (if (unsat? b-merge)
     (displayln "!!!!! mergeE graph not synthesized !!!!!")
     (begin (displayln "* mergeE graph successfully synthesized")
-           (print-from-holes holes retval-idx b-merge 1 2)))
+           (print-from-holes (evaluate holes b-merge)
+                             (evaluate retval-idx b-merge) 2)))
 
 (clear-asserts!)
 
@@ -95,7 +97,8 @@
 (if (unsat? b-collect)
     (displayln "!!!!! collectE graph not synthesized !!!!!")
     (begin (displayln "* collectE graph successfully synthesized")
-           (print-from-holes holes retval-idx b-collect 1 1)))
+           (print-from-holes (evaluate holes b-collect)
+                             (evaluate retval-idx b-collect) 1)))
 
 ;; startsWith
 
@@ -111,7 +114,8 @@
 (if (unsat? b-startsWith)
     (displayln "!!!!! startsWith graph not synthesized !!!!!")
     (begin (displayln "* startsWith graph successfully synthesized")
-           (print-from-holes holes retval-idx b-startsWith 1 1)))
+           (print-from-holes (evaluate holes b-startsWith)
+                             (evaluate retval-idx b-startsWith) 1)))
 
 ;; mapE
 
@@ -127,7 +131,8 @@
 (if (unsat? b-map)
     (displayln "!!!!! mapE graph not synthesized !!!!!")
     (begin (displayln "* mapE graph successfully synthesized")
-           (print-from-holes holes retval-idx b-map 1 1)))
+           (print-from-holes (evaluate holes b-map)
+                             (evaluate retval-idx b-map) 1)))
 
 ;; liftB1
 
@@ -143,7 +148,8 @@
 (if (unsat? b-liftB1)
     (displayln "!!!!! liftB1 graph not synthesized !!!!!")
     (begin (displayln "* liftB1 graph successfully synthesized")
-           (print-from-holes holes retval-idx b-liftB1 1 1)))
+           (print-from-holes (evaluate holes b-liftB1)
+                             (evaluate retval-idx b-liftB1) 1)))
 
 ;; liftB2
 
@@ -160,7 +166,8 @@
 (if (unsat? b-liftB2)
     (displayln "!!!!! liftB2 graph not synthesized !!!!!")
     (begin (displayln "* liftB2 graph successfully synthesized")
-           (print-from-holes holes retval-idx b-liftB2 1 2)))
+           (print-from-holes (evaluate holes b-liftB2)
+                             (evaluate retval-idx b-liftB2) 2)))
 
 ;; condB
 
@@ -180,7 +187,8 @@
 (if (unsat? b-condB)
     (displayln "!!!!! condB graph not synthesized !!!!!")
     (begin (displayln "* condB graph successfully synthesized")
-           (print-from-holes holes retval-idx b-condB 1 5)))
+           (print-from-holes (evaluate holes b-condB)
+                             (evaluate retval-idx b-condB) 5)))
 
 ;; andB
 
@@ -197,7 +205,8 @@
 (if (unsat? b-andB)
     (displayln "!!!!! andB graph not synthesized !!!!!")
     (begin (displayln "* andB graph successfully synthesized")
-           (print-from-holes holes retval-idx b-andB 1 2)))
+           (print-from-holes (evaluate holes b-andB)
+                             (evaluate retval-idx b-andB) 2)))
 
 ;; ifB
 
@@ -216,7 +225,8 @@
 (if (unsat? b-ifB)
     (displayln "!!!!! ifB graph not synthesized !!!!!")
     (begin (displayln "* ifB graph successfully synthesized")
-           (print-from-holes holes retval-idx b-ifB 1 3)))
+           (print-from-holes (evaluate holes b-ifB)
+                             (evaluate retval-idx b-ifB) 3)))
 
 ;; constantB
 
@@ -233,7 +243,8 @@
 (if (unsat? b-constantB)
     (displayln "!!!!! constantB graph not synthesized !!!!!")
     (begin (displayln "* constantB graph successfully synthesized")
-           (print-from-holes holes retval-idx b-constantB 1 1)))
+           (print-from-holes (evaluate holes b-constantB)
+                             (evaluate retval-idx b-constantB) 1)))
 
 ;; collectB
 
@@ -249,4 +260,5 @@
 (if (unsat? b-collectB)
     (displayln "!!!!!! collectB graph not synthesized !!!!!")
     (begin (displayln "* collectB graph successfully synthesized")
-           (print-from-holes holes retval-idx b-collectB 1 1)))
+           (print-from-holes (evaluate holes b-collectB)
+                             (evaluate retval-idx b-collectB) 1)))

@@ -1,5 +1,5 @@
 #lang rosette
-(require rosette/lib/synthax)
+
 (require "dense-fjmodels.rkt")
 (require "densefjapi.rkt")
 
@@ -32,7 +32,7 @@
 ;; note: preferrable to use asserts to guard size of indexes rather than using guarded-access
 (define (call-stream-insn insn past-vars)
   (case (op-lookup (stream-insn-op-index insn))
-    [("constantE") ((curry constantE (stream-insn-arg-int insn)) 
+    [("constantE") ((curry constantE (stream-insn-arg-int insn))
                     (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [("mergeE") ((curry mergeE (guarded-access past-vars (stream-insn-arg-index2 insn)))
                  (guarded-access past-vars (stream-insn-arg-index1 insn)))]
@@ -74,15 +74,17 @@
   (case (full-lookup (stream-insn-op-index insn))
     [("delayE") ((curry delayE (stream-insn-arg-int insn))
                  (guarded-access past-vars (stream-insn-arg-index1 insn)))]
+    [("constantE") ((curry constantE (stream-insn-arg-int insn)) 
+                    (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     [else (call-stream-insn insn past-vars)]))
 
-(define (print-single-insn insn-holes binding varname past-vars)
-  (define op (full-lookup (evaluate (stream-insn-op-index insn-holes) binding)))
-  (define op-args (print-stream-insn (evaluate insn-holes binding) past-vars))
+(define (print-single-insn bound-holes varname past-vars)
+  (define op (op-lookup (stream-insn-op-index bound-holes)))
+  (define op-args (print-stream-insn bound-holes past-vars))
   (format "  (define ~a (~a ~a))" varname op op-args))
 
 (define (print-stream-insn insn past-vars)
-  (case (full-lookup (stream-insn-op-index insn))
+  (case (op-lookup (stream-insn-op-index insn))
     [("constantE") (format "~a ~a" (stream-insn-arg-int insn) (list-ref past-vars (stream-insn-arg-index1 insn)))]
     [("mergeE") (format "~a ~a" (list-ref past-vars (stream-insn-arg-index2 insn))
                         (list-ref past-vars (stream-insn-arg-index1 insn)))]
@@ -119,22 +121,19 @@
     [("delayE3") (format "~a" (guarded-access past-vars (stream-insn-arg-index1 insn)))]
     ))
 
-(define op-list (list  "constantE" ;; 0
-                      "mergeE" ;; 1
-                      "collectE" ;; 2
-                      "startsWith" ;; 3
-                      "mapE" ;; 4
-                      "liftB1" ;; 5
-                      "andB" ;; 6
-                      "ifB" ;; 7
-                      "constantB" ;; 8
-                     ; "delayE" ;; 9
-                      "liftB2" ;; 10
-                      "condB" ;; 11
-                      "collectB" ;; 12
-                     ; "delayE1"
-                     ; "delayE2"
-                     ; "delayE3"
+(define op-list (list "mergeE" ;; 0
+                      "collectE" ;; 1
+                      "startsWith" ;; 2
+                      "mapE" ;; 3
+                      "liftB1" ;; 4
+                      "andB" ;; 5
+                      "ifB" ;; 6
+                      "constantB" ;; 7
+                      "liftB2" ;; 8
+                      "condB" ;; 9
+                      "collectB" ;; 10
+                      "constantE" ;; 11
+                   ;   "delayE" ;; 12
                       ))
 
 
@@ -143,6 +142,7 @@
 (define (full-lookup idx)
   (case idx
     [(-1) "delayE"]
+    [(-2) "constantE"]
     [else (op-lookup idx)]))
 
 
@@ -200,18 +200,25 @@
       "bad input"
       (list-ref lst idx)))
 
+(define (string-from-holes bound-holes retval input-count)
+  (let* ([arg-list (for/list ([i (range input-count)])
+                    (format "input~a" (add1 i)))]
+        [input-stmt-list (for/list ([i (range input-count)])
+                           (format "  (define r~a input~a)" (add1 i) (add1 i)))]
+        [depth (length bound-holes)]
+        [varlist (for/list ([i (range (add1 (+ input-count depth)))])
+                                            (format "r~a" (add1 i)))]
+        [synthed-stmt-list (for/list ([i (range depth)])
+                             (print-single-insn (list-ref bound-holes i) (list-ref varlist (+ input-count i))
+                                                (take varlist (+ input-count i))))]
+        [return-stmt (format "  ~a)" (list-ref varlist retval))])
+    (string-append (format "(define (synthesized-function ~a)\n" (string-join arg-list))
+                   (string-join input-stmt-list "\n")
+                   "\n"
+                   (string-join synthed-stmt-list "\n")
+                   "\n"
+                   return-stmt)))
+
 ;; better parameterize the number of input streams
-(define (print-from-holes holes retval binding depth input-count)
-  (define arg-list (for/list ([i (range input-count)])
-    (format "input~a" (add1 i))))
-  (displayln (format "(define (synthesized-function ~a)" (string-join arg-list)))
-
-  (for ([i (range input-count)])
-    (displayln (format "  (define r~a input~a)" (add1 i) (add1 i))))
-
-  (define varlist (for/list ([i (range (+ input-count depth))])
-                    (format "r~a" (add1 i))))
-  (for/list ([i (range depth)])
-    (displayln (print-single-insn (list-ref holes i) binding (list-ref varlist (+ input-count i))
-                                  (take varlist (+ input-count i)))))
-  (displayln (format "  ~a)" (list-ref varlist (evaluate retval binding)))))
+(define (print-from-holes bound-holes retval input-count)
+  (displayln (string-from-holes bound-holes retval input-count)))
