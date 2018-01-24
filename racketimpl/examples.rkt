@@ -2,42 +2,50 @@
 
 ;; Example Task 1
 
-;; User wants to write a program to control the porchlight.
-;; When they enter their house (as determined by a location service
-;; on their phone), they want the porchlight to turn on, and when
-;; they leave their garage, they want their porchlight to turn on.
+;; The user wants to write a program that will turn on a light at
+;; 6am, then turn it off after sunrise.
 
-;; The input to the program is a behavior holding the user location state.
-;; The output of the program is an event stream that will control the porchlight
+;; They write the following program that takes an input an event stream
+;; representing minute ticks of a clock and an event stream that sends a signal
+;; at sunrise each day, and outputs an event stream of commands to issue to
+;; the light.
 
-;; Here is an attempt to write that program
-(define (porchlight-graph userLocationB)
-  (mergeE
-   (changes (collectB (λ (prev current) (if (and (eq? current 'house)
-                                                     (not (eq? current 'house))) 'on 'off)) userLocationB))
-   (changes (collectB (λ (prev current) (if (and (not (eq? current 'garage))
-                                                     (eq? current 'garage))) 'off 'on) userLocationB))))
+(define (early-morning-lightE clockE sunriseE)
+  (mergeE (constantE 'off sunriseE)
+          (constantE 'on (filterE (λ (c) (is-six-am? c)) clockE))))
 
-;; However, this program has a bug: if the user leaves their garage and directly enters their home,
-;; the porchlight will be turned on and off at the same timestep.
+;; Several months later, the user comes home and discovers that the light
+;; has been on all day.
 
-;; Instead, the user provides two sample input/output pairs for the desired program:
-'(house house away away work)
-'(no-evt no-evt off no-evt no-evt)
+;; Instead, imagine the user has specified their desired program by
+;; giving the following input and output pair (assume the clock event stream
+;; need not specify every possible time for any given interval):
 
-'(house house garage away away)
-'(no-evt no-evt no-evt off no-evt)
+'(5:59   6:00   6:30   7:21    8:00)
+'(no-evt no-evt no-evt sunrise no-evt)
+'(no-evt on     no-evt off     no-evt)
 
-;; Given this spec, the synthesizer can produce more than one unique program, so it
-;; gives the user an input that can disambiguate the candidate programs
+;; There are many possible programs that can produce that output, so the synthesizer
+;; finds a disambiguating input and asks the user what the outcome should be.
 
-'(work away away garage house)
+'(5:30   5:49    6:00   6:30)
+'(no-evt sunrise no-evt no-evt)
 
-;; The user supplies the desired output
+;; In this case, in which sunrise occurs before 6am, the user doesn't want
+;; the light to turn on at all.
 
-'(no-evt no-evt no-evt no-evt on)
+'(no-evt no-evt no-evt no-evt)
 
-;; And the new input/output pair is added to the spec. 
+;; Through these types of interactions, the synthesizer eventually produces
+;; a correct program:
+
+(define (early-morning-lightE clockE sunriseE)
+  (let ([seen-todays-sunriseB (startsWith #f (mergeE (constantE #f (filter (λ (c) (is-midnight? c)) clockE))
+                                                     (constantE #t sunriseE)))])
+    (filterRepeatsE (mergeE (constantE 'off sunriseE)
+                            (constantE 'on (filterE (notE (snapshotE seen-todays-sunriseB
+                                                                     (filterE (λ (c) (is-six-am? c))
+                                                                              clockE)))))))))
 
 ;; Example Task 2
 
