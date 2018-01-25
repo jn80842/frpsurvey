@@ -65,9 +65,9 @@
 ;; In this case, it may be easier for the user to state properties the program should have than
 ;; to write the program itself. Here we state the English-language spec above in LTL formulas.
 
-(assert (globally (implies (motion-sensor-on? ms) (outdoor-light-on? ol))))
+;(assert (globally (implies (motion-sensor-on? ms) (next (outdoor-light-on? ol)))))
 (assert (globally (implies (and (not (motion-sensor-on? ms))
                                 (not (motion-sensor-on? (next ms)))
                                 (not (motion-sensor-on? (next (next ms)))))
-                           (not (outdoor-light-on? ol)))))
+                           (next (next (next (not (outdoor-light-on? ol))))))))
 
