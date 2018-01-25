@@ -8,7 +8,8 @@
 
 (define holes (for/list ([i (range 3)])
                 (get-insn-holes)))
-
+(define comm-insn-holes (for/list ([i (range 3)])
+                     (get-comm-insn-holes)))
 (define int-stream (new-event-stream sym-integer stream-length))
 (define int-stream2 (new-event-stream sym-integer stream-length))
 
@@ -20,20 +21,30 @@
 
 (define (sketch-graph1-1 e)
   (define r1 e)
-  (define r2 (call-full-fixed-stream-insn (list-ref holes 0) r1))
-  r2)
+  (define r2 (call-fixed-stream-insn (list-ref holes 0) r1))
+  (define r3 (call-fixed-comm-insn (list-ref comm-insn-holes 0) r2))
+  r3)
 
-(define (print-sketch-graph1-1 insn)
-  (displayln (format "(define (synthesized-function input1)\n  (define r1 input1)\n~a\n  r2)"
-                              (print-single-insn insn "r2" "r1"))))
+(define (print-sketch-graph1-1 insn comm-insn)
+  (displayln (format "(define (synthesized-function input1)\n  (define r1 input1)\n~a\n~a\n  r3)"
+                              (print-single-insn insn "r2" "r1")
+                              (print-single-insn comm-insn "r3" "r2"))))
 
 (define (sketch-graph1-2 e1 e2)
   (define r1 e1)
   (define r2 e2)
-  (define r3 (call-full-fixed-stream-insn (list-ref holes 0) r1))
-  (define r4 (call-full-fixed-stream-insn (list-ref holes 1) r2))
-  (define r5 (call-full-fixed-stream-insn (list-ref holes 2) r3 r4))
-  r5)
+  (define r3 (call-fixed-comm-insn (list-ref comm-insn-holes 0) r1))
+  (define r4 (call-fixed-comm-insn (list-ref comm-insn-holes 1) r2))
+  (define r5 (call-fixed-stream-insn (list-ref holes 0) r3 r4))
+  (define r6 (call-fixed-comm-insn (list-ref comm-insn-holes 2) r5))
+  r6)
+
+(define (print-sketch-graph1-2 insns comm-insns)
+  (displayln (format "(define (synthesized-function input1 input2)\n  (define r1 input1)\n  (define r2 input2)\n~a\n~a\n~a\n~a\n  r6)"
+                     (print-single-insn (list-ref comm-insns 0) "r3" "r1")
+                     (print-single-insn (list-ref comm-insns 1) "r4" "r2")
+                     (print-single-insn (list-ref insns 0) "r5" "r3" "r4")
+                     (print-single-insn (list-ref comm-insns 2) "r6" "r5"))))
 
 #;(define (sketch-graph1-2 e1 e2)
   (define r1 e1)
@@ -69,7 +80,8 @@
 (if (unsat? b)
     (displayln "!!!!! constantE graph not synthesized !!!!!")
     (begin (displayln "* constantE graph successfully synthesized")
-           (print-sketch-graph1-1 (list-ref (evaluate holes b) 0))))
+           (print-sketch-graph1-1 (list-ref (evaluate holes b) 0)
+                                  (list-ref (evaluate comm-insn-holes b) 0))))
 
 ;; mergeE
 
@@ -89,10 +101,8 @@
 (if (unsat? b-merge)
     (displayln "!!!!! mergeE graph not synthesized !!!!!")
     (begin (displayln "* mergeE graph successfully synthesized")
-           (print-from-holes (evaluate holes b-merge)
-                             (list (list "r1")
-                                   (list "r2")
-                                   (list "r3" "r4")) 2)))
+           (print-sketch-graph1-2 (evaluate holes b-merge)
+                                  (evaluate comm-insn-holes b-merge))))
 
 (clear-asserts!)
 
@@ -110,8 +120,8 @@
 (if (unsat? b-collect)
     (displayln "!!!!! collectE graph not synthesized !!!!!")
     (begin (displayln "* collectE graph successfully synthesized")
-           (displayln (format "(define (synthesized-function input1)\n  (define r1 input1)\n~a\n  r2)"
-                              (print-single-insn (list-ref (evaluate holes b) 0) "r2" "r1")))))
+           (print-sketch-graph1-1 (list-ref (evaluate holes b-collect) 0)
+                                  (list-ref (evaluate comm-insn-holes b-collect) 0))))
 
 ;; startsWith
 
@@ -127,7 +137,8 @@
 (if (unsat? b-startsWith)
     (displayln "!!!!! startsWith graph not synthesized !!!!!")
     (begin (displayln "* startsWith graph successfully synthesized")
-           (print-sketch-graph1-1 (list-ref (evaluate holes b-startsWith) 0))))
+           (print-sketch-graph1-1 (list-ref (evaluate holes b-startsWith) 0)
+                                  (list-ref (evaluate comm-insn-holes b-startsWith) 0))))
 
 ;; mapE
 

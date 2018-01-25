@@ -7,12 +7,20 @@
 
 (struct fixed-stream-insn
   (op-index arg-index arg-int) #:transparent)
+(struct fixed-comm-insn
+  (delay-int constant-idx constant-int) #:transparent)
 
 (define (get-insn-holes)
   (define-symbolic* op integer?)
   (define-symbolic* arg1 integer?)
   (define-symbolic* arg2 integer?)
   (fixed-stream-insn op arg1 arg2))
+
+(define (get-comm-insn-holes)
+  (define-symbolic* delay-int integer?)
+  (define-symbolic* constant-idx integer?)
+  (define-symbolic* constant-int integer?)
+  (fixed-comm-insn delay-int constant-idx constant-int))
 
 ;; what's better way to structure this?
 ;; struct?
@@ -29,6 +37,7 @@
 ;; note: preferrable to use asserts to guard size of indexes rather than using guarded-access
 (define (call-fixed-stream-insn insn [input1 '()] [input2 '()] [input3 '()])
   (case (op-lookup (fixed-stream-insn-op-index insn))
+    [("identityE") input1]
     [("constantE") (constantE (fixed-stream-insn-arg-int insn) input1)]
     [("mergeE") (mergeE input1 input2)]
     [("collectE") (collectE (fixed-stream-insn-arg-int insn) + input1)]
@@ -55,10 +64,22 @@
     [("delayE") (delayE (fixed-stream-insn-arg-int insn) input1)]
     [else (call-fixed-stream-insn insn input1 input2 input3)]))
 
-(define (print-single-insn bound-holes varname [input-name ""] [input-name2 ""] [input-name3 ""])
-  (define op (full-op-lookup (fixed-stream-insn-op-index bound-holes)))
-  (define op-args (print-fixed-stream-insn bound-holes input-name input-name2 input-name3))
-  (format "  (define ~a (~a ~a))" varname op op-args))
+(define (call-fixed-comm-insn insn input1)
+  (delayE (fixed-comm-insn-delay-int insn)
+          (if (equal? (fixed-comm-insn-constant-idx insn) -2)
+              input1
+              (constantE (get-constant (fixed-comm-insn-constant-idx insn) (fixed-comm-insn-constant-int insn))
+                         input1))))
+
+(define (print-single-insn insn varname [input-name ""] [input-name2 ""] [input-name3 ""])
+  (if (fixed-stream-insn? insn)
+      (begin
+        (define op (full-op-lookup (fixed-stream-insn-op-index insn)))
+        (define op-args (print-fixed-stream-insn insn input-name input-name2 input-name3))
+        (format "  (define ~a (~a ~a))" varname op op-args))
+      (begin
+        (define comm-string (print-fixed-comm-insn insn input-name))
+        (format "  (define ~a ~a)" varname comm-string))))
 
 (define (print-fixed-stream-insn insn [input-name ""] [input-name2 ""] [input-name3 ""])
   (case (full-op-lookup (fixed-stream-insn-op-index insn))
@@ -85,6 +106,20 @@
     [("delayE3") (format "~a" input-name)]
     ))
 
+(define (print-fixed-comm-insn insn input-name)
+  (let* ([delay-string (if (not (equal? 0 (fixed-comm-insn-delay-int insn)))
+                           (format "(delayE ~a " (fixed-comm-insn-delay-int insn))
+                           "")]
+         [constant-idx (fixed-comm-insn-constant-idx insn)]
+         [constant-string (if (not (equal? -2 constant-idx))
+                              (if (equal? -1 constant-idx)
+                                  (format "(constantE ~a " (fixed-comm-insn-constant-int insn))
+                                  (format "(constantE ~a " (guarded-access constantB-consts constant-idx)))
+                              "")]
+         [closing-parens (format "~a~a" (if (not (equal? -2 constant-idx)) ")" "")
+                                 (if (not (equal? 0 (fixed-comm-insn-delay-int insn))) ")" ""))])
+    (format "~a~a~a~a" delay-string constant-string input-name closing-parens)))
+
 (define op-list (list "mergeE" ;; 0
                       "collectE" ;; 1
                       "startsWith" ;; 2
@@ -95,6 +130,7 @@
                       "constantB" ;; 7
                       "liftB2" ;; 8
                       "collectB" ;; 9
+                      "identityE"
                     ;  "constantE" ;; 10
                     ;  "delayE" ;; 11
                       ))
@@ -111,6 +147,11 @@
     [(-1) "delayE"]
     [(-2) "constantE"]
     [else (op-lookup idx)]))
+
+(define (get-constant idx int)
+  (if (equal? idx -1)
+      int
+      (list-ref constantB-consts idx)))
 
 ;; these lists are very unsatisfactory
 (define function-list (list (λ (e) (+ e 5))
