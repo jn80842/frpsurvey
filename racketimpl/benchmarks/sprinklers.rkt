@@ -11,11 +11,19 @@
 ;;     /           \            /    \                   /    \
 ;;  motionSensorB  constantB  liftB2   constantB    constantB    constantB
 ;;                     |     /   |   \       |         |            |
-;;                  'off   λ collectB clockB   'on       #t          'off
+;;                  'off   λ collectB clockB   'on    #t          'off
 ;;                            /  |   \
 ;;                          λ   #f   liftB2
 ;;                                 /    |    \
 ;;                              λ  raingaugeB clockB
+
+;;                   ifB
+;;         /          |            \
+;; motionSensorB  constantB        ifB
+;;                  |        /         |        \
+;;                 'off   liftB2   constantB  constantB
+;;                     /   |   \         |        |
+;;                  λ  collectB clockB  'on      'off
 
 ;(current-bitwidth 5)
 (define stream-length 3)
