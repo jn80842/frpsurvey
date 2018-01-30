@@ -169,7 +169,8 @@
 (define (harvest-term v)
   (cond [(vector? v) (vector->list v)]
         [(and (union? v) (eq? 2 (length (union-contents v)))) (car (first (union-contents v)))]
-        [(term? v) v]))
+        [(term? v) v]
+        [else '()]))
 
 (define (harvest-events evt-stream)
   (append (map (λ (s) (caar (union-contents s))) evt-stream)

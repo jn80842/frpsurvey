@@ -1,11 +1,13 @@
 #lang rosette/safe
 
 (require rosette/lib/synthax)
-(require "../fjmodels.rkt")
-(require "../rosettefjapi.rkt")
+(require "../dense-fjmodels.rkt")
+(require "../densefjapi.rkt")
 
 (provide (all-defined-out))
 
+;; (allows live changes to program graph)
+;;
 ;;                startsWith
 ;;                /         \
 ;;             init-pos    switchE
@@ -15,6 +17,20 @@
 ;;                 mapE               mapE
 ;;             /       \            /       \
 ;; (λ) (mouse-pos) mouse-down   (λ) (zeroE) mouse-up
+
+;; (no live changes to program graph)
+;;
+;;                 filterE
+;;               /         \
+;;           snapshotE     mousePos
+;;          /        \
+;;    startsWith    mousePos
+;;    /         \
+;;   #f         mergeE
+;;           /          \
+;;     constantE      constantE
+;;     /      \       /       \
+;;    #f   mouseUp   #t    mouseDown
 
 (current-bitwidth 5)
 (define stream-length 3)
@@ -32,12 +48,27 @@
   (assert (<= y max-mouse-pos))
   (coords x y))
 
-(define s-mouse-up (new-event-stream (sym-union-constructor 'up 'no-evt) stream-length (* 2 stream-length)))
-(define s-mouse-down (new-event-stream (sym-union-constructor 'down 'no-evt) stream-length (* 2 stream-length)))
-(define s-mouse-pos (new-behavior sym-coords stream-length (* 2 stream-length)))
-(define s-init-elt-pos (sym-coords))
+(define (harvest-coords c)
+  (list (car (first (union-contents c)))
+        (coords-x (cdr (first (union-contents c))))
+        (coords-y (cdr (first (union-contents c))))))
 
-(define (drag-and-drop-assumptions mouse-up mouse-down mouse-pos init-elt-pos)
+(define (harvest-coords-stream clist)
+  (apply append (map harvest-coords clist)))
+
+(define s-mouse-up (new-event-stream (λ () 'click) stream-length))
+(define s-mouse-down (new-event-stream (λ () 'click) stream-length))
+(define s-mouse-pos (new-event-stream sym-coords stream-length))
+
+(define concrete-mouse-up '(no-evt no-evt no-evt click no-evt))
+(define concrete-mouse-down '(no-evt click no-evt no-evt no-evt))
+(define concrete-mouse-pos (list (coords 4 4) (coords 5 5) (coords 5 6) (coords 2 3) (coords 1 4)))
+
+(define (drag-and-drop-graph mouse-up mouse-down mouse-pos)
+  (mapE2 (λ (x y) (if x y 'no-evt)) (snapshotE mouse-pos (startsWith #f (mergeE (constantE #f mouse-up) (constantE #t mouse-down))))
+          mouse-pos))
+
+#;(define (drag-and-drop-assumptions mouse-up mouse-down mouse-pos init-elt-pos)
   (let ([actual-ups (filter (λ (e) (not (eq? 'no-evt (get-value e)))) mouse-up)]
         [actual-downs (filter (λ (e) (not (eq? 'no-evt (get-value e)))) mouse-down)])
     (and (valid-timestamps? mouse-up)
@@ -60,22 +91,22 @@
          (<= (coords-y init-elt-pos) max-mouse-pos)
        )))
 
-(define (click-sequence state transition)
+#;(define (click-sequence state transition)
   (cond [(and (eq? 'waiting-for-up state) (eq? 'up (get-value transition))) 'waiting-for-down]
         [(and (eq? 'waiting-for-down state) (eq? 'down (get-value transition))) 'waiting-for-up]
         [else #f]))
 
-(define (dragging-intervals mouse-down mouse-up)
+#;(define (dragging-intervals mouse-down mouse-up)
   (map (λ (down-e) (list (get-timestamp down-e) (get-timestamp (findf (λ (up-e) (and (eq? (get-value up-e) 'up)
                                                                                      (<= (get-timestamp down-e) (get-timestamp up-e))))
                                                                       mouse-up))))
        (filter (λ (e) (eq? (get-value e) 'down)) mouse-down)))
-(define (dropping-intervals mouse-up mouse-down)
+#;(define (dropping-intervals mouse-up mouse-down)
   (map (λ (up-e) (list up-e (findf (λ (down-e) (and (eq? (get-value down-e) 'down)
                                                     (<= (get-timestamp up-e) (get-timestamp down-e))))
                                    mouse-down)))
        (filter (λ (e) (eq? (get-value e) 'up)) mouse-up)))
-(define (bounded-by-events start end evt-stream)
+#;(define (bounded-by-events start end evt-stream)
   (if (and (not start) (not end))
       evt-stream
       (if (and start end)
@@ -84,7 +115,7 @@
               (startAtTimestamp (get-timestamp start) evt-stream)
               (endAtTimestamp (get-timestamp end) evt-stream)))))
 
-(define (drag-and-drop-guarantees mouse-up mouse-down mouse-pos init-elt-pos output-posB)
+#;(define (drag-and-drop-guarantees mouse-up mouse-down mouse-pos init-elt-pos output-posB)
   (and (valid-behavior? output-posB)
        (eq? init-elt-pos (behavior-init output-posB))
        ;; until a mouse down event occurs, the element position never changes

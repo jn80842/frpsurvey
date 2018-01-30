@@ -27,6 +27,9 @@
 (define (mapE proc evt-stream)
   (map (λ (e) (if (empty-event? e) e (proc e))) evt-stream))
 
+(define (mapE2 proc evt-stream1 evt-stream2)
+  (map (λ (e1 e2) (if (or (empty-event? e1) (empty-event? e2)) 'no-evt (proc e1 e2))) evt-stream1 evt-stream2))
+
 (define (mergeE evt-stream1 evt-stream2)
   (map (λ (evt1 evt2) (if (empty-event? evt2) evt1 evt2))
        evt-stream1 evt-stream2))
@@ -89,7 +92,8 @@
 #;(define (snapshotE evt-stream behavior1)
   (let ([real-evt-stream (filter (λ (e) (not (eq? (get-value e) 'no-evt))) evt-stream)])
     (map (λ (t) (list (get-timestamp t) (valueNow behavior1 (get-timestamp t)))) real-evt-stream)))
-
+(define (snapshotE evt-stream behavior1)
+  (map (λ (e b) (if (not-empty-event? e) b e)) evt-stream (changes behavior1)))
 ;; onceE
 
 ;; skipFirstE
@@ -165,7 +169,7 @@
 (define (changes behaviorB)
     (behavior-changes behaviorB))
 
-(define (constantB const inputB) ;; input just gets thrown away
+(define (constantB const inputB)
   (behavior const (constantE const (changes inputB))))
 
 #;(define (delayB interval behavior1)
