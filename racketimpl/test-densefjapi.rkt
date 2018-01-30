@@ -56,11 +56,7 @@
 (check-equal? (notE (list #f 'no-evt #t)) (list #t 'no-evt #f))
 
 ;; snapshotE tests
-;(check-equal? (snapshotE standard-evt-stream (behavior 1 '())) (list (list 1 1) (list 2 1) (list 3 1)))
-;(check-equal? (snapshotE  (list (list 1 #t) (list 4 #t) (list 9 #t))
-;                                                    (behavior 0 (list (list 1 1) (list 2 2) (list 8 8) (list 10 10))))
-;      (list (list 1 1) (list 4 2) (list 9 8)))
-;(check-equal? (snapshotE stream-with-no-evts (behavior 1 '())) (list (list 2 1) (list 5 1)))
+(check-equal? (snapshotE (list #t 'no-evt #f) (behavior 1 (list 2 3 4))) (list 2 'no-evt 4))
 
 ;; delayE tests
 (check-equal? (delayE 3 (list 1 'no-evt 'no-evt 2 3)) (list 'no-evt 'no-evt 'no-evt 1 'no-evt 'no-evt 2 3))
