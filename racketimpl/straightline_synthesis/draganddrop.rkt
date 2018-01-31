@@ -14,14 +14,15 @@
   (define r6 (mergeE r4 r5))
   (define r7 (startsWith #f r6))
   (define r8 (snapshotE r3 r7))
+  ;; this is bitmask -- could be its own operator
   (define r9 (mapE2 (λ (dragging pos) (if dragging pos 'no-evt)) r8 r3))
   r9)
 
-#;(define v-binding (verify (assert (same drag-and-drop-graph
+(define v-binding (verify (assert (same drag-and-drop-graph
                                         straightline-graph
                                         s-mouse-up s-mouse-down s-mouse-pos))))
 
-#;(if (unsat? v-binding)
+(if (unsat? v-binding)
     (displayln "verified example implementation and straightline program are equivalent")
     (displayln "can't verify that straightline program matches example implementation"))
 

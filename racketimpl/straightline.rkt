@@ -196,7 +196,9 @@
     [(14) "collectB-imm"]
     [(15) "snapshotE"]
     [(-1) "constantE"]
-    [(-2) "constantE-imm"]))
+    [(-2) "constantE-imm"]
+    ;[(-3) "delayE"]
+    ))
 
 (define (full-lookup idx)
   (case idx
