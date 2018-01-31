@@ -42,4 +42,5 @@
 
 (if (unsat? binding)
     (displayln "unsat")
-    (print-from-holes holes retval-idx binding 3 3))
+    (print-from-holes (evaluate holes binding)
+                      (evaluate retval-idx binding) 3))
