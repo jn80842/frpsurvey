@@ -5,6 +5,8 @@
 
 (provide (all-defined-out))
 
+(current-bitwidth 6)
+
 (struct stream-insn 
   (op-index arg-index1 arg-index2 arg-index3 arg-int arg-index4) #:transparent)
 
@@ -155,7 +157,7 @@
     ))
 
 (define op-list (list "mergeE"
-                     ;; "collectE"
+                      "collectE"
                       "collectE-imm"
                       "startsWith"
                       "startsWith-imm"
@@ -167,8 +169,8 @@
                       "constantB-imm"
                       "liftB2"
                     ;  "condB"
-                    ;  "collectB"
-                    ;  "collectB-imm"
+                      "collectB"
+                      "collectB-imm"
                       "constantE"
                       "constantE-imm"
                      ; "delayE"
