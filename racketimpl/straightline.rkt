@@ -5,8 +5,6 @@
 
 (provide (all-defined-out))
 
-(current-bitwidth 6)
-
 (struct stream-insn 
   (op-index arg-index1 arg-index2 arg-index3 arg-int arg-index4) #:transparent)
 
@@ -180,7 +178,26 @@
 
 
 (define (op-lookup idx)
-  (list-ref op-list idx))
+  (case idx
+    [(0) "mergeE"]
+    [(1) "collectE"]
+    [(2) "collectE-imm"]
+    [(3) "startsWith"]
+    [(4) "startsWith-imm"]
+    [(5) "mapE"]
+    [(6) "mapE2"]
+    [(7) "liftB1"]
+    [(8) "liftB2"]
+    [(9) "andB"]
+    [(10) "ifB"]
+    [(11) "constantB"]
+    [(12) "constantB-imm"]
+    [(13) "collectB"]
+    [(14) "collectB-imm"]
+    [(15) "snapshotE"]
+    [(-1) "constantE"]
+    [(-2) "constantE-imm"]))
+
 (define (full-lookup idx)
   (case idx
     [(-1) "delayE"]

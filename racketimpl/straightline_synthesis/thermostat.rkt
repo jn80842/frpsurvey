@@ -1,5 +1,4 @@
 #lang rosette
-(require rosette/lib/synthax)
 
 ;;(error-print-width 100000000000)
 
