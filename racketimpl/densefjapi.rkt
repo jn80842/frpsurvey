@@ -78,7 +78,11 @@
                                 (cons (proc evt prev) (collect (rest x-lst) (proc evt prev)))))))])
     (collect evt-stream init)))
 
-;; andE
+(define (andE evt-stream1 evt-stream2)
+  (map (λ (e1 e2) (if (and (not (empty-event? e1))
+                           (not (empty-event? e2)))
+                      (and e1 e2)
+                      'no-evt)) evt-stream1 evt-stream2))
 
 ;; orE
 
@@ -157,7 +161,11 @@
                               (cons output (f (rest evts) new-last-sent new-buffer)))]))])
     (f evt-stream 0 'no-evt)))
 
-;; timerE
+(define (timerE interval evt-stream)
+  (map (λ (n) (if (equal? 0 (modulo n interval))
+                  #t
+                  'no-evt))
+         (range 1 (add1 (length evt-stream)))))
 
 (define (startsWith init-value evt-stream)
   (letrec ([f (λ (current evts)

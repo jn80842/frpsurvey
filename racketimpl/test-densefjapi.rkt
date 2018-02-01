@@ -51,6 +51,11 @@
 (check-equal? (collectE 0 + '()) '())
 (check-equal? (collectE 0 + (list 11 'no-evt 13)) (list 11 'no-evt 24))
 
+;; andE tests
+(check-equal? (andE (list #f #t 'no-evt #f #t)
+                    (list #t #t #t #t #f))
+              (list #f #t 'no-evt #f #f))
+
 ;; notE tests
 (check-equal? (notE (list #f #t #f)) (list #t #f #t))
 (check-equal? (notE (list #f 'no-evt #t)) (list #t 'no-evt #f))
@@ -74,6 +79,10 @@
 ;(check-equal? (blindE 3 '()) '())
 ;(check-equal? (blindE 3 '(a)) '(a))
 ;(check-equal? (blindE 3 '(a b c d e f)) '(a no-evt no-evt no-evt e no-evt))
+
+;; timerE tests
+(check-equal? (timerE 3 '(a b c d e f g)) (list 'no-evt 'no-evt #t 'no-evt 'no-evt #t 'no-evt))
+(check-equal? (timerE 3 '()) '())
 
 ;; startsWith tests
 (check-equal? (startsWith 10 '(11 12 13)) (behavior 10 '(11 12 13)))

@@ -1,6 +1,5 @@
 #lang rosette/safe
 
-(require rosette/lib/synthax)
 (require "../dense-fjmodels.rkt")
 (require "../densefjapi.rkt")
 
