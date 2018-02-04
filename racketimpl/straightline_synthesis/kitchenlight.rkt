@@ -5,6 +5,8 @@
 (require "../straightline.rkt")
 (require "../benchmarks/kitchenlight.rkt")
 
+(current-bitwidth 6)
+
 (define (straightline-kitchenlight-graph clock userLocation motionSensor)
   (define r1 clock)
   (define r2 userLocation)

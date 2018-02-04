@@ -142,10 +142,10 @@
                             ifB-op
                             constantB-imm-op
                             constantB-op
-                           ; collectB-op
+                            collectB-op
                             collectB-imm-op
-                            ; snapshotE-op
-                            ; mapE2-op
+                            snapshotE-op
+                            mapE2-op
                             ))
 
 (define (get-insn-holes)

@@ -4,6 +4,8 @@
 (require "../densefjapi.rkt")
 (require "../straightline.rkt")
 
+(current-bitwidth 6)
+
 (define stream-length 3)
 
 (define holes (list (get-insn-holes)))
