@@ -6,7 +6,7 @@
 (provide (all-defined-out))
 
 (struct stream-insn 
-  (op-index arg-index1 arg-index2 arg-index3 arg-int arg-index4) #:transparent)
+  (op-index arg-index1 arg-index2 arg-index3 arg-int) #:transparent)
 
 (struct operator
   (name call print) #:transparent)
@@ -19,30 +19,30 @@
                                         (get-input-stream insn past-vars)))))
 (define constantE-op
   (operator "constantE"
-            (λ (insn past-vars) (constantE (guarded-access constantB-consts (stream-insn-arg-int insn))
+            (λ (insn past-vars) (constantE (list-ref constantB-consts (stream-insn-arg-int insn))
                                            (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a ~a" (guarded-access constantB-consts (stream-insn-arg-int insn))
+            (λ (insn past-vars) (format "~a ~a" (list-ref constantB-consts (stream-insn-arg-int insn))
                                         (get-input-stream insn past-vars)))))
 (define mergeE-op
   (operator "mergeE"
-            (λ (insn past-vars) (mergeE (guarded-access past-vars (stream-insn-arg-index2 insn))
+            (λ (insn past-vars) (mergeE (list-ref past-vars (stream-insn-arg-index2 insn))
                                         (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a" (list-ref past-vars (stream-insn-arg-index2 insn))
                                         (get-input-stream insn past-vars)))))
 (define collectE-imm-op
   (operator "collectE"
-            (λ (insn past-vars) (collectE (get-integer-arg insn) (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
+            (λ (insn past-vars) (collectE (get-integer-arg insn) (list-ref function-2arg-list (stream-insn-arg-index2 insn))
                                           (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a ~a" (get-integer-arg insn)
-                                        (guarded-access function-2arg-list-string (stream-insn-arg-index2 insn))
+                                        (list-ref function-2arg-list-string (stream-insn-arg-index2 insn))
                                         (get-input-stream insn past-vars)))))
 (define collectE-op
   (operator "collectE"
-            (λ (insn past-vars) (collectE (guarded-access constantB-consts (stream-insn-arg-index2 insn))
-                                          (guarded-access function-2arg-list (stream-insn-arg-index3 insn))
+            (λ (insn past-vars) (collectE (list-ref constantB-consts (stream-insn-arg-index2 insn))
+                                          (list-ref function-2arg-list (stream-insn-arg-index3 insn))
                                           (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a ~a ~a" (guarded-access constantB-consts (stream-insn-arg-index2 insn))
-                                        (guarded-access function-2arg-list-string (stream-insn-arg-int insn))
+            (λ (insn past-vars) (format "~a ~a ~a" (list-ref constantB-consts (stream-insn-arg-index2 insn))
+                                        (list-ref function-2arg-list-string (stream-insn-arg-int insn))
                                         (get-input-stream insn past-vars)))))
 (define startsWith-imm-op
   (operator "startsWith"
@@ -51,68 +51,82 @@
                                         (get-input-stream insn past-vars)))))
 (define startsWith-op
   (operator "startsWith"
-            (λ (insn past-vars) (startsWith (guarded-access constantB-consts (stream-insn-arg-int insn))
+            (λ (insn past-vars) (startsWith (list-ref constantB-consts (stream-insn-arg-int insn))
                                             (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a ~a" (guarded-access constantB-consts (stream-insn-arg-int insn))
+            (λ (insn past-vars) (format "~a ~a" (list-ref constantB-consts (stream-insn-arg-int insn))
                                         (get-input-stream insn past-vars)))))
 (define mapE-op
   (operator "mapE"
-            (λ (insn past-vars) (mapE (guarded-access function-list (stream-insn-arg-index2 insn))
+            (λ (insn past-vars) (mapE (list-ref function-list (stream-insn-arg-index2 insn))
                                       (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a ~a" (guarded-access function-list-string (stream-insn-arg-index2 insn))
+            (λ (insn past-vars) (format "~a ~a" (list-ref function-list-string (stream-insn-arg-index2 insn))
                                         (get-input-stream insn past-vars)))))
 (define liftB1-op
   (operator "liftB1"
-            (λ (insn past-vars) (liftB1 (guarded-access function-list (stream-insn-arg-index2 insn))
-                                        (guarded-access past-vars (stream-insn-arg-index1 insn))))
-            (λ (insn past-vars) (format "~a ~a" (guarded-access function-list-string (stream-insn-arg-index2 insn))
+            (λ (insn past-vars) (liftB1 (list-ref function-list (stream-insn-arg-index2 insn))
+                                        (list-ref past-vars (stream-insn-arg-index1 insn))))
+            (λ (insn past-vars) (format "~a ~a" (list-ref function-list-string (stream-insn-arg-index2 insn))
                                         (get-input-stream insn past-vars)))))
 (define liftB2-op
   (operator "liftB2"
-            (λ (insn past-vars) (liftB2 (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
-                                        (guarded-access past-vars (stream-insn-arg-index3 insn)) 
+            (λ (insn past-vars) (liftB2 (list-ref function-2arg-list (stream-insn-arg-index2 insn))
+                                        (list-ref past-vars (stream-insn-arg-index3 insn)) 
                                         (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a ~a ~a" (guarded-access function-2arg-list-string (stream-insn-arg-index2 insn))
+            (λ (insn past-vars) (format "~a ~a ~a" (list-ref function-2arg-list-string (stream-insn-arg-index2 insn))
                                         (list-ref past-vars (stream-insn-arg-index3 insn))
                                         (list-ref past-vars (stream-insn-arg-index1 insn))))))
 (define andB-op
   (operator "andB"
-            (λ (insn past-vars) (andB (guarded-access past-vars (stream-insn-arg-index2 insn))
+            (λ (insn past-vars) (andB (list-ref past-vars (stream-insn-arg-index2 insn))
                                       (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a" (list-ref past-vars (stream-insn-arg-index2 insn))
                                         (list-ref past-vars (stream-insn-arg-index1 insn))))))
 (define ifB-op
   (operator "ifB"
-            (λ (insn past-vars) (ifB (guarded-access past-vars (stream-insn-arg-index1 insn))
-                                     (guarded-access past-vars (stream-insn-arg-index2 insn))
-                                     (guarded-access past-vars (stream-insn-arg-index3 insn))))
+            (λ (insn past-vars) (ifB (list-ref past-vars (stream-insn-arg-index1 insn))
+                                     (list-ref past-vars (stream-insn-arg-index2 insn))
+                                     (list-ref past-vars (stream-insn-arg-index3 insn))))
             (λ (insn past-vars) (format "~a ~a ~a" (list-ref past-vars (stream-insn-arg-index1 insn))
                                         (list-ref past-vars (stream-insn-arg-index2 insn))
                                         (list-ref past-vars (stream-insn-arg-index3 insn))))))
 (define constantB-imm-op
   (operator "constantB"
-            (λ (insn past-vars) (constantB (stream-insn-arg-int insn) (guarded-access past-vars (stream-insn-arg-index1 insn))))
+            (λ (insn past-vars) (constantB (stream-insn-arg-int insn) (list-ref past-vars (stream-insn-arg-index1 insn))))
             (λ (insn past-vars) (format "~a" (stream-insn-arg-int insn)))))
 (define constantB-op
   (operator "constantB"
-            (λ (insn past-vars) (constantB (guarded-access constantB-consts (stream-insn-arg-index2 insn))
+            (λ (insn past-vars) (constantB (list-ref constantB-consts (stream-insn-arg-index2 insn))
                                            (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a" (guarded-access constantB-consts (stream-insn-arg-index2 insn))))))
+            (λ (insn past-vars) (format "~a" (list-ref constantB-consts (stream-insn-arg-index2 insn))))))
 (define collectB-op
   (operator "collectB"
-            (λ (insn past-vars) (collectB (guarded-access constantB-consts (stream-insn-arg-index2 insn))
-                                          (guarded-access function-2arg-list (stream-insn-arg-index3 insn))
-                                          (guarded-access past-vars (stream-insn-arg-index1 insn))))
-            (λ (insn past-vars) (format "~a ~a ~a" (guarded-access constantB-consts (stream-insn-arg-index2 insn))
-                                        (guarded-access function-2arg-list-string (stream-insn-arg-index3 insn))
+            (λ (insn past-vars) (collectB (list-ref constantB-consts (stream-insn-arg-index2 insn))
+                                          (list-ref function-2arg-list (stream-insn-arg-index3 insn))
+                                          (list-ref past-vars (stream-insn-arg-index1 insn))))
+            (λ (insn past-vars) (format "~a ~a ~a" (list-ref constantB-consts (stream-insn-arg-index2 insn))
+                                        (list-ref function-2arg-list-string (stream-insn-arg-index3 insn))
                                         (get-input-stream insn past-vars)))))
 (define collectB-imm-op
   (operator "collectB"
-            (λ (insn past-vars) (collectB (get-integer-arg insn) (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
+            (λ (insn past-vars) (collectB (get-integer-arg insn) (list-ref function-2arg-list (stream-insn-arg-index2 insn))
                                           (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a ~a" (get-integer-arg insn)
-                                        (guarded-access function-2arg-list-string (stream-insn-arg-index2 insn))
+                                        (list-ref function-2arg-list-string (stream-insn-arg-index2 insn))
                                         (get-input-stream insn past-vars)))))
+(define snapshotE-op
+  (operator "snapshotE"
+            (λ (insn past-vars) (snapshotE (get-input-stream insn past-vars)
+                                           (list-ref past-vars (stream-insn-arg-index2 insn))))
+            (λ (insn past-vars) (format "~a ~a" (get-input-stream insn past-vars)
+                                        (list-ref past-vars (stream-insn-arg-index2 insn))))))
+(define mapE2-op
+  (operator "mapE"
+            (λ (insn past-vars) (mapE2 (list-ref function-2arg-list (stream-insn-arg-index1 insn))
+                                       (list-ref past-vars (stream-insn-arg-index2 insn))
+                                       (list-ref past-vars (stream-insn-arg-index3 insn))))
+            (λ (insn past-vars) (format "~a ~a ~a" (list-ref function-2arg-list-string (stream-insn-arg-index1 insn))
+                                        (list-ref past-vars (stream-insn-arg-index2 insn))
+                                        (list-ref past-vars (stream-insn-arg-index3 insn))))))
 
 (define operator-list (list constantE-imm-op
                             constantE-op
@@ -130,6 +144,8 @@
                             constantB-op
                            ; collectB-op
                             collectB-imm-op
+                            ; snapshotE-op
+                            ; mapE2-op
                             ))
 
 (define (get-insn-holes)
@@ -138,255 +154,28 @@
   (define-symbolic* arg2 integer?)
   (define-symbolic* arg3 integer?)
   (define-symbolic* arg4 integer?)
-  (define-symbolic* arg5 integer?)
-  (stream-insn op arg1 arg2 arg3 arg4 arg5))
+  (stream-insn op arg1 arg2 arg3 arg4))
 
 (define (get-input-stream insn past-vars)
-  (guarded-access past-vars (stream-insn-arg-index1 insn)))
+  (list-ref past-vars (stream-insn-arg-index1 insn)))
 (define (get-integer-arg insn)
   (stream-insn-arg-int insn))
 
-;; what's better way to structure this?
-;; struct?
-;; shriram-inspired macro/continuation/???
-;; look at rosette source code (since this is kind of just reimplementing parts of rosette)
-
-;; for both: what is desired behavior if a bad index is chosen?
-;; or, better to constrain with asserts?
-
-;; note: putting index1 arg on every insn is repetitive, but not every instruction has one
-;; maybe factor out and add a check that insn needs this arg?
-;; also if we DON'T factor out index1 arg, no need for currying
-
-;; note: preferrable to use asserts to guard size of indexes rather than using guarded-access (?)
 (define (call-stream-insn insn past-vars)
   (struct-call-stream-insn insn past-vars))
-(define (dumb-call-stream-insn insn past-vars)
-  (let ([evalled-insn (list-ref (list (λ () (constantE (get-integer-arg insn) (get-input-stream insn past-vars)))
-                                      (λ () (constantE (guarded-access constantB-consts (stream-insn-arg-int insn))
-                                             (get-input-stream insn past-vars)))
-                                      (λ () (mergeE (guarded-access past-vars (stream-insn-arg-index2 insn))
-                                          (get-input-stream insn past-vars)))
-                                      (λ () (collectE (get-integer-arg insn) (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
-                                            (get-input-stream insn past-vars)))
-                                      )
-                                (stream-insn-op-index insn))])
-    (evalled-insn)))
+
 (define (struct-call-stream-insn insn past-vars)
   (let ([op (list-ref operator-list (stream-insn-op-index insn))])
     ((operator-call op) insn past-vars)))
-(define (list-style-call-stream-insn insn past-vars)
-  (let ([evalled-insn (list-ref (list (λ () (constantE (get-integer-arg insn) (get-input-stream insn past-vars)))
-                            (λ () (constantE (guarded-access constantB-consts (stream-insn-arg-int insn))
-                                             (get-input-stream insn past-vars)))
-                            (λ () (mergeE (guarded-access past-vars (stream-insn-arg-index2 insn))
-                                          (get-input-stream insn past-vars)))
-                            (λ () (collectE (get-integer-arg insn) (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
-                                            (get-input-stream insn past-vars)))
-                            (λ () (collectE (guarded-access constantB-consts (stream-insn-arg-index2 insn))
-                                            (guarded-access function-2arg-list (stream-insn-arg-index3 insn))
-                                            (get-input-stream insn past-vars)))
-                            (λ () (startsWith (get-integer-arg insn) (get-input-stream insn past-vars)))
-                            (λ () (startsWith (guarded-access constantB-consts (stream-insn-arg-int insn))
-                                              (get-input-stream insn past-vars)))
-                            (λ () (mapE (guarded-access function-list (stream-insn-arg-index2 insn))
-                                        (get-input-stream insn past-vars)))
-                            (λ () (liftB1 (guarded-access function-list (stream-insn-arg-index2 insn))
-                                          (guarded-access past-vars (stream-insn-arg-index1 insn))))
-                            (λ () (andB (guarded-access past-vars (stream-insn-arg-index2 insn))
-                                        (get-input-stream insn past-vars)))
-                            (λ () (ifB (guarded-access past-vars (stream-insn-arg-index1 insn))
-                                       (guarded-access past-vars (stream-insn-arg-index2 insn))
-                                       (guarded-access past-vars (stream-insn-arg-index3 insn))))
-                            (λ () (constantB (stream-insn-arg-int insn) (guarded-access past-vars (stream-insn-arg-index1 insn))))
-                            (λ () (constantB (guarded-access constantB-consts (stream-insn-arg-index2 insn))
-                                             (get-input-stream insn past-vars)))
-                            (λ () (liftB2 (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
-                                          (guarded-access past-vars (stream-insn-arg-index3 insn)) 
-                                          (get-input-stream insn past-vars)))
-                            (λ () (collectB (guarded-access constantB-consts (stream-insn-arg-index2 insn))
-                                            (guarded-access function-2arg-list (stream-insn-arg-index3 insn))
-                                            (guarded-access past-vars (stream-insn-arg-index1 insn))))
-                            (λ () (collectB (get-integer-arg insn) (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
-                                            (get-input-stream insn past-vars)))) (stream-insn-op-index insn))])
-    (evalled-insn))
-  )
-(define (orig-call-stream-insn insn past-vars)
-  (case (op-lookup (stream-insn-op-index insn))
-    [("constantE-imm") (constantE (get-integer-arg insn) (get-input-stream insn past-vars))]
-    [("constantE") (constantE (guarded-access constantB-consts (stream-insn-arg-int insn))
-                              (get-input-stream insn past-vars))]
-    [("mergeE") (mergeE (guarded-access past-vars (stream-insn-arg-index2 insn))
-                        (get-input-stream insn past-vars))]
-    [("collectE-imm") (collectE (get-integer-arg insn) (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
-                                    (get-input-stream insn past-vars))]
-    [("collectE") (collectE (guarded-access constantB-consts (stream-insn-arg-index2 insn))
-                            (guarded-access function-2arg-list (stream-insn-arg-index3 insn))
-                            (get-input-stream insn past-vars))]
-    [("startsWith-imm") (startsWith (get-integer-arg insn) (get-input-stream insn past-vars))]
-    [("startsWith") (startsWith (guarded-access constantB-consts (stream-insn-arg-int insn))
-                                (get-input-stream insn past-vars))]
-    [("mapE") (mapE (guarded-access function-list (stream-insn-arg-index2 insn))
-                    (get-input-stream insn past-vars))]
-    [("liftB1") (liftB1 (guarded-access function-list (stream-insn-arg-index2 insn))
-                        (guarded-access past-vars (stream-insn-arg-index1 insn)))]
-    [("andB") (andB (guarded-access past-vars (stream-insn-arg-index2 insn))
-                    (get-input-stream insn past-vars))]
-    [("ifB") (ifB (guarded-access past-vars (stream-insn-arg-index1 insn))
-                  (guarded-access past-vars (stream-insn-arg-index2 insn))
-                  (guarded-access past-vars (stream-insn-arg-index3 insn)))]
-    [("constantB-imm") (constantB (stream-insn-arg-int insn) (guarded-access past-vars (stream-insn-arg-index1 insn)))]
-    [("constantB") (constantB (guarded-access constantB-consts (stream-insn-arg-index2 insn))
-                              (get-input-stream insn past-vars))]
-    [("delayE") (delayE (get-integer-arg insn) (get-input-stream insn past-vars))]
-    [("liftB2") (liftB2 (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
-                        (guarded-access past-vars (stream-insn-arg-index3 insn)) 
-                        (get-input-stream insn past-vars))]
-    [("condB") (condB (list (list (guarded-access past-vars (stream-insn-arg-index1 insn))
-                                  (guarded-access past-vars (stream-insn-arg-index2 insn)))
-                            (list (guarded-access past-vars (stream-insn-arg-index3 insn))
-                                  (guarded-access past-vars (stream-insn-arg-index4 insn)))
-                            (list (constantB #t (guarded-access past-vars (stream-insn-arg-index1 insn)))
-                                  (guarded-access past-vars (stream-insn-arg-int insn)))))]
-    [("collectB") (collectB (guarded-access constantB-consts (stream-insn-arg-index2 insn))
-                            (guarded-access function-2arg-list (stream-insn-arg-index3 insn))
-                            (guarded-access past-vars (stream-insn-arg-index1 insn)))]
-    [("collectB-imm") (collectB (get-integer-arg insn) (guarded-access function-2arg-list (stream-insn-arg-index2 insn))
-                                    (get-input-stream insn past-vars))]
-    [("delayE1") (delayE1 (get-input-stream insn past-vars))]
-    [("delayE2") (delayE2 (get-input-stream insn past-vars))]
-    [("delayE3") (delayE3 (get-input-stream insn past-vars))]
-    [("snapshotE") (snapshotE (get-input-stream insn past-vars)
-                              (guarded-access past-vars (stream-insn-arg-index2 insn)))]
-    [("mapE2") (mapE2 (guarded-access function-2arg-list (stream-insn-arg-index1 insn))
-                      (guarded-access past-vars (stream-insn-arg-index2 insn))
-                      (guarded-access past-vars (stream-insn-arg-index3 insn)))]
-    ))
-
-(define (call-stream-insn-full insn past-vars)
-  (case (full-lookup (stream-insn-op-index insn))
-    [("delayE") ((curry delayE (stream-insn-arg-int insn))
-                 (get-input-stream insn past-vars))]
-    [("constantE") ((curry constantE (stream-insn-arg-int insn)) 
-                    (get-input-stream insn past-vars))]
-    [else (call-stream-insn insn past-vars)]))
 
 (define (print-single-insn bound-holes varname past-vars)
   (define op (operator-name (list-ref operator-list (stream-insn-op-index bound-holes))))
-    ;(op-lookup (stream-insn-op-index bound-holes)))
   (define op-args (print-struct-stream-insn bound-holes past-vars))
   (format "  (define ~a (~a ~a))" varname op op-args))
 
 (define (print-struct-stream-insn insn past-vars)
   (let ([op (list-ref operator-list (stream-insn-op-index insn))])
     ((operator-print op) insn past-vars)))
-
-(define (print-stream-insn insn past-vars)
-  (case (op-lookup (stream-insn-op-index insn))
-    [("constantE-imm") (format "~a ~a" (stream-insn-arg-int insn)
-                               (get-input-stream insn past-vars))]
-    [("constantE") (format "~a ~a" (guarded-access constantB-consts (stream-insn-arg-int insn))
-                           (get-input-stream insn past-vars))]
-    [("mergeE") (format "~a ~a" (list-ref past-vars (stream-insn-arg-index2 insn))
-                        (get-input-stream insn past-vars))]
-    [("collectE-imm") (format "~a ~a ~a" (get-integer-arg insn) (guarded-access function-2arg-list-string (stream-insn-arg-index2 insn))
-                              (get-input-stream insn past-vars))]
-    [("collectE") (format "~a ~a ~a" (guarded-access constantB-consts (stream-insn-arg-index2 insn))
-                          (guarded-access function-2arg-list-string (stream-insn-arg-int insn))
-                          (get-input-stream insn past-vars))]
-    [("startsWith-imm") (format "~a ~a" (stream-insn-arg-int insn)
-                            (get-input-stream insn past-vars))]
-    [("startsWith") (format "~a ~a" (guarded-access constantB-consts (stream-insn-arg-int insn))
-                                     (get-input-stream insn past-vars))]
-    [("mapE") (format "~a ~a" (guarded-access function-list-string (stream-insn-arg-index2 insn))
-                      (get-input-stream insn past-vars))]
-    [("liftB1") (format "~a ~a" (guarded-access function-list-string (stream-insn-arg-index2 insn))
-                      (get-input-stream insn past-vars))]
-    [("andB") (format "~a ~a" (list-ref past-vars (stream-insn-arg-index2 insn))
-                      (list-ref past-vars (stream-insn-arg-index1 insn)))]
-    [("ifB") (format "~a ~a ~a" (list-ref past-vars (stream-insn-arg-index1 insn))
-                     (list-ref past-vars (stream-insn-arg-index2 insn))
-                     (list-ref past-vars (stream-insn-arg-index3 insn)))]
-    [("constantB-imm") (format "~a" (stream-insn-arg-int insn))]
-    ;; NB: doesn't print symbols correctly
-    [("constantB") (format "~a" (guarded-access constantB-consts (stream-insn-arg-index2 insn)))]
-    [("delayE") (format "~a ~a" (stream-insn-arg-int insn)
-                        (get-input-stream insn past-vars))]
-    [("liftB2") (format "~a ~a ~a" (guarded-access function-2arg-list-string (stream-insn-arg-index2 insn))
-                        (list-ref past-vars (stream-insn-arg-index3 insn))
-                        (list-ref past-vars (stream-insn-arg-index1 insn)))]
-    [("condB") (format "(~a ~a) (~a ~a) ((constantB #t) ~a)" (list-ref past-vars (stream-insn-arg-index1 insn))
-                       (list-ref past-vars (stream-insn-arg-index2 insn))
-                       (list-ref past-vars (stream-insn-arg-index3 insn))
-                       (list-ref past-vars (stream-insn-arg-index4 insn))
-                       (list-ref past-vars (stream-insn-arg-int insn)))]
-    [("collectB") (format "~a ~a ~a" (guarded-access constantB-consts (stream-insn-arg-index2 insn))
-                          (guarded-access function-2arg-list-string (stream-insn-arg-index3 insn))
-                          (get-input-stream insn past-vars))]
-    [("collectB-imm") (format "~a ~a ~a" (get-integer-arg insn) (guarded-access function-2arg-list-string (stream-insn-arg-index2 insn))
-                              (get-input-stream insn past-vars))]
-    [("delayE1") (format "~a" (get-input-stream insn past-vars))]
-    [("delayE2") (format "~a" (get-input-stream insn past-vars))]
-    [("delayE3") (format "~a" (get-input-stream insn past-vars))]
-    [("snapshotE") (format "~a ~a" (get-input-stream insn past-vars)
-                           (guarded-access past-vars (stream-insn-arg-index2 insn)))]
-    [("mapE2") (format "~a ~a ~a" (guarded-access function-2arg-list-string (stream-insn-arg-index1 insn))
-                       (guarded-access past-vars (stream-insn-arg-index2 insn))
-                       (guarded-access past-vars (stream-insn-arg-index3 insn)))]
-    ))
-
-(define op-list (list "mergeE"
-                      "collectE"
-                      "collectE-imm"
-                      "startsWith"
-                      "startsWith-imm"
-                      "mapE"
-                      "liftB1"
-                      "andB"
-                      "ifB"
-                      "constantB"
-                      "constantB-imm"
-                      "liftB2"
-                    ;  "condB"
-                    ;  "collectB"
-                      "collectB-imm"
-                      "constantE"
-                      "constantE-imm"
-                     ; "delayE"
-                      ;"snapshotE"
-                      ;"mapE2"
-                      ))
-
-
-(define (op-lookup idx)
-  (case idx
-    [(0) "mergeE"]
-    [(1) "collectE"]
-    [(2) "collectE-imm"]
-    [(3) "startsWith"]
-    [(4) "startsWith-imm"]
-    [(5) "mapE"]
-   ; [(6) "mapE2"]
-    [(7) "liftB1"]
-    [(8) "liftB2"]
-    [(9) "andB"]
-    [(10) "ifB"]
-    [(11) "constantB"]
-    [(12) "constantB-imm"]
-   ; [(13) "collectB"]
-    [(14) "collectB-imm"]
-   ; [(15) "snapshotE"]
-    [(-1) "constantE"]
-    [(-2) "constantE-imm"]
-    ;[(-3) "delayE"]
-    ))
-
-(define (full-lookup idx)
-  (case idx
-    [(-1) "delayE"]
-    [(-2) "constantE"]
-    [else (op-lookup idx)]))
-
 
 ;; these lists are very unsatisfactory
 (define function-list (list (λ (e) (+ e 5))
@@ -437,14 +226,6 @@
                                         ))
 
 (define constantB-consts (list 'on 'off #t #f 'test))
-
-;; prevent rosette from picking illegal indexes
-;; (unless asserts are used to do this)
-
-(define (guarded-access lst idx)
- ; (if (<= (length lst) idx)
- ;     "bad input"
-      (list-ref lst idx));)
 
 (define (string-from-holes bound-holes retval input-count)
   (let* ([arg-list (for/list ([i (range input-count)])
