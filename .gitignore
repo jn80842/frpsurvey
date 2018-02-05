@@ -7,3 +7,4 @@ racketimpl/benchmarks/compiled/
 racketimpl/synthesis/compiled/
 racketimpl/verification/compiled/
 racketimpl/straightline_synthesis/fixed_graph/compiled/
+racketimpl/clock/compiled/

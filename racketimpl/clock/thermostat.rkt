@@ -5,7 +5,14 @@
 (require "fjmodel.rkt")
 (require "fjapi.rkt")
 (require "instruction.rkt")
-(require "../benchmarks/thermostat.rkt")
+;;(require "../benchmarks/thermostat.rkt")
+
+(define stream-length 3)
+
+(define s-tempB (new-behavior sym-integer stream-length))
+(define concrete-tempB (behavior 3 (list 1 2)))
+(define s-clockB (new-behavior sym-integer stream-length))
+(define concrete-clockB (behavior 1 (list 2 3)))
 
 (define (straightline-thermostat-graph tempB clockB)
   (define r1 tempB)
@@ -32,3 +39,13 @@
   (define r7 (call-insn (list-ref holes 4) (list r1 r2 r3 r4 r5 r6)))
   (define r8 (call-insn (list-ref holes 5) (list r1 r2 r3 r4 r5 r6 r7)))
   (list-ref (list r1 r2 r3 r4 r5 r6 r7 r8) retval-idx))
+
+(define binding (time (synthesize #:forall (harvest s-tempB s-clockB)
+                            #:guarantee (assert (same (curry eval-graph straightline-thermostat-graph)
+                                                      (curry eval-graph sketch-graph)
+                                                      s-tempB s-clockB)))))
+(if (unsat? binding)
+    (displayln "could not synthesize function")
+    (print-from-holes (evaluate holes binding)
+                      (evaluate retval-idx binding)
+                      2))
