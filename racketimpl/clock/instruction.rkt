@@ -66,7 +66,9 @@
                                (list-ref reg (insn-idx3 i))))))
 
 (define operator-list
-  (list constantB-op
+  (list constantE-imm-op
+        constantE-op
+        constantB-op
         andB-op
         ifB-op
         liftB-op))

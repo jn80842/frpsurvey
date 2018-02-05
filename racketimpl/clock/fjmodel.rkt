@@ -11,9 +11,22 @@
   (define-symbolic* i integer?)
   i)
 
+(define (new-event-stream constructor n)
+  (for/list ([i n])
+    (define-symbolic* b boolean?)
+    (if b
+        (constructor)
+        'no-evt)))
+
 (define (new-behavior constructor n)
   (behavior (constructor) (for/list ([i n])
                             (constructor))))
+
+(define (eval-behavior-graph graph . inputs)
+  (behavior (apply graph (map behavior-init inputs))
+            (apply (curry map graph) (map behavior-changes inputs))))
+(define (eval-stream-graph graph . inputs)
+  (apply (curry map graph) inputs))
 
 (define  (same program1 program2 . inputs)
   (equal? (apply program1 inputs)
