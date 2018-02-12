@@ -4,7 +4,9 @@
 (require "fjapi.rkt")
 (require "instruction.rkt")
 
-(define stream-length 3)
+(error-print-width 100000000000)
+
+(define stream-length 1)
 
 (define holes (list (get-insn-holes)))
 (define-symbolic* retval-idx integer?)
@@ -23,10 +25,10 @@
   (define r2 (constantE 1 e))
   r2)
 
-(define b (synthesize #:forall (harvest int-stream)
+#;(define b (synthesize #:forall (harvest int-stream)
                       #:guarantee (assert (equal? (map constantE-imm-graph int-stream)
                                                   (map sketch-graph1-1 int-stream)))))
-(if (unsat? b)
+#;(if (unsat? b)
     (displayln "!!!!! constantE-imm graph not synthesized !!!!!")
     (begin (displayln "* constantE-imm graph successfully synthesized")
            (print-from-holes (evaluate holes b)
@@ -34,15 +36,15 @@
 
 ;; constantE
 
-(define (constantE-graph e)
+#;(define (constantE-graph e)
   (define r1 e)
   (define r2 (constantE 'test e))
   r2)
 
-(define b-constant (synthesize #:forall (harvest int-stream)
+#;(define b-constant (synthesize #:forall (harvest int-stream)
                                #:guarantee (assert (equal? (map constantE-graph int-stream)
                                                           (map sketch-graph1-1 int-stream)))))
-(if (unsat? b-constant)
+#;(if (unsat? b-constant)
     (displayln "!!!!! constantE graph not synthesized !!!!!")
     (begin (displayln "* constantE graph successfully synthesized")
            (print-from-holes (evaluate holes b-constant)

@@ -71,7 +71,10 @@
         constantB-op
         andB-op
         ifB-op
-        liftB-op))
+        liftB-op
+        mapE-op
+        filterE-op
+        mergeE-op))
 
 (define function-list (list (λ (e) (+ e 5))
                             (λ (t) (<= t 2))

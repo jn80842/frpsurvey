@@ -7,6 +7,8 @@
 (require "instruction.rkt")
 ;;(require "../benchmarks/thermostat.rkt")
 
+(current-bitwidth #f)
+
 (define stream-length 3)
 
 (define s-tempB (new-behavior sym-integer stream-length))

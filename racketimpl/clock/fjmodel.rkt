@@ -2,6 +2,10 @@
 
 (provide (all-defined-out))
 
+;; optional: init value for behaviors
+;; per time step: output value (can be no-evt if event stream)
+;; per time step and insn: one integer as memory
+
 (struct behavior (init changes) #:transparent)
 
 (define (is-empty? e)

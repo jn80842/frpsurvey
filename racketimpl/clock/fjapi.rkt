@@ -38,7 +38,12 @@
       'no-evt
       const))
 
-;; collectE
+(define (collectE proc input)
+  (let ([e (first input)]
+        [mem (second input)])
+    (if (is-empty? e)
+        (cons mem mem)
+        (cons (proc e mem) (proc e mem)))))
 
 (define (andE e1 e2)
   (if (not (or (is-empty? e1) (is-empty? e2)))
