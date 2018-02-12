@@ -47,7 +47,7 @@
 (check-equal? (constantE "hello" '()) '())
 
 ;; collectE tests
-(check-equal? (collectE 0 + (list 11 12 13)) (list 11 23 36))
+(check-equal? (collectE 1 + (list 11 12 13)) (list 12 24 37))
 (check-equal? (collectE 0 + '()) '())
 (check-equal? (collectE 0 + (list 11 'no-evt 13)) (list 11 'no-evt 24))
 

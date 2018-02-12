@@ -5,6 +5,8 @@
 (require "../straightline.rkt")
 (require "../benchmarks/mousetail.rkt")
 
+(current-bitwidth #f)
+
 (define (straightline-mousetail-y-graph y-stream)
   (define r1 y-stream)
   (define r2 (delayE3 r1))

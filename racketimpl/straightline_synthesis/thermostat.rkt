@@ -7,7 +7,7 @@
 (require "../straightline.rkt")
 (require "../benchmarks/thermostat.rkt")
 
-(current-bitwidth 6)
+(current-bitwidth #f)
 
 (define (straightline-thermostat-graph tempB clockB)
   (define r1 tempB)

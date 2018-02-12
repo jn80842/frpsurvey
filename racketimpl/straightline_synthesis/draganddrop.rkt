@@ -5,7 +5,7 @@
 (require "../straightline.rkt")
 (require "../benchmarks/draganddrop.rkt")
 
-(current-bitwidth 6)
+(current-bitwidth #f)
 
 (define (straightline-graph mouse-up mouse-down mouse-pos)
   (define r1 mouse-up)

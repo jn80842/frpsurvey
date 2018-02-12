@@ -7,7 +7,7 @@
 
 ;(error-print-width 100000000000)
 
-(current-bitwidth 6)
+(current-bitwidth #f)
 
 (define (straightline-sprinklers-graph clockB motionSensorB raingaugeB)
   (define r1 clockB)

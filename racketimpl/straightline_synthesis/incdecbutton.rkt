@@ -5,7 +5,7 @@
 (require "../straightline.rkt")
 (require "../benchmarks/incdecbutton.rkt")
 
-(current-bitwidth 6)
+(current-bitwidth #f)
 
 (define (straightline-graph inc dec)
   (define r1 inc)
