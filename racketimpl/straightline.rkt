@@ -11,6 +11,19 @@
 (struct operator
   (name call print) #:transparent)
 
+(define collectE-plus-op
+  (operator "collectE"
+            (λ (insn past-vars) (collectE-plus (get-integer-arg insn)
+                                               (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (format "~a + ~a" (stream-insn-arg-int insn)
+                                        (get-input-stream insn past-vars)))))
+(define collectE-minus-op
+  (operator "collectE"
+            (λ (insn past-vars) (collectE-minus (get-integer-arg insn)
+                                                (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (format "~a - ~a" (stream-insn-arg-int insn)
+                                        (get-input-stream insn past-vars)))))
+
 (define constantE-imm-op
   (operator "constantE"
             (λ (insn past-vars) (constantE (get-integer-arg insn)
@@ -37,6 +50,13 @@
                                         (list-ref function-2arg-list-string (stream-insn-arg-index2 insn))
                                         (get-input-stream insn past-vars)))))
 (define collectE-op
+  (operator "collectE"
+            (λ (insn past-vars) (collectE-minus (get-integer-arg insn) (list-ref function-2arg-list (stream-insn-arg-index2 insn))
+                                          (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (format "~a ~a ~a" (get-integer-arg insn)
+                                        (list-ref function-2arg-list-string (stream-insn-arg-index2 insn))
+                                        (get-input-stream insn past-vars)))))
+#;(define collectE-op
   (operator "collectE"
             (λ (insn past-vars) (collectE (list-ref constantB-consts (stream-insn-arg-index2 insn))
                                           (list-ref function-2arg-list (stream-insn-arg-index3 insn))
@@ -132,6 +152,8 @@
                             constantE-op
                             mergeE-op
                             collectE-imm-op
+                      ; collectE-plus-op
+                      ; collectE-minus-op
                             collectE-op
                             startsWith-imm-op
                             startsWith-op
@@ -148,13 +170,15 @@
                             mapE2-op
                             ))
 
+;; these are collectE specific var names
+;; change back after experiments
 (define (get-insn-holes)
   (define-symbolic* op integer?)
-  (define-symbolic* arg1 integer?)
-  (define-symbolic* arg2 integer?)
+  (define-symbolic* streamidx integer?)
+  (define-symbolic* λidx integer?)
   (define-symbolic* arg3 integer?)
-  (define-symbolic* arg4 integer?)
-  (stream-insn op arg1 arg2 arg3 arg4))
+  (define-symbolic* int integer?)
+  (stream-insn op streamidx λidx arg3 int))
 
 (define (get-input-stream insn past-vars)
   (list-ref past-vars (stream-insn-arg-index1 insn)))
@@ -201,6 +225,8 @@
                                  (λ (x y) (if x y 'no-evt))
                                  (λ (x y) (if x y x))
                                  ))
+;(define function-2arg-list (list + -))
+;(define function-2arg-list-string (list "+" "-"))
 (define function-list-string (list "(λ (e) (+ e 5))"
                                    "(λ (t) (<= t 2))"
                                    "(λ (c) (or (>= c 4) (>= 2 c)))"

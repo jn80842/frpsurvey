@@ -68,7 +68,7 @@
 (define (constantE const evt-stream)
   (map (λ (x) (if (empty-event? x) 'no-evt const)) evt-stream))
 
-(define (collectE init proc evt-stream)
+#;(define (collectE init proc evt-stream)
   (letrec ([collect (λ (x-lst prev)
                       (if (empty? x-lst)
                           '()
@@ -77,6 +77,29 @@
                                 (cons 'no-evt (collect (rest x-lst) prev))
                                 (cons (proc evt prev) (collect (rest x-lst) (proc evt prev)))))))])
     (collect evt-stream init)))
+
+#;(define (collectE init proc stream)
+  (map (λ (s n) (if (empty-event? s) 'no-evt n))
+       stream
+       (list-tail (reverse (foldl (λ (n lst) (cons (if (empty-event? n) (first lst) (proc n (first lst))) lst))
+                                  (list init) stream)) 1)))
+
+(define (collectE init proc lst)
+  (for/list ([i (range (length lst))])
+    (if (empty-event? (list-ref lst i))
+        'no-evt
+        (foldl (λ (n m) (if (empty-event? n) m (proc n m))) init (take lst (add1 i))))))
+
+(define (collectE-plus init stream)
+  (map (λ (s n) (if (empty-event? s) 'no-evt n))
+       stream
+       (list-tail (reverse (foldl (λ (n lst) (cons (if (empty-event? n) (first lst) (+ n (first lst))) lst))
+                                  (list init) stream)) 1)))
+(define (collectE-minus init stream)
+  (map (λ (s n) (if (empty-event? s) 'no-evt n))
+       stream
+       (list-tail (reverse (foldl (λ (n lst) (cons (if (empty-event? n) (first lst) (- n (first lst))) lst))
+                                  (list init) stream)) 1)))
 
 (define (andE evt-stream1 evt-stream2)
   (map (λ (e1 e2) (if (and (not (empty-event? e1))
@@ -283,4 +306,8 @@
                            '()
                            (cons (proc (first lst) prev) (collect (rest lst) (proc (first lst) prev)))))])
            (behavior b-init (collect (behavior-changes b1) b-init)))))
+
+#;(define (collectB init proc lst)
+  (behavior init (for/list ([i (range (length lst))])
+                   (foldl (λ (n m) (if (empty-event? n) m (proc n m))) init (take lst (add1 i))))))
 
