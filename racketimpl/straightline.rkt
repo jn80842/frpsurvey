@@ -147,6 +147,10 @@
             (λ (insn past-vars) (format "~a ~a ~a" (list-ref function-2arg-list-string (stream-insn-arg-index1 insn))
                                         (list-ref past-vars (stream-insn-arg-index2 insn))
                                         (list-ref past-vars (stream-insn-arg-index3 insn))))))
+(define delayE-op
+  (operator "delayE"
+    (λ (insn past-vars) (delayE (get-integer-arg insn) (get-input-stream insn past-vars)))
+    (λ (insn past-vars) (format "~a ~a" (get-integer-arg insn) (get-input-stream insn past-vars)))))
 
 (define operator-list (list constantE-imm-op
                             constantE-op
@@ -168,6 +172,7 @@
                             collectB-imm-op
                             snapshotE-op
                             mapE2-op
+                            delayE-op
                             ))
 
 ;; these are collectE specific var names

@@ -9,12 +9,12 @@
 
 (define (straightline-mousetail-y-graph y-stream)
   (define r1 y-stream)
-  (define r2 (delayE3 r1))
+  (define r2 (delayE r1))
   r2)
 
 (define (straightline-mousetail-x-graph x-stream)
   (define r1 x-stream)
-  (define r2 (delayE3 r1))
+  (define r2 (delayE r1))
   (define r3 (mapE (λ (e) (+ e x-offset)) r2))
   r3)
 
@@ -38,11 +38,11 @@
 (define (x-sketch-graph input)
   (define r1 input)
   (define r2 (call-stream-insn (list-ref x-holes 0) (list r1)))
-  (define r3 (call-stream-insn-full (list-ref x-holes 1) (list r1 r2)))
+  (define r3 (call-stream-insn (list-ref x-holes 1) (list r1 r2)))
   (list-ref (list r1 r2 r3) x-retval-idx))
 (define (y-sketch-graph input)
   (define r1 input)
-  (define r2 (call-stream-insn-full (list-ref y-holes 0) (list r1)))
+  (define r2 (call-stream-insn (list-ref y-holes 0) (list r1)))
   (list-ref (list r1 r2) y-retval-idx))
 (define binding (time (synthesize #:forall (harvest s-mouse-x s-mouse-y)
                                   #:guarantee (assert (and (same mousetail-x-graph
@@ -80,12 +80,12 @@
 (define (x-sketch-graph-prime input)
   (define r1 input)
   (define r2 (call-stream-insn (list-ref x-holes-prime 0) (list r1)))
-  (define r3 (call-stream-insn-full (list-ref x-holes-prime 1) (list r1 r2)))
+  (define r3 (call-stream-insn (list-ref x-holes-prime 1) (list r1 r2)))
   (list-ref (list r1 r2 r3) x-retval-idx-prime))
 (define (y-sketch-graph-prime input)
   (define r1 input)
   (define r2 (call-stream-insn (list-ref y-holes-prime 0) (list r1)))
-  (define r3 (call-stream-insn-full (list-ref y-holes-prime 1) (list r1 r2)))
+  (define r3 (call-stream-insn (list-ref y-holes-prime 1) (list r1 r2)))
   (list-ref (list r1 r2 r3) y-retval-idx-prime))
 
 (define distinguishing-binding (time (synthesize #:forall '()

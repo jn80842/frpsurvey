@@ -148,7 +148,7 @@
   (append (list 'no-evt 'no-evt 'no-evt) evt-stream))  
 #;(define (delayE interval evt-stream)
   evt-stream)
-(define (delayE interval evt-stream)
+#;(define (delayE interval evt-stream)
   (case interval
     [(0) evt-stream]
     [(1) (append (list 'no-evt) evt-stream)]
@@ -162,6 +162,15 @@
     ;[(9) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
     ;[(10) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
     ))
+
+(define (delayE interval evt-stream)
+ ; (append
+   (for/list ([i (range (length evt-stream))])
+    (if (> interval i)
+        'no-evt
+        (list-ref evt-stream (- i interval))))
+         ; (list-tail evt-stream (- (length evt-stream) interval))))
+  )
 
 (define (blindE interval evt-stream)
   (letrec ([f (λ (evts wait-time)
