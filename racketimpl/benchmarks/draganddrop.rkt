@@ -31,7 +31,7 @@
 ;;     /      \       /       \
 ;;    #f   mouseUp   #t    mouseDown
 
-(current-bitwidth 5)
+;(current-bitwidth 5)
 (define stream-length 3)
 (define max-timestamp (* 2 stream-length))
 (define max-mouse-pos 3)
@@ -40,11 +40,11 @@
 
 (define (sym-coords)
   (define-symbolic* x integer?)
-  (assert (>= x 0))
-  (assert (<= x max-mouse-pos))
+;  (assert (>= x 0))
+;  (assert (<= x max-mouse-pos))
   (define-symbolic* y integer?)
-  (assert (>= y 0))
-  (assert (<= y max-mouse-pos))
+;  (assert (>= y 0))
+;  (assert (<= y max-mouse-pos))
   (coords x y))
 
 (define (harvest-coords c)

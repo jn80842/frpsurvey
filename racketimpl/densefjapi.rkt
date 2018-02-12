@@ -190,12 +190,16 @@
                   'no-evt))
          (range 1 (add1 (length evt-stream)))))
 
-(define (startsWith init-value evt-stream)
+#;(define (startsWith init-value evt-stream)
   (letrec ([f (λ (current evts)
              (cond [(empty? evts) '()]
                    [(empty-event? (first evts)) (cons current (f current (rest evts)))]
                    [else (cons (first evts) (f (first evts) (rest evts)))]))])
   (behavior init-value (f init-value evt-stream))))
+(define (startsWith init-value evt-stream)
+  (behavior init-value (for/list ([i (range (length evt-stream))])
+                         (findf (λ (e) (not (empty-event? e)))
+                                (reverse (cons init-value (take evt-stream (add1 i))))))))
 
 (define (changes behaviorB)
     (behavior-changes behaviorB))
