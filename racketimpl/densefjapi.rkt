@@ -16,9 +16,11 @@
 (define (identityE evt-stream)
   evt-stream)
 
-(define (oneE evt-stream)
-  (let ([val (findf not-empty-event? evt-stream)])
-    (if val (list val) '())))
+(define (onceE evt-stream)
+  (for/list ([i (range (length evt-stream))])
+    (if (findf (λ (e) (not (empty-event? e))) (take evt-stream i))
+        'no-evt
+        (list-ref evt-stream i))))
 
 (define (zeroE)
   '()) ;; a stream that never fires
