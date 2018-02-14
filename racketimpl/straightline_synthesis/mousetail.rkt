@@ -9,12 +9,12 @@
 
 (define (straightline-mousetail-y-graph y-stream)
   (define r1 y-stream)
-  (define r2 (delayE r1))
+  (define r2 (delayE 3 r1))
   r2)
 
 (define (straightline-mousetail-x-graph x-stream)
   (define r1 x-stream)
-  (define r2 (delayE r1))
+  (define r2 (delayE 3 r1))
   (define r3 (mapE (λ (e) (+ e x-offset)) r2))
   r3)
 
@@ -57,9 +57,9 @@
                              (evaluate y-retval-idx binding) 1)))
 
 (define (x-spec program)
-  (equal? (program '(1)) '(no-evt no-evt no-evt 6)))
+  (equal? (program '(1 no-evt no-evt no-evt)) '(no-evt no-evt no-evt 6)))
 (define (y-spec program)
-  (equal? (program '(1)) '(no-evt no-evt no-evt 1)))
+  (equal? (program '(1 no-evt no-evt no-evt)) '(no-evt no-evt no-evt 1)))
 
 (define spec-binding (time (synthesize #:forall '()
                                        #:guarantee (assert (and (x-spec x-sketch-graph)

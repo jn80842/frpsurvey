@@ -182,8 +182,8 @@
   (define-symbolic* streamidx integer?)
   (define-symbolic* λidx integer?)
   (define-symbolic* arg3 integer?)
-  (define-symbolic* int integer?)
-  (stream-insn op streamidx λidx arg3 int))
+  (define-symbolic* arg-int integer?)
+  (stream-insn op streamidx λidx arg3 arg-int))
 
 (define (get-input-stream insn past-vars)
   (list-ref past-vars (stream-insn-arg-index1 insn)))
