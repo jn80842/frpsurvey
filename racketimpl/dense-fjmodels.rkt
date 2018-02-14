@@ -5,8 +5,10 @@
 
 ;(error-print-width 100000000000)
 
-;; always get symbolic variables through these functions
-;; to prevent variable reuse
+;; NB: it's possible to create distinct symbolic vars
+;; which *don't* refer to same var but have same name
+;; always get vars through these functions just so
+;; naming is clear
 
 (define (get-sym-bool)
   (define-symbolic* b boolean?)
