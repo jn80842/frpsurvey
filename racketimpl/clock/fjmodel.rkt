@@ -8,17 +8,26 @@
 
 (struct behavior (init changes) #:transparent)
 
-(define (is-empty? e)
-  (eq? e 'no-evt))
+;; NB: it's possible to create distinct symbolic vars
+;; which *don't* refer to same var but have same name.
+;; Always get vars through these functions just so
+;; naming is clear.
 
-(define (sym-integer)
+(define (get-sym-bool)
+  (define-symbolic* b boolean?)
+  b)
+(define (get-sym-int)
   (define-symbolic* i integer?)
   i)
 
+(define (empty-event? e)
+  (eq? e 'no-evt))
+(define (not-empty-event? e)
+  (not (eq? e 'no-evt)))
+
 (define (new-event-stream constructor n)
   (for/list ([i n])
-    (define-symbolic* b boolean?)
-    (if b
+    (if (get-sym-bool)
         (constructor)
         'no-evt)))
 

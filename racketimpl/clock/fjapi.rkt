@@ -12,74 +12,90 @@
   'no-evt)
 
 (define (mapE proc e)
-  (if (is-empty? e)
+  (if (empty-event? e)
       'no-evt
       (proc e)))
 
 (define (mergeE e1 e2)
-  (if (is-empty? e1)
+  (if (empty-event? e1)
       e2
       e1))
 
 ;; switchE
 
 (define (filterE proc e)
-  (if (proc e)
+  (if (and (not (empty-event? e)) (proc e))
       e
       'no-evt))
 
 (define (ifE guardE trueE falseE)
-  (if (is-empty? guardE)
+  (if (empty-event? guardE)
       'no-evt
       (if guardE trueE falseE)))
 
 (define (constantE const e)
-  (if (is-empty? e)
+  (if (empty-event? e)
       'no-evt
       const))
 
-(define (collectE proc input)
-  (let ([e (first input)]
-        [mem (second input)])
-    (if (is-empty? e)
-        (cons mem mem)
-        (cons (proc e mem) (proc e mem)))))
+;; stateful operators need list of all history up to current timestep
+(define (collectE init proc lst)
+  (if (empty-event? (last lst))
+      'no-evt
+      (foldl (λ (n m) (if (empty-event? n) m (proc n m))) init lst)))
 
 (define (andE e1 e2)
-  (if (not (or (is-empty? e1) (is-empty? e2)))
+  (if (not (or (empty-event? e1) (empty-event? e2)))
       (and e1 e2)
       'no-evt))
 
 (define (orE e1 e2)
-  (if (not (or (is-empty? e1) (is-empty? e2)))
+  (if (not (or (empty-event? e1) (empty-event? e2)))
       (or e1 e2)
       'no-evt))
 
 (define (notE e)
-  (if (is-empty? e)
+  (if (empty-event? e)
       'no-evt
       (not e)))
 
-;; filterRepeatsE
+;; stateful operators need list of all history up to current timestep
+(define (filterRepeatsE lst)
+  (let ([events (reverse (filter not-empty-event? (take lst (sub1 (length lst)))))])
+    (if (and (not (empty? events)) (equal? (last lst) (first events)))
+        'no-evt
+        (last lst))))
 
 (define (snapshotE e b)
-  (if (is-empty? e)
+  (if (empty-event? e)
       'no-evt
       b))
 
-;; onceE
+;; stateful operators need list of all history up to current timestep
+(define (onceE lst)
+  (if (findf (λ (e) (not (empty-event? e))) (take lst (sub1 (length lst))))
+      'no-evt
+      (last lst)))
 
 ;; skipFirstE
 
-;; delayE
+;; stateful operators need list of all history up to current timestep
+(define (delayE interval lst)
+  (if (>= interval (length lst))
+        'no-evt
+        (list-ref lst (- (length lst) (add1 interval)))))
 
 ;; blindE
 
 ;; calmE
 
-;; timerE
+;; stateful operators need list of all history up to current timestep
+(define (timerE interval lst)
+  (if (equal? 0 (modulo (length lst) interval))
+      #t
+      'no-evt))
 
-;; startswith
+;; startsWith
 
 (define (changes b)
   b)

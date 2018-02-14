@@ -32,6 +32,9 @@
 (check-equal? (constantE 'a 'no-evt) 'no-evt)
 
 ;; collectE
+(check-equal? (collectE 1 + (list 1 2)) 4)
+(check-equal? (collectE 1 + (list 1 2 'no-evt)) 'no-evt)
+(check-equal? (collectE 1 + (list 1 2 'no-evt 3)) 7)
 
 ;; andE
 (check-equal? (andE #t #t) #t)
@@ -53,15 +56,35 @@
 (check-equal? (notE #f) #t)
 (check-equal? (notE 'no-evt) 'no-evt)
 
+;; filterRepeatsE
+(check-equal? (filterRepeatsE '(no-evt no-evt no-evt)) 'no-evt)
+(check-equal? (filterRepeatsE '(1)) 1)
+(check-equal? (filterRepeatsE '(1 1)) 'no-evt)
+(check-equal? (filterRepeatsE '(no-evt 1)) 1)
+(check-equal? (filterRepeatsE '(1 no-evt 1)) 'no-evt)
+
 ;; snapshotE
 
+;; onceE
+(check-equal? (onceE (list 1)) 1)
+(check-equal? (onceE '(no-evt)) 'no-evt)
+(check-equal? (onceE '(no-evt 1)) 1)
+(check-equal? (onceE '(no-evt 1 2)) 'no-evt)
+
 ;; delayE
+(check-equal? (delayE 1 '(a)) 'no-evt)
+(check-equal? (delayE 1 '(a no-evt)) 'a)
+(check-equal? (delayE 2 '(a no-evt no-evt)) 'a)
 
 ;; calmE
 
 ;; blindE
 
 ;; timerE
+(check-equal? (timerE 3 '(no-evt)) 'no-evt)
+(check-equal? (timerE 3 '(no-evt no-evt)) 'no-evt)
+(check-equal? (timerE 3 '(no-evt no-evt no-evt)) #t)
+(check-equal? (timerE 3 '(no-evt no-evt 1)) #t)
 
 ;; startsWith
 
