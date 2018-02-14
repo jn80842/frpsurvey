@@ -40,10 +40,10 @@
 
 (define stream-length 3)
 
-(define s-tempB (new-behavior sym-integer stream-length))
+(define s-tempB (new-behavior get-sym-int stream-length))
 ;(define s-clockB (new-behavior sym-time-vec stream-length))
-(define s-clockB (new-behavior sym-integer stream-length))
-(define s-boolB (new-behavior sym-boolean stream-length))
+(define s-clockB (new-behavior get-sym-int stream-length))
+(define s-boolB (new-behavior get-sym-bool stream-length))
 
 #;(define (thermostat-graph tempB clockB)
   (ifB (andB (liftB1 (λ (t) (<= t temp-floor)) tempB)

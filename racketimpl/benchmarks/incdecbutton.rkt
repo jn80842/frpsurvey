@@ -15,7 +15,6 @@
 ;;                  /     \    /     \
 ;;                 inc    1   dec    -1
 
-;(current-bitwidth 5)
 (define stream-length 4)
 
 (define (inc-dec-button-graph inc dec)

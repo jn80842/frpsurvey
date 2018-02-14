@@ -16,8 +16,7 @@
 (define stream-length 2)
 
 (define (sym-location)
-  (define-symbolic* b boolean?)
-  (if b 'home 'not-at-home))
+  (if (get-sym-bool) 'home 'not-at-home))
 
 (define concrete-motion-sensorB (behavior #f '(#t #f)))
 (define concrete-clockB (behavior 0 '(1 2)))
@@ -27,10 +26,10 @@
 (define hour-begin 4)
 (define hour-end 2)
 
-(define s-motion-sensorB (new-behavior sym-boolean stream-length))
+(define s-motion-sensorB (new-behavior get-sym-bool stream-length))
 (define s-locationB (new-behavior sym-location stream-length))
 ;(define s-clockB (new-behavior sym-time-vec stream-length))
-(define s-clockB (new-behavior sym-integer stream-length))
+(define s-clockB (new-behavior get-sym-int stream-length))
 
 #;(define (mode-assumptions clockB locationB)
   (and; (valid-behavior? clockB)

@@ -40,9 +40,9 @@
 (define concrete-mouse-y-output (list 'no-evt 'no-evt 'no-evt 0 2 2 1 1 1))
 
 (define (sym-mouse-coord)
-  (define-symbolic* i integer?)
+  (define i (get-sym-int))
   (assert (>= i 0))
-  (assert (<= i (- (max-for-current-bitwidth (current-bitwidth)) x-offset)))
+  ;(assert (<= i (- (max-for-current-bitwidth (current-bitwidth)) x-offset)))
   i)
 
 (define s-mouse-x (new-event-stream sym-mouse-coord stream-length))

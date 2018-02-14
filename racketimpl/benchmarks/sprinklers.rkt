@@ -28,9 +28,9 @@
 ;(current-bitwidth 5)
 (define stream-length 3)
 
-(define s-raingaugeB (new-behavior sym-boolean stream-length))
+(define s-raingaugeB (new-behavior get-sym-bool stream-length))
 (define s-clockB (new-behavior sym-time-vec stream-length))
-(define s-motionSensorB (new-behavior sym-boolean stream-length)) ;; or, should this be event stream?
+(define s-motionSensorB (new-behavior get-sym-bool stream-length)) ;; or, should this be event stream?
 
 (define small-raingaugeB (behavior #f (list #t #f)))
 (define small-clockB (behavior (vector 17 5 9) (list (vector 18 0 1) (vector 18 2 0))))

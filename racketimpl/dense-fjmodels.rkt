@@ -5,6 +5,18 @@
 
 ;(error-print-width 100000000000)
 
+;; always get symbolic variables through these functions
+;; to prevent variable reuse
+
+(define (get-sym-bool)
+  (define-symbolic* b boolean?)
+  b)
+(define (get-sym-int)
+  (define-symbolic* i integer?)
+  i)
+
+;; bitwidth helpers
+
 (define (max-for-current-bitwidth n)
   (sub1 (expt 2 (sub1 n))))
 
@@ -130,29 +142,24 @@
 
 ;;;;; make symbolic event streams ;;;;;;;;;;
 
-(define (sym-boolean)
+#;(define (sym-boolean)
   (define-symbolic* b boolean?)
   b)
 
-(define (sym-integer)
+#;(define (sym-integer)
   (define-symbolic* i integer?)
   i)
 
 (define (sym-union-constructor symbol1 symbol2)
   (λ ()
-  (define-symbolic* b boolean?)
-  (if b symbol1 symbol2)))
+  (if (get-sym-bool) symbol1 symbol2)))
 
 (define (sym-time-vec)
-  (define-symbolic* hour integer?)
-  (define-symbolic* minute-tens integer?)
-  (define-symbolic* minute-ones integer?)
-  (vector hour minute-tens minute-ones))
+  (vector (get-sym-int) (get-sym-int) (get-sym-int)))
 
 (define (new-event-stream constructor n)
   (for/list ([i n])
-    (define-symbolic* b boolean?)
-    (if b
+    (if (get-sym-bool)
         (constructor)
         'no-evt)))
 
