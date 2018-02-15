@@ -87,6 +87,10 @@
 (check-equal? (timerE 3 '(no-evt no-evt 1)) #t)
 
 ;; startsWith
+(check-equal? (startsWith 1 '()) 1)
+(check-equal? (startsWith 1 '(no-evt no-evt)) 1)
+(check-equal? (startsWith 1 '(2 no-evt)) 2)
+(check-equal? (startsWith 1 '(2 no-evt 3)) 3)
 
 ;; changes
 (check-equal? (changes 'a) 'a)
@@ -116,6 +120,7 @@
 
 ;; liftB
 (check-equal? (liftB add1 1) 2)
+(check-equal? (liftB + 1 2) 3)
 
 ;; ifB
 (check-equal? (ifB #t 'a 'b) 'a)

@@ -95,7 +95,12 @@
       #t
       'no-evt))
 
-;; startsWith
+;; stateful operators need list of all history up to current timestep
+(define (startsWith init lst)
+  (let ([events (filter not-empty-event? lst)])
+    (if (empty? events)
+        init
+        (last events))))
 
 (define (changes b)
   b)
@@ -116,8 +121,8 @@
 (define (notB b)
   (not b))
 
-(define (liftB proc b)
-  (proc b))
+(define (liftB proc . b)
+  (apply proc b))
 
 (define (ifB b1 b2 b3)
   (if b1 b2 b3))
