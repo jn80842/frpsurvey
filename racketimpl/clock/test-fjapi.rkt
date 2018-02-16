@@ -60,8 +60,10 @@
 (check-equal? (filterRepeatsE '(no-evt no-evt no-evt)) 'no-evt)
 (check-equal? (filterRepeatsE '(1)) 1)
 (check-equal? (filterRepeatsE '(1 1)) 'no-evt)
+(check-equal? (filterRepeatsE '(1 2 3)) 3)
 (check-equal? (filterRepeatsE '(no-evt 1)) 1)
 (check-equal? (filterRepeatsE '(1 no-evt 1)) 'no-evt)
+(check-equal? (filterRepeatsE '(1 1 no-evt 1)) 'no-evt)
 
 ;; snapshotE
 

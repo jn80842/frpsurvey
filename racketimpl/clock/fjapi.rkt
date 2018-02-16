@@ -59,12 +59,16 @@
       'no-evt
       (not e)))
 
-;; stateful operators need list of all history up to current timestep
+;;is it possible to improve on this?
 (define (filterRepeatsE lst)
-  (let ([events (reverse (filter not-empty-event? (take lst (sub1 (length lst)))))])
-    (if (and (not (empty? events)) (equal? (last lst) (first events)))
+  (letrec ([f (λ (evt rest)
+                (cond [(empty? rest) evt]
+                      [(equal? evt (first rest)) 'no-evt]
+                      [(not-empty-event? (first rest)) evt]
+                      [else (f evt (cdr rest))]))])
+    (if (empty-event? (last lst))
         'no-evt
-        (last lst))))
+        (f (last lst) (cdr (reverse lst))))))
 
 (define (snapshotE e b)
   (if (empty-event? e)
@@ -97,10 +101,11 @@
 
 ;; stateful operators need list of all history up to current timestep
 (define (startsWith init lst)
-  (let ([events (filter not-empty-event? lst)])
-    (if (empty? events)
-        init
-        (last events))))
+  (letrec ([f (λ (lst)
+                (cond [(empty? lst) init]
+                      [(not-empty-event? (first lst)) (first lst)]
+                      [else (f (rest lst))]))])
+    (f (reverse lst))))
 
 (define (changes b)
   b)
