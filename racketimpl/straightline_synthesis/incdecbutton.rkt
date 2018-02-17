@@ -17,6 +17,8 @@
   (define r7 (startsWith 0 r6))
   r7)
 
+(displayln "inc/dec button benchmark")
+
 (define v-binding (verify (assert (same inc-dec-button-graph
                                         straightline-graph
                                         s-inc s-dec))))
@@ -56,7 +58,7 @@
                                                             s-inc s-dec)))))
 (if (unsat? binding)
     (displayln "synthesis model is unsat")
-    (print-from-holes (evaluate holes binding) (evaluate retval-idx binding) 2))
+    (displayln "synthesis model is sat"));(print-from-holes (evaluate holes binding) (evaluate retval-idx binding) 2))
 
 ;(define (input-output-synthesis depth input-count)
 ;(define depth 5)

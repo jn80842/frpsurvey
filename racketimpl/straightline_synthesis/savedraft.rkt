@@ -18,6 +18,8 @@
   (define r8 (filterE (λ (e) e) r7))
   r8)
 
+(displayln "save draft benchmark")
+
 (define v-binding (verify (assert (same saveCommand-graph
                                         straightline-graph
                                         s-textChangedE
@@ -47,5 +49,6 @@
                                                             s-textChangedE s-saveButtonE)))))
 (if (unsat? binding)
     (displayln "synthesis model is unsat")
-    (print-from-holes (evaluate holes binding) (evaluate retval-idx binding) 2))
+    (displayln "synthesis model is sat"))
+    ;(print-from-holes (evaluate holes binding) (evaluate retval-idx binding) 2))
                                         

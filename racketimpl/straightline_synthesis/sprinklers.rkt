@@ -26,6 +26,7 @@
                           (list (constantB #t r1) r8))))
   r9)
 
+(displayln "sprinklers benchmark")
 
 (define v-binding (verify (assert (same sprinklers-graph
                                         straightline-sprinklers-graph
@@ -70,6 +71,7 @@
 
 (if (unsat? binding)
     (displayln "unsat")
-    (print-from-holes (evaluate holes binding)
-                      (evaluate retval-idx binding) 3))
+    (displayln "sat"))
+    ;(print-from-holes (evaluate holes binding)
+    ;                  (evaluate retval-idx binding) 3))
 

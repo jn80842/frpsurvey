@@ -9,6 +9,8 @@
 
 (current-bitwidth #f)
 
+(displayln "thermostat benchmark")
+
 (define (straightline-thermostat-graph tempB clockB)
   (define r1 tempB)
   (define r2 clockB)
@@ -41,5 +43,6 @@
 
 (if (unsat? binding)
     (displayln "unsat")
-    (print-from-holes (evaluate holes binding)
-                      (evaluate retval-idx binding) 2))
+    (displayln "sat"))
+    ;(print-from-holes (evaluate holes binding)
+    ;                  (evaluate retval-idx binding) 2))

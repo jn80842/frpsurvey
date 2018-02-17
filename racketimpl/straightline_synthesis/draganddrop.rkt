@@ -20,6 +20,8 @@
   (define r9 (mapE2 (λ (dragging pos) (if dragging pos 'no-evt)) r8 r3))
   r9)
 
+(displayln "drag and drop benchmark")
+
 (define v-binding (verify (assert (same drag-and-drop-graph
                                         straightline-graph
                                         s-mouse-up s-mouse-down s-mouse-pos))))
@@ -51,4 +53,4 @@
 
 (if (unsat? binding)
     (displayln "synthesis model is unsat")
-    (print-from-holes (evaluate holes binding) (evaluate retval-idx binding) 3))
+    (displayln "synthesis model is sat"));;(print-from-holes (evaluate holes binding) (evaluate retval-idx binding) 3))

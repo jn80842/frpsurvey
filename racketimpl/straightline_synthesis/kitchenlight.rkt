@@ -19,6 +19,8 @@
   (define r5 (liftB1 (λ (e) (if e 'on 'off)) r3))
   (define r6 (liftB2 (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none)) r5 r4)) r6)
 
+(displayln "kitchen light")
+
 (define v-binding (verify (assert (same kitchen-light-graph
                                         straightline-kitchenlight-graph
                                         s-clockB s-locationB s-motion-sensorB))))
@@ -44,5 +46,6 @@
 
 (if (unsat? binding)
     (displayln "unsat")
-    (print-from-holes (evaluate holes binding)
-                      (evaluate retval-idx binding) 3))
+    (displayln "sat"))
+    ;(print-from-holes (evaluate holes binding)
+    ;                  (evaluate retval-idx binding) 3))
