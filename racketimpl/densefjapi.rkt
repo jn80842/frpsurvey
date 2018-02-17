@@ -152,6 +152,23 @@
                       [(and (>= 0 wait-time) (not-empty-event? (first evts))) (cons (first evts) (f (rest evts) interval))]
                       [else (cons 'no-evt (f (rest evts) (sub1 wait-time)))]))])
     (f evt-stream 0)))
+#;(define (blindE interval evt-stream)
+  (for/list ([i (range (length evt-stream))])
+    (if (> interval (add1 i))
+        (if (andmap empty-event? (take evt-stream i))
+            (list-ref evt-stream i)
+            'no-evt)
+        (if (andmap empty-event? (take-right (take evt-stream i) interval))
+            (list-ref evt-stream i)
+            'no-evt))))
+#;(define (blindE interval evt-stream)
+  (for/list ([i (range (length evt-stream))])
+    (let ([prior (if (<= (length (take evt-stream i)) interval)
+                     (take evt-stream i)
+                     (take-right (take evt-stream i) interval))])
+      (if (ormap not-empty-event? prior)
+          'no-evt
+          (list-ref evt-stream i)))))
 
 (define (calmE interval evt-stream)
   (letrec ([f (λ (evts last-sent buffered-evt)
