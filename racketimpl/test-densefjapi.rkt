@@ -8,8 +8,8 @@
 (define stream-with-no-evts (list (list 1 'no-evt) (list 2 "hello") (list 5 "world") (list 6 'no-evt)))
 
 ;; oneE tests
-(check-equal? (oneE (list 'one 'two 'three)) (list 'one))
-(check-equal? (oneE '()) '())
+;(check-equal? (oneE (list 'one 'two 'three)) (list 'one))
+;(check-equal? (oneE '()) '())
 
 ;; zeroE tests
 (check-equal? (zeroE) '())
@@ -60,11 +60,17 @@
 (check-equal? (notE (list #f #t #f)) (list #t #f #t))
 (check-equal? (notE (list #f 'no-evt #t)) (list #t 'no-evt #f))
 
+;; filterRepeatsE
+(check-equal? (filterRepeatsE '()) '())
+(check-equal? (filterRepeatsE '(1)) '(1))
+(check-equal? (filterRepeatsE '(1 1)) '(1 no-evt))
+(check-equal? (filterRepeatsE '(1 1 no-evt 2 3 2 no-evt 2)) '(1 no-evt no-evt 2 3 2 no-evt no-evt))
+
 ;; snapshotE tests
 (check-equal? (snapshotE (list #t 'no-evt #f) (behavior 1 (list 2 3 4))) (list 2 'no-evt 4))
 
 ;; delayE tests
-(check-equal? (delayE 3 (list 1 'no-evt 'no-evt 2 3)) (list 'no-evt 'no-evt 'no-evt 1 'no-evt 'no-evt 2 3))
+(check-equal? (delayE 3 (list 1 'no-evt 'no-evt 2 3)) (list 'no-evt 'no-evt 'no-evt 1 'no-evt))
 (check-equal? (delayE 0 (list 'no-evt 1 'no-evt 2 3)) (list 'no-evt 1 'no-evt 2 3))
 
 ;; calmE tests
@@ -83,6 +89,7 @@
 ;; timerE tests
 (check-equal? (timerE 3 '(a b c d e f g)) (list 'no-evt 'no-evt #t 'no-evt 'no-evt #t 'no-evt))
 (check-equal? (timerE 3 '()) '())
+(check-equal? (timerE 0 '(a b c d)) '(no-evt no-evt no-evt no-evt))
 
 ;; startsWith tests
 (check-equal? (startsWith 10 '(11 12 13)) (behavior 10 '(11 12 13)))

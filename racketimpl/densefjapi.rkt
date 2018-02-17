@@ -114,7 +114,17 @@
 (define (notE evt-stream)
   (map (λ (e) (if (empty-event? e) e (not e))) evt-stream))
 
-;; filterRepeatsE
+(define (filterRepeatsE evt-stream)
+  (letrec ([f (λ (evt rest)
+                (cond [(empty? rest) evt]
+                      [(equal? evt (first rest)) 'no-evt]
+                      [(not-empty-event? (first rest)) evt]
+                      [else (f evt (cdr rest))]))])
+    (for/list ([i (range 1 (add1 (length evt-stream)))])
+      (let ([lst (take evt-stream i)])
+        (if (empty-event? (last lst))
+            'no-evt
+            (f (last lst) (cdr (reverse lst))))))))
 
 ;; send/receive
 
@@ -126,44 +136,6 @@
 ;; onceE
 
 ;; skipFirstE
-
-;; can't use symbolic variable for for/list!
-#;(define (delayE interval evt-stream)
-  (append (for/list ([i interval]) 'no-evt) evt-stream))
-
-#;(define (delayE interval evt-stream)
-  (letrec ([f (λ (i) (if (> i 0)
-                         (append (list 'no-evt) (f (sub1 i)))
-                         evt-stream))])
-    (f interval)))
-
-;; this is embarrassing
-(define no-evt-stream '(no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt))
-#;(define (delayE interval evt-stream)
-  (append (take no-evt-stream interval) evt-stream))
-
-(define (delayE1 evt-stream)
-  (append (list 'no-evt) evt-stream))
-(define (delayE2 evt-stream)
-  (append (list 'no-evt 'no-evt) evt-stream))
-(define (delayE3 evt-stream)
-  (append (list 'no-evt 'no-evt 'no-evt) evt-stream))  
-#;(define (delayE interval evt-stream)
-  evt-stream)
-#;(define (delayE interval evt-stream)
-  (case interval
-    [(0) evt-stream]
-    [(1) (append (list 'no-evt) evt-stream)]
-    [(2) (append (list 'no-evt 'no-evt) evt-stream)]
-    [(3) (append (list 'no-evt 'no-evt 'no-evt) evt-stream)]
-    ;[(4) (append (list 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
-    ;[(5) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
-    ;[(6) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
-    ;[(7) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
-    ;[(8) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
-    ;[(9) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
-    ;[(10) (append (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt) evt-stream)]
-    ))
 
 (define (delayE interval evt-stream)
  ; (append
@@ -195,18 +167,21 @@
                               (cons output (f (rest evts) new-last-sent new-buffer)))]))])
     (f evt-stream 0 'no-evt)))
 
-(define (timerE interval evt-stream)
-  (map (λ (n) (if (equal? 0 (modulo n interval))
-                  #t
-                  'no-evt))
-         (range 1 (add1 (length evt-stream)))))
+;; NB: passing an event stream to timerE is a bit of a hack
+;; in Flapjax timerE's only arg is the interval
+;; this could be fixed by specifying a size of the timeline
 
-#;(define (startsWith init-value evt-stream)
-  (letrec ([f (λ (current evts)
-             (cond [(empty? evts) '()]
-                   [(empty-event? (first evts)) (cons current (f current (rest evts)))]
-                   [else (cons (first evts) (f (first evts) (rest evts)))]))])
-  (behavior init-value (f init-value evt-stream))))
+;; NB2: purposely not using modulo because Rosette
+;; tries to guess the interval is 0 causing the expression
+;; to throw an exception during synthesis
+(define (timerE interval evt-stream)
+  (letrec ([f (λ (lst)
+                (cond [(< (length lst) interval) (map (λ (e) 'no-evt) lst)]
+                      [else (append (map (λ (e) 'no-evt) (range (sub1 interval))) '(#t) (f (drop lst interval)))]))])
+    (if (< 0 interval)
+        (f evt-stream)
+        (map (λ (e) 'no-evt) evt-stream))))
+
 (define (startsWith init-value evt-stream)
   (behavior init-value (for/list ([i (range (length evt-stream))])
                          (findf (λ (e) (not (empty-event? e)))

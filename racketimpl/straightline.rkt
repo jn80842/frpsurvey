@@ -149,8 +149,22 @@
                                         (list-ref past-vars (stream-insn-arg-index3 insn))))))
 (define delayE-op
   (operator "delayE"
-    (λ (insn past-vars) (delayE (get-integer-arg insn) (get-input-stream insn past-vars)))
-    (λ (insn past-vars) (format "~a ~a" (get-integer-arg insn) (get-input-stream insn past-vars)))))
+            (λ (insn past-vars) (delayE (get-integer-arg insn) (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (format "~a ~a" (get-integer-arg insn) (get-input-stream insn past-vars)))))
+(define filterRepeatsE-op
+  (operator "filterRepeatsE"
+            (λ (insn past-vars) (filterRepeatsE (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (format "~a" (get-input-stream insn past-vars)))))
+(define timerE-op
+  (operator "timerE"
+            (λ (insn past-vars) (timerE (get-integer-arg insn) (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (format "~a ~a" (get-integer-arg insn) (get-input-stream insn past-vars)))))
+(define filterE-op
+  (operator "filterE"
+            (λ (insn past-vars) (filterE (list-ref function-list (get-integer-arg insn))
+                                         (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (format "~a ~a" (list-ref function-list-string (get-integer-arg insn))
+                                        (get-input-stream insn past-vars)))))
 
 (define operator-list (list constantE-imm-op
                             constantE-op
@@ -173,6 +187,9 @@
                             snapshotE-op
                             mapE2-op
                             delayE-op
+                            filterRepeatsE-op
+                            timerE-op
+                            filterE-op
                             ))
 
 ;; these are collectE specific var names
