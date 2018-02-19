@@ -36,8 +36,8 @@
 ;;                (snapshotE (timerE 5 saveButtonE)
 ;;                           (collectB (λ (prev curr)))))
 
-(define s-saveButtonE (new-event-stream (λ () 'save) 3))
-(define s-textChangedE (new-event-stream (λ () 'change) 3))
+(define s-saveButtonE (new-event-stream (λ () 'save) 5))
+(define s-textChangedE (new-event-stream (λ () 'change) 5))
 
 (define concrete-save-buttonE '(no-evt no-evt no-evt save no-evt no-evt no-evt no-evt no-evt no-evt))
 (define concrete-text-changedE '(no-evt change change no-evt no-evt change change no-evt no-evt no-evt))
