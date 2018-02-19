@@ -187,17 +187,42 @@
 ;; NB: passing an event stream to timerE is a bit of a hack
 ;; in Flapjax timerE's only arg is the interval
 ;; this could be fixed by specifying a size of the timeline
-
-;; NB2: purposely not using modulo because Rosette
-;; tries to guess the interval is 0 causing the expression
-;; to throw an exception during synthesis
+(define (guarded-modulo n m)
+  (if (equal? m 0)
+      'bad
+      (modulo n m)))
+#;(define (timerE interval evt-stream)
+  (if (equal? interval 0)
+      (map (λ (e) 'no-evt) evt-stream)
+      (map (λ (n) (if (equal? 0 (guarded-modulo n interval))
+                      #t
+                      'no-evt))
+           (range 1 (add1 (length evt-stream))))))
+#;(define (timerE interval evt-stream)
+  (define interval-val '(1 2 3 4 5 6 7 8 9 10))
+  (map (λ (n) (if (equal? 0 (modulo n (list-ref interval-val (sub1 interval))))
+                      #t
+                      'no-evt))
+           (range 1 (add1 (length evt-stream)))))
+#;(define (timerE interval evt-stream)
+  (let ([indices (range 1 (add1 (length evt-stream)))])
+    (for/list ([i indices])
+      (if (member  interval (take indices i))
+          (if (equal? (modulo i interval) 0)
+              #t
+              'no-evt)
+          'no-evt))))
+;; despite best efforts, not sure how to use modulo in synthesis
+;; without Rosette trying to set interval to 0?
+(define timer-list (list '(no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt no-evt)
+                          '(#t #t #t #t #t #t #t #t #t #t)
+                          '(no-evt #t no-evt #t no-evt #t no-evt #t no-evt #t)
+                          '(no-evt no-evt #t no-evt no-evt #t no-evt no-evt #t no-evt)
+                          '(no-evt no-evt no-evt #t no-evt no-evt no-evt #t no-evt no-evt)
+                          '(no-evt no-evt no-evt no-evt #t no-evt no-evt no-evt no-evt #t)))
+;; interval can only be 0-5, evt-stream can't be longer than 10
 (define (timerE interval evt-stream)
-  (letrec ([f (λ (lst)
-                (cond [(< (length lst) interval) (map (λ (e) 'no-evt) lst)]
-                      [else (append (map (λ (e) 'no-evt) (range (sub1 interval))) '(#t) (f (drop lst interval)))]))])
-    (if (< 0 interval)
-        (f evt-stream)
-        (map (λ (e) 'no-evt) evt-stream))))
+  (take (list-ref timer-list interval) (length evt-stream)))
 
 (define (startsWith init-value evt-stream)
   (behavior init-value (for/list ([i (range (length evt-stream))])
