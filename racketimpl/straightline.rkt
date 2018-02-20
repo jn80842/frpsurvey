@@ -49,14 +49,14 @@
             (λ (insn past-vars) (format "~a ~a ~a" (get-integer-arg insn)
                                         (list-ref function-2arg-list-string (stream-insn-arg-index2 insn))
                                         (get-input-stream insn past-vars)))))
-(define collectE-op
+#;(define collectE-op
   (operator "collectE"
             (λ (insn past-vars) (collectE-minus (get-integer-arg insn) (list-ref function-2arg-list (stream-insn-arg-index2 insn))
                                           (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a ~a" (get-integer-arg insn)
                                         (list-ref function-2arg-list-string (stream-insn-arg-index2 insn))
                                         (get-input-stream insn past-vars)))))
-#;(define collectE-op
+(define collectE-op
   (operator "collectE"
             (λ (insn past-vars) (collectE (list-ref constantB-consts (stream-insn-arg-index2 insn))
                                           (list-ref function-2arg-list (stream-insn-arg-index3 insn))
