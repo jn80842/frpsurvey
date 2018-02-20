@@ -170,8 +170,6 @@
                             constantE-op
                             mergeE-op
                             collectE-imm-op
-                      ; collectE-plus-op
-                      ; collectE-minus-op
                             collectE-op
                             startsWith-imm-op
                             startsWith-op
@@ -188,7 +186,7 @@
                             mapE2-op
                             delayE-op
                             filterRepeatsE-op
-                            timerE-op
+                         ;   timerE-op
                             filterE-op
                             ))
 
