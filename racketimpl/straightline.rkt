@@ -103,15 +103,15 @@
                                         (list-ref past-vars (stream-insn-arg-index1 insn))))))
 (define ifB-op
   (operator "ifB"
-            (λ (insn past-vars) (ifB (list-ref past-vars (stream-insn-arg-index1 insn))
+            (λ (insn past-vars) (ifB (get-input-stream insn past-vars)
                                      (list-ref past-vars (stream-insn-arg-index2 insn))
                                      (list-ref past-vars (stream-insn-arg-index3 insn))))
-            (λ (insn past-vars) (format "~a ~a ~a" (list-ref past-vars (stream-insn-arg-index1 insn))
+            (λ (insn past-vars) (format "~a ~a ~a" (get-input-stream insn past-vars)
                                         (list-ref past-vars (stream-insn-arg-index2 insn))
                                         (list-ref past-vars (stream-insn-arg-index3 insn))))))
 (define constantB-imm-op
   (operator "constantB"
-            (λ (insn past-vars) (constantB (stream-insn-arg-int insn) (list-ref past-vars (stream-insn-arg-index1 insn))))
+            (λ (insn past-vars) (constantB (stream-insn-arg-int insn) (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a" (stream-insn-arg-int insn)))))
 (define constantB-op
   (operator "constantB"
@@ -141,11 +141,11 @@
                                         (list-ref past-vars (stream-insn-arg-index2 insn))))))
 (define mapE2-op
   (operator "mapE"
-            (λ (insn past-vars) (mapE2 (list-ref function-2arg-list (stream-insn-arg-index1 insn))
-                                       (list-ref past-vars (stream-insn-arg-index2 insn))
+            (λ (insn past-vars) (mapE2 (list-ref function-2arg-list (stream-insn-arg-index2 insn))
+                                       (get-input-stream insn past-vars)
                                        (list-ref past-vars (stream-insn-arg-index3 insn))))
-            (λ (insn past-vars) (format "~a ~a ~a" (list-ref function-2arg-list-string (stream-insn-arg-index1 insn))
-                                        (list-ref past-vars (stream-insn-arg-index2 insn))
+            (λ (insn past-vars) (format "~a ~a ~a" (list-ref function-2arg-list-string (stream-insn-arg-index2 insn))
+                                        (get-input-stream insn past-vars)
                                         (list-ref past-vars (stream-insn-arg-index3 insn))))))
 (define delayE-op
   (operator "delayE"
@@ -184,7 +184,7 @@
                             collectB-imm-op
                             snapshotE-op
                             mapE2-op
-                            delayE-op
+                         ;   delayE-op
                             filterRepeatsE-op
                          ;   timerE-op
                             filterE-op
