@@ -3,18 +3,16 @@
 
 (require "fjmodel.rkt")
 
-(define (identityE e)
-  e)
+(define (identityE history)
+  (last history))
 
 ;; oneE
 
 (define (zeroE e)
   'no-evt)
 
-(define (mapE proc e)
-  (if (empty-event? e)
-      'no-evt
-      (proc e)))
+(define (mapE proc history)
+  (proc (last history)))
 
 (define (mergeE e1 e2)
   (if (empty-event? e1)
@@ -23,41 +21,38 @@
 
 ;; switchE
 
-(define (filterE proc e)
-  (if (and (not (empty-event? e)) (proc e))
-      e
-      'no-evt))
+(define (filterE proc history)
+  (let ([e (last history)])
+    (if (proc e)
+        e
+        'no-evt)))
 
 (define (ifE guardE trueE falseE)
-  (if (empty-event? guardE)
-      'no-evt
-      (if guardE trueE falseE)))
+  (if (last guardE) (last trueE) (last falseE)))
 
 (define (constantE const e)
-  (if (empty-event? e)
-      'no-evt
-      const))
+  const)
 
 ;; stateful operators need list of all history up to current timestep
 (define (collectE init proc lst)
-  (if (empty-event? (last lst))
-      'no-evt
-      (foldl (λ (n m) (if (empty-event? n) m (proc n m))) init lst)))
+  (foldl (λ (n m) (if (empty-event? n) m (proc n m))) init lst))
 
-(define (andE e1 e2)
-  (if (not (or (empty-event? e1) (empty-event? e2)))
-      (and e1 e2)
-      'no-evt))
+(define (andE history1 history2)
+  (let ([e1 (last history1)]
+        [e2 (last history2)])
+    (if (empty-event? e2)
+        (and e1 e2)
+        'no-evt)))
 
-(define (orE e1 e2)
-  (if (not (or (empty-event? e1) (empty-event? e2)))
-      (or e1 e2)
-      'no-evt))
+(define (orE history1 history2)
+  (let ([e1 (last history1)]
+        [e2 (last history2)])
+    (if (empty-event? e2)
+        (or e1 e2)
+        'no-evt)))
 
-(define (notE e)
-  (if (empty-event? e)
-      'no-evt
-      (not e)))
+(define (notE history)
+  (not (last history)))
 
 ;;is it possible to improve on this?
 (define (filterRepeatsE lst)
@@ -71,9 +66,7 @@
         (f (last lst) (cdr (reverse lst))))))
 
 (define (snapshotE e b)
-  (if (empty-event? e)
-      'no-evt
-      b))
+  (last b))
 
 ;; stateful operators need list of all history up to current timestep
 (define (onceE lst)
@@ -100,37 +93,45 @@
       'no-evt))
 
 ;; stateful operators need list of all history up to current timestep
-(define (startsWith init lst)
-  (letrec ([f (λ (lst)
-                (cond [(empty? lst) init]
-                      [(not-empty-event? (first lst)) (first lst)]
-                      [else (f (rest lst))]))])
-    (f (reverse lst))))
+(define (startsWith init-value evt-stream)
+  (behavior init-value (for/list ([i (range (length evt-stream))])
+                         (findf (λ (e) (not (empty-event? e)))
+                                (reverse (cons init-value (take evt-stream (add1 i))))))))
 
-(define (changes b)
-  b)
+(define (changes behaviorB)
+    (behavior-changes behaviorB))
 
-(define (constantB const b)
-  const)
+(define (constantB const inputB)
+  (behavior const (map (λ (e) const) (changes inputB))))
 
 ;; delayB
 
 ;; switchB
 
-(define (andB b1 b2)
-  (and b1 b2))
+(define (andB behavior1 behavior2)
+  (behavior (and (behavior-init behavior1) (behavior-init behavior2))
+            (map (λ (b1 b2) (and b1 b2)) (behavior-changes behavior1) (behavior-changes behavior2))))
 
-(define (orB b1 b2)
-  (or b1 b2))
+(define (orB behavior1 behavior2)
+  (behavior (or (behavior-init behavior1) (behavior-init behavior2))
+            (map (λ (b1 b2) (or b1 b2)) (behavior-changes behavior1) (behavior-changes behavior2))))
 
-(define (notB b)
-  (not b))
+(define (notB behavior1)
+  (behavior (not (behavior-init behavior1)) (notE (behavior-changes behavior1))))
 
-(define (liftB proc . b)
-  (apply proc b))
+(define (liftB1 proc argB)
+  (behavior (proc (behavior-init argB)) (map proc (behavior-changes argB))))
 
-(define (ifB b1 b2 b3)
-  (if b1 b2 b3))
+(define (liftB2 proc argB1 argB2)
+  (behavior (proc (behavior-init argB1) (behavior-init argB2))
+            (map proc (behavior-changes argB1) (behavior-changes argB2))))
+
+(define (ifB conditionB trueB falseB)
+  (behavior (if (behavior-init conditionB) (behavior-init trueB) (behavior-init falseB))
+            (map (λ (cB tB fB) (if cB tB fB))
+                 (behavior-changes conditionB)
+                 (behavior-changes trueB)
+                 (behavior-changes falseB))))
 
 ;; timerB
 

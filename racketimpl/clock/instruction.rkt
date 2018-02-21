@@ -52,7 +52,7 @@
                                (list-ref reg (insn-idx2 i))))))
 (define liftB-op
   (operator "liftB"
-            (λ (i reg) (liftB (list-ref function-list (insn-idx2 i))
+            (λ (i reg) (liftB1 (list-ref function-list (insn-idx2 i))
                               (list-ref reg (insn-idx1 i))))
             (λ (i reg) (format "~a ~a" (list-ref function-list-string (insn-idx2 i))
                                (list-ref reg (insn-idx1 i))))))
@@ -64,6 +64,18 @@
             (λ (i reg) (format "~a ~a ~a" (list-ref reg (insn-idx1 i))
                                (list-ref reg (insn-idx2 i))
                                (list-ref reg (insn-idx3 i))))))
+
+(define event-operator-list
+  (list constantE-imm-op
+        constantE-op
+        mapE-op
+        filterE-op
+        mergeE-op))
+(define behavior-operator-list
+  (list constantB-op
+        andB-op
+        ifB-op
+        liftB-op))
 
 (define operator-list
   (list constantE-imm-op
@@ -89,17 +101,28 @@
 (define constant-list (list 'on 'off #t #f 'test))
 
 (struct insn
-  (op-index idx1 idx2 idx3 int) #:transparent)
+  (e-or-b op-index idx1 idx2 idx3 int) #:transparent)
+
+(define (get-input-stream insn past-vars)
+  (list-ref past-vars (insn-idx1 insn)))
 
 (define (get-insn-holes)
+  (define-symbolic* e? boolean?)
   (define-symbolic* op integer?)
   (define-symbolic* idx1 integer?)
   (define-symbolic* idx2 integer?)
   (define-symbolic* idx3 integer?)
   (define-symbolic* int integer?)
-  (insn op idx1 idx2 idx3 int))
+  (insn e? op idx1 idx2 idx3 int))
 
 (define (call-insn i reg)
+    (if (insn-e-or-b i)
+        (apply (curry map (λ (e . inputs) (if (empty-event? e)
+                        'no-evt
+                        ((operator-call (list-ref event-operator-list (insn-op-index i))) i inputs))) (get-input-stream i reg)) reg)
+        ((operator-call (list-ref behavior-operator-list (insn-op-index i))) i reg)))
+
+#;(define (call-insn i reg)
   (let ([op (list-ref operator-list (insn-op-index i))])
     ((operator-call op) i reg)))
 (define (print-insn i reg)
