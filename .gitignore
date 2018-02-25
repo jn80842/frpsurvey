@@ -9,3 +9,4 @@ racketimpl/verification/compiled/
 racketimpl/straightline_synthesis/compiled/
 racketimpl/straightline_synthesis/fixed_graph/compiled/
 racketimpl/clock/compiled/
+rx/racketimpl/compiled/
