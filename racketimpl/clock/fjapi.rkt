@@ -14,10 +14,19 @@
 (define (mapE proc history)
   (proc (last history)))
 
-(define (mergeE e1 e2)
-  (if (empty-event? e1)
-      e2
-      e1))
+(define (mapE2 proc history1 history2)
+  (let ([e1 (last history1)]
+        [e2 (last history2)])
+    (if (empty-event? e2)
+        'no-evt
+        (proc e1 e2))))
+
+(define (mergeE history1 history2)
+  (let ([e1 (last history1)]
+        [e2 (last history2)])
+    (if (empty-event? e1)
+        e2
+        e1)))
 
 ;; switchE
 
@@ -40,14 +49,14 @@
 (define (andE history1 history2)
   (let ([e1 (last history1)]
         [e2 (last history2)])
-    (if (empty-event? e2)
+    (if (not-empty-event? e2)
         (and e1 e2)
         'no-evt)))
 
 (define (orE history1 history2)
   (let ([e1 (last history1)]
         [e2 (last history2)])
-    (if (empty-event? e2)
+    (if (not-empty-event? e2)
         (or e1 e2)
         'no-evt)))
 
@@ -65,8 +74,9 @@
         'no-evt
         (f (last lst) (cdr (reverse lst))))))
 
-(define (snapshotE e b)
-  (last b))
+(define (snapshotE e b-input)
+  (let ([b (behavior-changes b-input)])
+    (last b)))
 
 ;; stateful operators need list of all history up to current timestep
 (define (onceE lst)
@@ -98,11 +108,12 @@
                          (findf (λ (e) (not (empty-event? e)))
                                 (reverse (cons init-value (take evt-stream (add1 i))))))))
 
+;; this is wrong
 (define (changes behaviorB)
     (behavior-changes behaviorB))
 
 (define (constantB const inputB)
-  (behavior const (map (λ (e) const) (changes inputB))))
+  (behavior const (map (λ (e) const) (behavior-changes inputB))))
 
 ;; delayB
 
@@ -117,7 +128,7 @@
             (map (λ (b1 b2) (or b1 b2)) (behavior-changes behavior1) (behavior-changes behavior2))))
 
 (define (notB behavior1)
-  (behavior (not (behavior-init behavior1)) (notE (behavior-changes behavior1))))
+  (behavior (not (behavior-init behavior1)) (map not (behavior-changes behavior1))))
 
 (define (liftB1 proc argB)
   (behavior (proc (behavior-init argB)) (map proc (behavior-changes argB))))
@@ -132,6 +143,14 @@
                  (behavior-changes conditionB)
                  (behavior-changes trueB)
                  (behavior-changes falseB))))
+
+(define (collectB init-val proc b1)
+  (let ([b-init (proc init-val (behavior-init b1))])
+         (letrec ([collect (λ (lst prev)
+                       (if (empty? lst)
+                           '()
+                           (cons (proc (first lst) prev) (collect (rest lst) (proc (first lst) prev)))))])
+           (behavior b-init (collect (behavior-changes b1) b-init)))))
 
 ;; timerB
 
