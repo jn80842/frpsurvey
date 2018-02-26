@@ -12,6 +12,11 @@
   (for/list ([i (range (length stream))])
     (foldl (λ (n m) (if (empty? n) m n)) '() (take stream (add1 i)))))
 
+;; this simulates calling the JS function Date.now()
+;; this technically isn't an Observable
+(define (datetime-stream length)
+  (range 1 (add1 length)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;   Observable constructors
@@ -30,8 +35,8 @@
             '()
             (flatten expanded))))))
 
-(define (fromEventO events)
-  events)
+(define (fromEventO events [callback identity])
+  (map (λ (e) (if (empty? e) '() (list (apply callback e)))) events))
 
 (define (intervalO n lst-len)
   (let* ([add-bet-val (for/list ([i (range (sub1 n))]) '())]
@@ -67,9 +72,19 @@
             '()
             (f (last lst) (cdr (reverse lst))))))))
 
-(define (mapO proc . streams)
-  (apply (curry map (λ es (let ([inputs (flatten es)])
-                            (list (apply proc inputs))))) streams))
+(define (mapO proc stream)
+  (map (λ (e) (if (empty? e)
+                  '()
+                  (list (apply proc e)))) stream))
+
+;; hack to simulate map with a function that calls Date.now()
+;; datetime is the first arg to the map function
+(define (mapO-with-datetime proc stream)
+  (let ([datenow (datetime-stream (length stream))])
+  (for/list ([i (range (length stream))])
+    (if (empty? (list-ref stream i))
+        '()
+        (list (apply (curry proc (list-ref datenow i)) (list-ref stream i)))))))
 
 (define (sampleO interval stream)
   (let ([steps (range interval (length stream) interval)])
