@@ -11,19 +11,6 @@
 (struct operator
   (name call print) #:transparent)
 
-(define collectE-plus-op
-  (operator "collectE"
-            (λ (insn past-vars) (collectE-plus (get-integer-arg insn)
-                                               (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a + ~a" (stream-insn-arg-int insn)
-                                        (get-input-stream insn past-vars)))))
-(define collectE-minus-op
-  (operator "collectE"
-            (λ (insn past-vars) (collectE-minus (get-integer-arg insn)
-                                                (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a - ~a" (stream-insn-arg-int insn)
-                                        (get-input-stream insn past-vars)))))
-
 (define constantE-imm-op
   (operator "constantE"
             (λ (insn past-vars) (constantE (get-integer-arg insn)
@@ -45,13 +32,6 @@
 (define collectE-imm-op
   (operator "collectE"
             (λ (insn past-vars) (collectE (get-integer-arg insn) (list-ref function-2arg-list (stream-insn-arg-index2 insn))
-                                          (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a ~a ~a" (get-integer-arg insn)
-                                        (list-ref function-2arg-list-string (stream-insn-arg-index2 insn))
-                                        (get-input-stream insn past-vars)))))
-#;(define collectE-op
-  (operator "collectE"
-            (λ (insn past-vars) (collectE-minus (get-integer-arg insn) (list-ref function-2arg-list (stream-insn-arg-index2 insn))
                                           (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a ~a" (get-integer-arg insn)
                                         (list-ref function-2arg-list-string (stream-insn-arg-index2 insn))
@@ -166,6 +146,21 @@
             (λ (insn past-vars) (format "~a ~a" (list-ref function-list-string (get-integer-arg insn))
                                         (get-input-stream insn past-vars)))))
 
+(define stateless-operator-list (list constantE-imm-op
+                                      constantE-op
+                                      mergeE-op
+                                      mapE-op
+                                      liftB1-op
+                                      liftB2-op
+                                      andB-op
+                                      ifB-op
+                                      constantB-imm-op
+                                      constantB-op
+                                      snapshotE-op
+                                      mapE2-op
+                                      filterE-op
+                                      ))
+
 (define operator-list (list constantE-imm-op
                             constantE-op
                             mergeE-op
@@ -184,9 +179,9 @@
                             collectB-imm-op
                             snapshotE-op
                             mapE2-op
-                         ;   delayE-op
+                            delayE-op
                             filterRepeatsE-op
-                         ;   timerE-op
+                            timerE-op
                             filterE-op
                             ))
 
@@ -205,8 +200,13 @@
 (define (get-integer-arg insn)
   (stream-insn-arg-int insn))
 
+(define (call-stateless-stream-insn insn past-vars)
+  (let ([op (list-ref stateless-operator-list (stream-insn-op-index insn))])
+    ((operator-call op) insn past-vars)))
+
 (define (call-stream-insn insn past-vars)
-  (struct-call-stream-insn insn past-vars))
+  (let ([op (list-ref operator-list (stream-insn-op-index insn))])
+    ((operator-call op) insn past-vars)))
 
 (define (struct-call-stream-insn insn past-vars)
   (let ([op (list-ref operator-list (stream-insn-op-index insn))])
@@ -280,15 +280,15 @@
 (define (string-from-holes bound-holes retval input-count)
   (let* ([arg-list (for/list ([i (range input-count)])
                     (format "input~a" (add1 i)))]
-        [input-stmt-list (for/list ([i (range input-count)])
-                           (format "  (define r~a input~a)" (add1 i) (add1 i)))]
-        [depth (length bound-holes)]
-        [varlist (for/list ([i (range (add1 (+ input-count depth)))])
-                                            (format "r~a" (add1 i)))]
-        [synthed-stmt-list (for/list ([i (range depth)])
-                             (print-single-insn (list-ref bound-holes i) (list-ref varlist (+ input-count i))
-                                                (take varlist (+ input-count i))))]
-        [return-stmt (format "  ~a)" (list-ref varlist retval))])
+         [input-stmt-list (for/list ([i (range input-count)])
+                            (format "  (define r~a input~a)" (add1 i) (add1 i)))]
+         [depth (length bound-holes)]
+         [varlist (for/list ([i (range (add1 (+ input-count depth)))])
+                    (format "r~a" (add1 i)))]
+         [synthed-stmt-list (for/list ([i (range depth)])
+                              (print-single-insn (list-ref bound-holes i) (list-ref varlist (+ input-count i))
+                                                 (take varlist (+ input-count i))))]
+         [return-stmt (format "  ~a)" (list-ref varlist retval))])
     (string-append (format "(define (synthesized-function ~a)\n" (string-join arg-list))
                    (string-join input-stmt-list "\n")
                    "\n"

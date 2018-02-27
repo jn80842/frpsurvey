@@ -39,7 +39,7 @@
 (define-symbolic* y-retval-idx integer?)
 (define (x-sketch-graph input)
   (define r1 input)
-  (define r2 (call-stream-insn (list-ref x-holes 0) (list r1)))
+  (define r2 (call-stateless-stream-insn (list-ref x-holes 0) (list r1)))
   (define r3 (call-stream-insn (list-ref x-holes 1) (list r1 r2)))
   (list-ref (list r1 r2 r3) x-retval-idx))
 (define (y-sketch-graph input)
