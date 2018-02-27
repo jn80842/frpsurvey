@@ -228,7 +228,11 @@
                             (λ (e) (if e 'on 'off))
                             (λ (c) (or (>= (time-vec-hour c) 4)
                                        (>= 2 (time-vec-hour c))))
+                            ;(λ (t) (list-ref table t))
                             ))
+
+(define table (for/list ([i (range 3)]) (define-symbolic* table-sv integer?) table-sv))
+
 (define function-2arg-list (list (λ (clock location) (if (or (>= clock 4) (< clock 2))
                                  'night
                                  (if (equal? location 'home)
