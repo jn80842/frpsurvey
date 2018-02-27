@@ -35,9 +35,11 @@
             '()
             (flatten expanded))))))
 
+;; hot Observable
 (define (fromEventO events [callback identity])
   (map (λ (e) (if (empty? e) '() (list (apply callback e)))) events))
 
+;; cold Observable
 (define (intervalO n lst-len)
   (let* ([add-bet-val (for/list ([i (range (sub1 n))]) '())]
          [steps (range n lst-len n)]
