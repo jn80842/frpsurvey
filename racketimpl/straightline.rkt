@@ -164,10 +164,6 @@
 (define operator-list (list constantE-imm-op
                             constantE-op
                             mergeE-op
-                            collectE-imm-op
-                            collectE-op
-                            startsWith-imm-op
-                            startsWith-op
                             mapE-op
                             liftB1-op
                             liftB2-op
@@ -175,14 +171,18 @@
                             ifB-op
                             constantB-imm-op
                             constantB-op
-                            collectB-op
-                            collectB-imm-op
                             snapshotE-op
                             mapE2-op
+                            filterE-op
+                            collectE-imm-op
+                            collectE-op
+                            startsWith-imm-op
+                            startsWith-op
                             delayE-op
                             filterRepeatsE-op
                             timerE-op
-                            filterE-op
+                            collectB-op
+                            collectB-imm-op
                             ))
 
 ;; these are collectE specific var names
@@ -204,22 +204,20 @@
   (let ([op (list-ref stateless-operator-list (stream-insn-op-index insn))])
     ((operator-call op) insn past-vars)))
 
-(define (call-stream-insn insn past-vars)
+(define (call-any-stream-insn insn past-vars)
   (let ([op (list-ref operator-list (stream-insn-op-index insn))])
     ((operator-call op) insn past-vars)))
 
-(define (struct-call-stream-insn insn past-vars)
-  (let ([op (list-ref operator-list (stream-insn-op-index insn))])
-    ((operator-call op) insn past-vars)))
+(define (call-stream-insn state-flag insn past-vars)
+  (if state-flag
+      (call-any-stream-insn insn past-vars)
+      (call-stateless-stream-insn insn past-vars)))
 
-(define (print-single-insn bound-holes varname past-vars)
-  (define op (operator-name (list-ref operator-list (stream-insn-op-index bound-holes))))
-  (define op-args (print-struct-stream-insn bound-holes past-vars))
-  (format "  (define ~a (~a ~a))" varname op op-args))
-
-(define (print-struct-stream-insn insn past-vars)
-  (let ([op (list-ref operator-list (stream-insn-op-index insn))])
-    ((operator-print op) insn past-vars)))
+(define (print-stream-insn state-flag insn varname past-vars)
+  (let ([op (if state-flag
+                (list-ref operator-list (stream-insn-op-index insn))
+                (list-ref stateless-operator-list (stream-insn-op-index insn)))])
+    (format "  (define ~a (~a ~a))" varname (operator-name op) ((operator-print op) insn past-vars))))
 
 ;; these lists are very unsatisfactory
 (define function-list (list (λ (e) (+ e 5))
@@ -277,7 +275,7 @@
 
 (define constantB-consts (list 'on 'off #t #f 'test))
 
-(define (string-from-holes bound-holes retval input-count)
+(define (string-from-holes bound-holes state-mask retval input-count)
   (let* ([arg-list (for/list ([i (range input-count)])
                     (format "input~a" (add1 i)))]
          [input-stmt-list (for/list ([i (range input-count)])
@@ -286,7 +284,7 @@
          [varlist (for/list ([i (range (add1 (+ input-count depth)))])
                     (format "r~a" (add1 i)))]
          [synthed-stmt-list (for/list ([i (range depth)])
-                              (print-single-insn (list-ref bound-holes i) (list-ref varlist (+ input-count i))
+                              (print-stream-insn (list-ref state-mask i) (list-ref bound-holes i) (list-ref varlist (+ input-count i))
                                                  (take varlist (+ input-count i))))]
          [return-stmt (format "  ~a)" (list-ref varlist retval))])
     (string-append (format "(define (synthesized-function ~a)\n" (string-join arg-list))
@@ -297,5 +295,5 @@
                    return-stmt)))
 
 ;; better parameterize the number of input streams
-(define (print-from-holes bound-holes retval input-count)
-  (displayln (string-from-holes bound-holes retval input-count)))
+(define (print-from-holes bound-holes state-mask retval input-count)
+  (displayln (string-from-holes bound-holes state-mask retval input-count)))

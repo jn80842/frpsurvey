@@ -31,13 +31,15 @@
 (define holes (for/list ([i (range 3)]) (get-insn-holes)))
 (define-symbolic* retval-idx integer?)
 
+(define state-mask (list #f #f #f))
+
 (define (sketch-graph input1 input2 input3)
   (define r1 input1)
   (define r2 input2)
   (define r3 input3)
-  (define r4 (call-stateless-stream-insn (list-ref holes 0) (list r1 r2 r3)))
-  (define r5 (call-stateless-stream-insn (list-ref holes 1) (list r1 r2 r3 r4)))
-  (define r6 (call-stateless-stream-insn (list-ref holes 2) (list r1 r2 r3 r4 r5)))
+  (define r4 (call-stream-insn (list-ref state-mask 0) (list-ref holes 0) (list r1 r2 r3)))
+  (define r5 (call-stream-insn (list-ref state-mask 1) (list-ref holes 1) (list r1 r2 r3 r4)))
+  (define r6 (call-stream-insn (list-ref state-mask 2) (list-ref holes 2) (list r1 r2 r3 r4 r5)))
   (list-ref (list r1 r2 r3 r4 r5 r6) retval-idx))
 
 (define binding (time (synthesize #:forall (harvest s-clockB s-locationB s-motion-sensorB)
@@ -46,6 +48,6 @@
 
 (if (unsat? binding)
     (displayln "unsat")
-    (displayln "sat"))
-    ;(print-from-holes (evaluate holes binding)
-    ;                  (evaluate retval-idx binding) 3))
+    (print-from-holes (evaluate holes binding)
+                      state-mask
+                      (evaluate retval-idx binding) 3))
