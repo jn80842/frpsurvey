@@ -37,7 +37,7 @@
                 (get-insn-holes)))
 (define-symbolic* retval-idx integer?)
 
-(define state-mask (list #t #f #f #f #t #f))
+(define state-mask (list->vector (list #t #f #f #f #t #f)))
 
 (define (sketch-graph input1 input2)
   (define r1 input1)
@@ -50,10 +50,14 @@
   (define r8 (call-stream-insn (list-ref state-mask 5) (list-ref holes 5) (list r1 r2 r3 r4 r5 r6 r7)))
   (list-ref (list r1 r2 r3 r4 r5 r6 r7 r8) retval-idx))
 
-(define binding (time (synthesize #:forall (harvest s-textChangedE s-saveButtonE)
-                                  #:guarantee (assert (same straightline-graph
-                                                            sketch-graph
-                                                            s-textChangedE s-saveButtonE)))))
+(define (synth-graph state-mask)
+  (time (synthesize #:forall (harvest s-textChangedE s-saveButtonE)
+                    #:guarantee (assert (same straightline-graph
+                                              (recursive-sketch holes retval-idx state-mask)
+                                              s-textChangedE s-saveButtonE)))))
+
+(define binding (synth-graph state-mask))
+
 (if (unsat? binding)
     (displayln "synthesis model is unsat")
     (print-from-holes (evaluate holes binding) state-mask (evaluate retval-idx binding) 2))

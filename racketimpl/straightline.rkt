@@ -284,7 +284,7 @@
          [varlist (for/list ([i (range (add1 (+ input-count depth)))])
                     (format "r~a" (add1 i)))]
          [synthed-stmt-list (for/list ([i (range depth)])
-                              (print-stream-insn (list-ref state-mask i) (list-ref bound-holes i) (list-ref varlist (+ input-count i))
+                              (print-stream-insn (vector-ref state-mask i) (list-ref bound-holes i) (list-ref varlist (+ input-count i))
                                                  (take varlist (+ input-count i))))]
          [return-stmt (format "  ~a)" (list-ref varlist retval))])
     (string-append (format "(define (synthesized-function ~a)\n" (string-join arg-list))
@@ -297,3 +297,12 @@
 ;; better parameterize the number of input streams
 (define (print-from-holes bound-holes state-mask retval input-count)
   (displayln (string-from-holes bound-holes state-mask retval input-count)))
+
+(define (recursive-sketch holes retval-idx state-mask)
+  (letrec ([f (λ (calculated-streams i)
+                (cond [(equal? (length holes) i) calculated-streams]
+                      [else (let ([next-stream (call-stream-insn (vector-ref state-mask i)
+                                                                 (list-ref holes i)
+                                                                 calculated-streams)])
+                              (f (append calculated-streams (list next-stream)) (add1 i)))]))])
+    (λ inputs (list-ref (f inputs 0) retval-idx))))

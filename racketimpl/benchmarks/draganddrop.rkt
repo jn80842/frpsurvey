@@ -19,7 +19,7 @@
 
 ;; (no live changes to program graph)
 ;;
-;;                 filterE
+;;                 mapE2
 ;;               /         \
 ;;           snapshotE     mousePos
 ;;          /        \
@@ -36,7 +36,7 @@
 (define max-timestamp (* 2 stream-length))
 (define max-mouse-pos 3)
 
-(struct coords (x y) #:transparent)
+;;(struct coords (x y) #:transparent)
 
 (define (sym-coords)
   (define-symbolic* x integer?)
@@ -47,7 +47,7 @@
 ;  (assert (<= y max-mouse-pos))
   (coords x y))
 
-(define (harvest-coords c)
+#;(define (harvest-coords c)
   (list (car (first (union-contents c)))
         (coords-x (cdr (first (union-contents c))))
         (coords-y (cdr (first (union-contents c))))))

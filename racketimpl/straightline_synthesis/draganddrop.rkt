@@ -33,8 +33,8 @@
 (define holes (for/list ([i (range 6)])
                 (get-insn-holes)))
 (define-symbolic* retval-idx integer?)
-(define state-mask (list #f #f #f #t #f #t))
 
+(define concrete-state-mask (list->vector (list #f #f #f #t #f #f)))
 (define concrete-holes (list
                         (stream-insn 1 0 0 0 3)
                         (stream-insn 1 1 0 0 2)
@@ -42,24 +42,16 @@
                         (stream-insn 16 5 0 0 3)
                         (stream-insn 10 2 6 0 0)
                         (stream-insn 11 7 6 2 0)))
+(define concrete-retval-idx 8)
 
-(define (sketch-graph input1 input2 input3)
-  (define r1 input1)
-  (define r2 input2)
-  (define r3 input3)
-  (define r4 (call-stream-insn (list-ref state-mask 0) (list-ref holes 0) (list r1 r2 r3)))
-  (define r5 (call-stream-insn (list-ref state-mask 1) (list-ref holes 1) (list r1 r2 r3 r4)))
-  (define r6 (call-stream-insn (list-ref state-mask 2) (list-ref holes 2) (list r1 r2 r3 r4 r5)))
-  (define r7 (call-stream-insn (list-ref state-mask 3) (list-ref holes 3) (list r1 r2 r3 r4 r5 r6)))
-  (define r8 (call-stream-insn (list-ref state-mask 4) (list-ref holes 4) (list r1 r2 r3 r4 r5 r6 r7)))
-  (define r9 (call-stream-insn (list-ref state-mask 5) (list-ref holes 5) (list r1 r2 r3 r4 r5 r6 r7 r8)))
-  (list-ref (list r1 r2 r3 r4 r5 r6 r7 r8 r9) retval-idx))
+(define (synth-graph state-mask)
+  (time (synthesize #:forall (harvest s-mouse-up s-mouse-down s-mouse-pos)
+                    #:guarantee (assert (same straightline-graph
+                                              (recursive-sketch holes retval-idx state-mask)
+                                              s-mouse-up s-mouse-down s-mouse-pos)))))
 
-(define binding (time (synthesize #:forall (append (harvest s-mouse-up s-mouse-down) (harvest-coords-stream s-mouse-pos))
-                                  #:guarantee (assert (same straightline-graph
-                                                            sketch-graph
-                                                            s-mouse-up s-mouse-down s-mouse-pos)))))
-
+(define binding (synth-graph concrete-state-mask))
 (if (unsat? binding)
-    (displayln "synthesis model is unsat")
-    (print-from-holes (evaluate holes binding) state-mask (evaluate retval-idx binding) 3))
+    (displayln "no solution for sketch")
+    (print-from-holes (evaluate holes binding) concrete-state-mask
+                      (evaluate retval-idx binding) 3))

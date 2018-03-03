@@ -66,6 +66,8 @@
        (<= (vector-ref vec 2) 9)
        ))
 
+(struct coords (x y) #:transparent)
+
 ;;;; note for all behavior operators:                       ;;;;
 ;;;; behaviors *always* have a value (can never be 'no-evt) ;;;;
 
@@ -177,19 +179,24 @@
 
 (define (harvest-term v)
   (cond [(vector? v) (vector->list v)]
+        [(coords? v) (harvest-coords v)]
         [(and (union? v) (eq? 2 (length (union-contents v)))) (car (first (union-contents v)))]
         [(term? v) v]
         [else '()]))
 
+(define (harvest-coords c)
+  (list (coords-x c)
+        (coords-y c)))
+
 (define (harvest-events evt-stream)
   (append (map (λ (s) (caar (union-contents s))) evt-stream)
-          (filter term? (map (λ (s) (cdar (union-contents s))) evt-stream))))
+          (map (λ (s) (harvest-term (cdar (union-contents s)))) evt-stream)))
 
 (define (harvest-behavior b)
   (flatten (append (list (harvest-term (behavior-init b))) (map harvest-term (behavior-changes b)))))
 
 (define (harvest . x)
-  (apply append (map harvest-stream x)))
+  (flatten (apply append (map harvest-stream x))))
 
 (define (harvest-stream x)
   (if (behavior? x)

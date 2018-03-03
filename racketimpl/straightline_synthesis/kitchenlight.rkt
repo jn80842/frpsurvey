@@ -7,7 +7,7 @@
 
 (current-bitwidth #f)
 
-(define (straightline-kitchenlight-graph clock userLocation motionSensor)
+(define (straightline-graph clock userLocation motionSensor)
   (define r1 clock)
   (define r2 userLocation)
   (define r3 motionSensor)
@@ -22,7 +22,7 @@
 (displayln "kitchen light")
 
 (define v-binding (verify (assert (same kitchen-light-graph
-                                        straightline-kitchenlight-graph
+                                        straightline-graph
                                         s-clockB s-locationB s-motion-sensorB))))
 (if (unsat? v-binding)
     (displayln "verified example implementation and straightline program are equivalent")
@@ -31,7 +31,7 @@
 (define holes (for/list ([i (range 3)]) (get-insn-holes)))
 (define-symbolic* retval-idx integer?)
 
-(define state-mask (list #f #f #f))
+(define state-mask (list->vector (list #f #f #f)))
 
 (define (sketch-graph input1 input2 input3)
   (define r1 input1)
@@ -42,9 +42,13 @@
   (define r6 (call-stream-insn (list-ref state-mask 2) (list-ref holes 2) (list r1 r2 r3 r4 r5)))
   (list-ref (list r1 r2 r3 r4 r5 r6) retval-idx))
 
-(define binding (time (synthesize #:forall (harvest s-clockB s-locationB s-motion-sensorB)
-                                  #:guarantee (assert (same straightline-kitchenlight-graph sketch-graph
-                                                            s-clockB s-locationB s-motion-sensorB)))))
+(define (synth-graph state-mask)
+  (time (synthesize #:forall (harvest s-clockB s-locationB s-motion-sensorB)
+                    #:guarantee (assert (same straightline-graph
+                                              (recursive-sketch holes retval-idx state-mask)
+                                              s-clockB s-locationB s-motion-sensorB)))))
+
+(define binding (synth-graph state-mask))
 
 (if (unsat? binding)
     (displayln "unsat")

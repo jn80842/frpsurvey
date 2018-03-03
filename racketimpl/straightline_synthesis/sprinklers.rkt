@@ -9,7 +9,7 @@
 
 (current-bitwidth #f)
 
-(define (straightline-sprinklers-graph clockB motionSensorB raingaugeB)
+(define (straightline-graph clockB motionSensorB raingaugeB)
   (define r1 clockB)
   (define r2 motionSensorB)
   (define r3 raingaugeB)
@@ -29,7 +29,7 @@
 (displayln "sprinklers benchmark")
 
 (define v-binding (verify (assert (same sprinklers-graph
-                                        straightline-sprinklers-graph
+                                        straightline-graph
                                         s-clockB s-motionSensorB s-raingaugeB))))
 (if (unsat? v-binding)
     (displayln "straightline program and implementation program are equal")
@@ -38,42 +38,18 @@
 (define holes (for/list ([i (range 6)]) (get-insn-holes)))
 (define-symbolic* retval-idx integer?)
 
-(define state-mask (list #f #t #f #f #f #f))
+(define state-mask (list->vector (list #f #t #f #f #f #f)))
 
-(define (sketch-graph input1 input2 input3)
-  (define r1 input1)
-  (define r2 input2)
-  (define r3 input3)
-  (define r4 (call-stream-insn (list-ref state-mask 0) (list-ref holes 0) (list r1 r2 r3)))
-  (define r5 (call-stream-insn (list-ref state-mask 1) (list-ref holes 1) (list r1 r2 r3 r4)))
-  (define r6 (call-stream-insn (list-ref state-mask 2) (list-ref holes 2) (list r1 r2 r3 r4 r5)))
-  (define r7 (call-stream-insn (list-ref state-mask 3) (list-ref holes 3) (list r1 r2 r3 r4 r5 r6)))
-  (define r8 (call-stream-insn (list-ref state-mask 4) (list-ref holes 4) (list r1 r2 r3 r4 r5 r6 r7)))
-  (define r9 (call-stream-insn (list-ref state-mask 5) (list-ref holes 5) (list r1 r2 r3 r4 r5 r6 r7 r8)))
-  (list-ref (list r1 r2 r3 r4 r5 r6 r7 r8 r9) retval-idx))
+(define (synth-graph state-mask)
+  (time (synthesize #:forall (harvest s-clockB s-motionSensorB s-raingaugeB)
+                    #:guarantee (assert (same straightline-graph
+                                              (recursive-sketch holes retval-idx state-mask)
+                                              s-clockB s-motionSensorB s-raingaugeB)))))
 
-#;(assert (and (>= (stream-insn-arg-index1 (list-ref holes 0)) 0)
-             (< (stream-insn-arg-index1 (list-ref holes 0)) 3)
-             (>= (stream-insn-arg-index1 (list-ref holes 1)) 0)
-             (< (stream-insn-arg-index1 (list-ref holes 1)) 4)
-             (>= (stream-insn-arg-index1 (list-ref holes 2)) 0)
-             (< (stream-insn-arg-index1 (list-ref holes 2)) 5)
-             (>= (stream-insn-arg-index1 (list-ref holes 3)) 0)
-             (< (stream-insn-arg-index1 (list-ref holes 3)) 6)
-             (>= (stream-insn-arg-index1 (list-ref holes 4)) 0)
-             (< (stream-insn-arg-index1 (list-ref holes 4)) 7)
-             (>= (stream-insn-arg-index1 (list-ref holes 5)) 0)
-             (< (stream-insn-arg-index1 (list-ref holes 5)) 8)
-             (>= retval-idx 0)
-             (< retval-idx 9)))
-
-(define binding (time (synthesize #:forall (harvest s-clockB s-motionSensorB s-raingaugeB)
-                                  #:guarantee (assert (same straightline-sprinklers-graph sketch-graph
-                                                            s-clockB s-motionSensorB s-raingaugeB)))))
+(define binding (synth-graph state-mask))
 
 (if (unsat? binding)
     (displayln "unsat")
 (print-from-holes (evaluate holes binding)
                   state-mask
                   (evaluate retval-idx binding) 3))
-
