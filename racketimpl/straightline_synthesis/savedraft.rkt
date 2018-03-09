@@ -39,17 +39,6 @@
 
 (define state-mask (list->vector (list #t #f #f #f #t #f)))
 
-(define (sketch-graph input1 input2)
-  (define r1 input1)
-  (define r2 input2)
-  (define r3 (call-stream-insn (list-ref state-mask 0) (list-ref holes 0) (list r1 r2)))
-  (define r4 (call-stream-insn (list-ref state-mask 1) (list-ref holes 1) (list r1 r2 r3)))
-  (define r5 (call-stream-insn (list-ref state-mask 2) (list-ref holes 2) (list r1 r2 r3 r4)))
-  (define r6 (call-stream-insn (list-ref state-mask 3) (list-ref holes 3) (list r1 r2 r3 r4 r5)))
-  (define r7 (call-stream-insn (list-ref state-mask 4) (list-ref holes 4) (list r1 r2 r3 r4 r5 r6)))
-  (define r8 (call-stream-insn (list-ref state-mask 5) (list-ref holes 5) (list r1 r2 r3 r4 r5 r6 r7)))
-  (list-ref (list r1 r2 r3 r4 r5 r6 r7 r8) retval-idx))
-
 (define (synth-graph state-mask)
   (time (synthesize #:forall (harvest s-textChangedE s-saveButtonE)
                     #:guarantee (assert (same straightline-graph
