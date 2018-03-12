@@ -6,7 +6,7 @@
 
 (current-bitwidth 6)
 
-(define stream-length 3)
+(define stream-length 5)
 
 (define holes (list (get-insn-holes)))
 (define-symbolic* retval-idx integer?)
@@ -18,50 +18,8 @@
 (define int-behavior (new-behavior get-sym-int stream-length))
 (define int-behavior2 (new-behavior get-sym-int stream-length))
 (define int-behavior3 (new-behavior get-sym-int stream-length))
-(define bool-behavior (new-behavior get-sym-int stream-length))
-(define bool-behavior2 (new-behavior get-sym-int stream-length))
-
-(define (sketch-graph1-1 e)
-  (define r1 e)
-  (define r2 (call-stream-insn (list-ref holes 0) (list r1)))
-  (list-ref (list r1 r2) retval-idx))
-(define (stateless-sketch-graph1-1 e)
-  (define r1 e)
-  (define r2 (call-stateless-stream-insn (list-ref holes 0) (list r1)))
-  (list-ref (list r1 r2) retval-idx))
-
-(define (sketch-graph1-2 e1 e2)
-  (define r1 e1)
-  (define r2 e2)
-  (define r3 (call-stream-insn (list-ref holes 0) (list r1 r2)))
-  (list-ref (list r1 r2 r3) retval-idx))
-(define (stateless-sketch-graph1-2 e1 e2)
-  (define r1 e1)
-  (define r2 e2)
-  (define r3 (call-stateless-stream-insn (list-ref holes 0) (list r1 r2)))
-  (list-ref (list r1 r2 r3) retval-idx))
-
-(define (sketch-graph1-3 e1 e2 e3)
-  (define r1 e1)
-  (define r2 e2)
-  (define r3 e3)
-  (define r4 (call-stream-insn (list-ref holes 0) (list r1 r2 r3)))
-  (list-ref (list r1 r2 r3 r4) retval-idx))
-(define (stateless-sketch-graph1-3 e1 e2 e3)
-  (define r1 e1)
-  (define r2 e2)
-  (define r3 e3)
-  (define r4 (call-stateless-stream-insn (list-ref holes 0) (list r1 r2 r3)))
-  (list-ref (list r1 r2 r3 r4) retval-idx))
-
-(define (sketch-graph1-5 e1 e2 e3 e4 e5)
-  (define r1 e1)
-  (define r2 e2)
-  (define r3 e3)
-  (define r4 e4)
-  (define r5 e5)
-  (define r6 (call-stream-insn (list-ref holes 0) (list r1 r2 r3 r4 r5)))
-  (list-ref (list r1 r2 r3 r4 r5 r6) retval-idx))
+(define bool-behavior (new-behavior get-sym-bool stream-length))
+(define bool-behavior2 (new-behavior get-sym-bool stream-length))
 
 ;; constantE-imm
 
@@ -71,16 +29,17 @@
   r2)
 
 (define b (synthesize #:forall (harvest int-stream)
-            #:guarantee (assert (same constantE-imm-graph stateless-sketch-graph1-1 int-stream))))
+            #:guarantee (assert (same constantE-imm-graph (recursive-sketch holes retval-idx (make-vector 1 #t))
+                                      int-stream))))
 (define b-stateless (synthesize #:forall (harvest int-stream)
-            #:guarantee (assert (same constantE-imm-graph stateless-sketch-graph1-1 int-stream))))
+            #:guarantee (assert (same constantE-imm-graph (recursive-sketch holes retval-idx (make-vector 1 #f)) int-stream))))
 (if (or (unsat? b) (unsat? b-stateless))
     (displayln "!!!!! constantE-imm graph not synthesized !!!!!")
     (begin (displayln "* constantE-imm graph successfully synthesized")
-           (print-from-holes (evaluate holes b)
+           (print-from-holes (evaluate holes b) (make-vector 1 #t)
                              (evaluate retval-idx b) 1)
            (displayln "* constantE-imm graph (stateless) successfully synthesized")
-           (print-from-holes (evaluate holes b-stateless)
+           (print-from-holes (evaluate holes b-stateless) (make-vector 1 #f)
                              (evaluate retval-idx b-stateless) 1)))
 
 ;; constantE
@@ -91,18 +50,20 @@
   r2)
 
 (define b-constant (synthesize #:forall (harvest int-stream)
-                               #:guarantee (assert (same constantE-graph sketch-graph1-1
-                                                                          int-stream))))
+                               #:guarantee (assert (same constantE-graph
+                                                         (recursive-sketch holes retval-idx (make-vector 1 #t))
+                                                         int-stream))))
 (define b-constant-stateless (synthesize #:forall (harvest int-stream)
-                                         #:guarantee (assert (same constantE-graph stateless-sketch-graph1-1
+                                         #:guarantee (assert (same constantE-graph
+                                                                   (recursive-sketch holes retval-idx (make-vector 1 #f))
                                                                    int-stream))))
 (if (or (unsat? b-constant) (unsat? b-constant-stateless))
     (displayln "!!!!! constantE graph not synthesized !!!!!")
     (begin (displayln "* constantE graph successfully synthesized")
-           (print-from-holes (evaluate holes b-constant)
+           (print-from-holes (evaluate holes b-constant) (make-vector 1 #t)
                              (evaluate retval-idx b-constant) 1)
            (displayln "* constantE graph (stateless) successfully synthesized")
-           (print-from-holes (evaluate holes b-constant-stateless)
+           (print-from-holes (evaluate holes b-constant-stateless) (make-vector 1 #f)
                              (evaluate retval-idx b-constant-stateless) 1)))
 
 ;; mergeE
@@ -118,18 +79,18 @@
               (eq? 'no-evt (list-ref int-stream2 i)))))
 
 (define b-merge (synthesize #:forall (harvest int-stream int-stream2)
-                            #:guarantee (assert (same mergeE-graph sketch-graph1-2
+                            #:guarantee (assert (same mergeE-graph (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                       int-stream int-stream2))))
 (define b-merge-stateless (synthesize #:forall (harvest int-stream int-stream2)
-                            #:guarantee (assert (same mergeE-graph stateless-sketch-graph1-2
+                            #:guarantee (assert (same mergeE-graph (recursive-sketch holes retval-idx (make-vector 1 #f))
                                                       int-stream int-stream2))))
 (if (or (unsat? b-merge) (unsat? b-merge-stateless))
     (displayln "!!!!! mergeE graph not synthesized !!!!!")
     (begin (displayln "* mergeE graph successfully synthesized")
-           (print-from-holes (evaluate holes b-merge)
+           (print-from-holes (evaluate holes b-merge) (make-vector 1 #t)
                              (evaluate retval-idx b-merge) 2)
            (displayln "* mergeE graph (stateless) successfully synthesized")
-           (print-from-holes (evaluate holes b-merge-stateless)
+           (print-from-holes (evaluate holes b-merge-stateless) (make-vector 1 #f)
                              (evaluate retval-idx b-merge-stateless) 2)))
 
 (clear-asserts!)
@@ -143,12 +104,12 @@
 
 (define b-collect-imm (synthesize #:forall (harvest int-stream)
                               #:guarantee (assert (same collectE-imm-graph
-                                                        sketch-graph1-1
+                                                        (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                         int-stream))))
 (if (unsat? b-collect-imm)
     (displayln "!!!!! collectE-imm graph not synthesized !!!!!")
     (begin (displayln "* collectE-imm graph successfully synthesized")
-           (print-from-holes (evaluate holes b-collect-imm)
+           (print-from-holes (evaluate holes b-collect-imm) (make-vector 1 #t)
                              (evaluate retval-idx b-collect-imm) 1)))
 
 ;; collectE
@@ -160,12 +121,12 @@
 
 (define b-collect (synthesize #:forall (harvest off-stream)
                               #:guarantee (assert (same collectE-graph
-                                                        sketch-graph1-1
+                                                        (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                         off-stream))))
 (if (unsat? b-collect)
     (displayln "!!!!! collectE graph not synthesized !!!!!")
     (begin (displayln "* collectE graph successfully synthesized")
-           (print-from-holes (evaluate holes b-collect)
+           (print-from-holes (evaluate holes b-collect) (make-vector 1 #t)
                              (evaluate retval-idx b-collect) 1)))
 
 ;; snapshotE
@@ -178,19 +139,19 @@
 
 (define b-snapshot (synthesize #:forall (harvest int-stream int-behavior)
                                #:guarantee (assert (same snapshotE-graph
-                                                         sketch-graph1-2
+                                                         (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                          int-stream int-behavior))))
 (define b-snapshot-stateless (synthesize #:forall (harvest int-stream int-behavior)
                                #:guarantee (assert (same snapshotE-graph
-                                                         stateless-sketch-graph1-2
+                                                         (recursive-sketch holes retval-idx (make-vector 1 #f))
                                                          int-stream int-behavior))))
 (if (or (unsat? b-snapshot) (unsat? b-snapshot-stateless))
     (displayln "!!!!! snapshotE graph not synthesized !!!!!")
     (begin (displayln "* snapshotE graph successfully synthesized")
-           (print-from-holes (evaluate holes b-snapshot)
+           (print-from-holes (evaluate holes b-snapshot) (make-vector 1 #t)
                              (evaluate retval-idx b-snapshot) 2)
            (displayln "* snapshotE graph (stateless) successfully synthesized")
-           (print-from-holes (evaluate holes b-snapshot-stateless)
+           (print-from-holes (evaluate holes b-snapshot-stateless) (make-vector 1 #f)
                              (evaluate retval-idx b-snapshot-stateless) 2)))
 
 ;; startsWith
@@ -202,12 +163,12 @@
 
 (define b-startsWith (synthesize #:forall (harvest int-stream)
                                  #:guarantee (assert (same startsWith-graph
-                                                           sketch-graph1-1
+                                                           (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                            int-stream))))
 (if (unsat? b-startsWith)
     (displayln "!!!!! startsWith graph not synthesized !!!!!")
     (begin (displayln "* startsWith graph successfully synthesized")
-           (print-from-holes (evaluate holes b-startsWith)
+           (print-from-holes (evaluate holes b-startsWith) (make-vector 1 #t)
                              (evaluate retval-idx b-startsWith) 1)))
 
 ;; startsWith-imm
@@ -219,12 +180,12 @@
 
 (define b-startsWith-imm (synthesize #:forall (harvest int-stream)
                                      #:guarantee (assert (same startsWith-imm-graph
-                                                               sketch-graph1-1
+                                                               (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                                int-stream))))
 (if (unsat? b-startsWith-imm)
     (displayln "!!!!! startsWith-imm graph not synthesized !!!!!")
     (begin (displayln "* startsWith-imm graph successfully synthesized")
-           (print-from-holes (evaluate holes b-startsWith-imm)
+           (print-from-holes (evaluate holes b-startsWith-imm) (make-vector 1 #t)
                              (evaluate retval-idx b-startsWith-imm) 1)))
 
 ;; mapE
@@ -236,18 +197,20 @@
 
 (define b-map (synthesize #:forall (harvest int-stream)
                           #:guarantee (assert (same mapE-graph
-                                                    sketch-graph1-1
+                                                    (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                     int-stream))))
 (define b-map-stateless (synthesize #:forall (harvest int-stream)
                                     #:guarantee (assert (same mapE-graph
-                                                              stateless-sketch-graph1-1
+                                                              (recursive-sketch holes retval-idx (make-vector 1 #f))
                                                               int-stream))))
 (if (or (unsat? b-map) (unsat? b-map-stateless))
     (displayln "!!!!! mapE graph not synthesized !!!!!")
     (begin (displayln "* mapE graph successfully synthesized")
-           (print-from-holes (evaluate holes b-map)
+           (print-from-holes (evaluate holes b-map) (make-vector 1 #t)
                              (evaluate retval-idx b-map) 1)
-           (displayln "* mapE graph (stateless) successfully synthesized")))
+           (displayln "* mapE graph (stateless) successfully synthesized")
+           (print-from-holes (evaluate holes b-map-stateless) (make-vector 1 #f)
+                             (evaluate retval-idx b-map-stateless) 1)))
 
 ;; mapE2
 
@@ -259,18 +222,20 @@
 
 (define b-map2 (synthesize #:forall (harvest int-stream int-stream2)
                            #:guarantee (assert (same mapE2-graph
-                                                     sketch-graph1-2
+                                                     (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                      int-stream int-stream2))))
 (define b-map2-stateless (synthesize #:forall (harvest int-stream int-stream2)
                                      #:guarantee (assert (same mapE2-graph
-                                                               stateless-sketch-graph1-2
+                                                               (recursive-sketch holes retval-idx (make-vector 1 #f))
                                                                int-stream int-stream2))))
 (if (or (unsat? b-map2) (unsat? b-map2-stateless))
     (displayln "!!!!! mapE2 graph not synthesized !!!!!")
     (begin (displayln "* mapE2 graph successfully synthesized")
-           (print-from-holes (evaluate holes b-map2)
+           (print-from-holes (evaluate holes b-map2) (make-vector 1 #t)
                              (evaluate retval-idx b-map2) 2)
-           (displayln "* mapE2 graph (stateless) successfully synthesized")))
+           (displayln "* mapE2 graph (stateless) successfully synthesized")
+           (print-from-holes (evaluate holes b-map2-stateless) (make-vector 1 #f)
+                                       (evaluate retval-idx b-map2-stateless) 2)))
 
 ;; liftB1
 
@@ -281,19 +246,19 @@
 
 (define b-liftB1 (synthesize #:forall (harvest int-behavior)
                              #:guarantee (assert (same liftB1-graph
-                                                       sketch-graph1-1
+                                                       (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                        int-behavior))))
 (define b-liftB1-stateless (synthesize #:forall (harvest int-behavior)
                                        #:guarantee (assert (same liftB1-graph
-                                                                 stateless-sketch-graph1-1
+                                                                 (recursive-sketch holes retval-idx (make-vector 1 #f))
                                                                  int-behavior))))
 (if (or (unsat? b-liftB1) (unsat? b-liftB1-stateless))
     (displayln "!!!!! liftB1 graph not synthesized !!!!!")
     (begin (displayln "* liftB1 graph successfully synthesized")
-           (print-from-holes (evaluate holes b-liftB1)
+           (print-from-holes (evaluate holes b-liftB1) (make-vector 1 #t)
                              (evaluate retval-idx b-liftB1) 1)
            (displayln "* liftB1 graph (stateless) successfully synthesized")
-           (print-from-holes (evaluate holes b-liftB1-stateless)
+           (print-from-holes (evaluate holes b-liftB1-stateless) (make-vector 1 #f)
                              (evaluate retval-idx b-liftB1-stateless) 2)))
 
 ;; liftB2
@@ -306,19 +271,19 @@
 
 (define b-liftB2 (synthesize #:forall (append (harvest int-behavior) (harvest int-behavior2))
                              #:guarantee (assert (same liftB2-graph
-                                                       sketch-graph1-2
+                                                       (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                        int-behavior int-behavior2))))
 (define b-liftB2-stateless (synthesize #:forall (append (harvest int-behavior) (harvest int-behavior2))
                                        #:guarantee (assert (same liftB2-graph
-                                                                 stateless-sketch-graph1-2
+                                                                 (recursive-sketch holes retval-idx (make-vector 1 #f))
                                                                  int-behavior int-behavior2))))
 (if (or (unsat? b-liftB2) (unsat? b-liftB2-stateless))
     (displayln "!!!!! liftB2 graph not synthesized !!!!!")
     (begin (displayln "* liftB2 graph successfully synthesized")
-           (print-from-holes (evaluate holes b-liftB2)
+           (print-from-holes (evaluate holes b-liftB2) (make-vector 1 #t)
                              (evaluate retval-idx b-liftB2) 2)
            (displayln "* liftB2 graph (stateless) successfully synthesized")
-           (print-from-holes (evaluate holes b-liftB2-stateless)
+           (print-from-holes (evaluate holes b-liftB2-stateless) (make-vector 1 #f)
                              (evaluate retval-idx b-liftB2-stateless) 2)))
 
 ;; andB
@@ -331,19 +296,19 @@
 
 (define b-andB (synthesize #:forall (harvest bool-behavior bool-behavior2)
                            #:guarantee (assert (same andB-graph
-                                                     sketch-graph1-2
+                                                     (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                      bool-behavior bool-behavior2))))
 (define b-andB-stateless (synthesize #:forall (harvest bool-behavior bool-behavior2)
                                      #:guarantee (assert (same andB-graph
-                                                               stateless-sketch-graph1-2
+                                                               (recursive-sketch holes retval-idx (make-vector 1 #f))
                                                                bool-behavior bool-behavior2))))
 (if (or (unsat? b-andB) (unsat? b-andB-stateless))
     (displayln "!!!!! andB graph not synthesized !!!!!")
     (begin (displayln "* andB graph successfully synthesized")
-           (print-from-holes (evaluate holes b-andB)
+           (print-from-holes (evaluate holes b-andB) (make-vector 1 #t)
                              (evaluate retval-idx b-andB) 2)
            (displayln "* andB graph (stateless) successfully synthesized")
-           (print-from-holes (evaluate holes b-andB-stateless)
+           (print-from-holes (evaluate holes b-andB-stateless) (make-vector 1 #f)
                              (evaluate retval-idx b-andB-stateless) 2)))
 
 ;; ifB
@@ -357,20 +322,20 @@
 
 (define b-ifB (synthesize #:forall (harvest bool-behavior int-behavior int-behavior2)
                           #:guarantee (assert (same ifB-graph
-                                                    sketch-graph1-3
+                                                    (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                     bool-behavior int-behavior int-behavior2))))
 (define b-ifB-stateless (synthesize #:forall (harvest bool-behavior int-behavior int-behavior2)
                                     #:guarantee (assert (same ifB-graph
-                                                              stateless-sketch-graph1-3
+                                                              (recursive-sketch holes retval-idx (make-vector 1 #f))
                                                               bool-behavior int-behavior int-behavior2))))
 
 (if (or (unsat? b-ifB) (unsat? b-ifB-stateless))
     (displayln "!!!!! ifB graph not synthesized !!!!!")
     (begin (displayln "* ifB graph successfully synthesized")
-           (print-from-holes (evaluate holes b-ifB)
+           (print-from-holes (evaluate holes b-ifB) (make-vector 1 #t)
                              (evaluate retval-idx b-ifB) 3)
            (displayln "* ifB graph (stateless) successfully synthesized")
-           (print-from-holes (evaluate holes b-ifB-stateless)
+           (print-from-holes (evaluate holes b-ifB-stateless) (make-vector 1 #f)
                              (evaluate retval-idx b-ifB-stateless) 3)))
 
 ;; constantB
@@ -382,20 +347,20 @@
 
 (define b-constantB (synthesize #:forall (harvest int-behavior)
                                 #:guarantee (assert (same constantB-graph
-                                                          sketch-graph1-1
+                                                          (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                           int-behavior))))
 (define b-constantB-stateless (synthesize #:forall (harvest int-behavior)
                                           #:guarantee (assert (same constantB-graph
-                                                                    stateless-sketch-graph1-1
+                                                                    (recursive-sketch holes retval-idx (make-vector 1 #f))
                                                                     int-behavior))))
 
 (if (or (unsat? b-constantB) (unsat? b-constantB-stateless))
     (displayln "!!!!! constantB graph not synthesized !!!!!")
     (begin (displayln "* constantB graph successfully synthesized")
-           (print-from-holes (evaluate holes b-constantB)
+           (print-from-holes (evaluate holes b-constantB) (make-vector 1 #t)
                              (evaluate retval-idx b-constantB) 1)
            (displayln "* constantB graph (stateless) successfully synthesized")
-           (print-from-holes (evaluate holes b-constantB-stateless)
+           (print-from-holes (evaluate holes b-constantB-stateless) (make-vector 1 #f)
                              (evaluate retval-idx b-constantB-stateless) 1)))
 
 ;; constantB-imm
@@ -407,20 +372,20 @@
 
 (define b-constantB-imm (synthesize #:forall (harvest int-behavior)
                                     #:guarantee (assert (same constantB-imm-graph
-                                                              sketch-graph1-1
+                                                              (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                               int-behavior))))
 (define b-constantB-imm-stateless (synthesize #:forall (harvest int-behavior)
                                               #:guarantee (assert (same constantB-imm-graph
-                                                                        stateless-sketch-graph1-1
+                                                                        (recursive-sketch holes retval-idx (make-vector 1 #f))
                                                                         int-behavior))))
 
 (if (or (unsat? b-constantB-imm) (unsat? b-constantB-imm-stateless))
     (displayln "!!!!! constantB-imm graph not synthesized !!!!!")
     (begin (displayln "* constantB-imm graph successfully synthesized")
-           (print-from-holes (evaluate holes b-constantB-imm)
+           (print-from-holes (evaluate holes b-constantB-imm) (make-vector 1 #t)
                              (evaluate retval-idx b-constantB-imm) 1)
            (displayln "* constantB-imm graph (stateless) successfully synthesized")
-           (print-from-holes (evaluate holes b-constantB-imm-stateless)
+           (print-from-holes (evaluate holes b-constantB-imm-stateless) (make-vector 1 #f)
                              (evaluate retval-idx b-constantB-imm-stateless) 1)))
 
 ;; collectB
@@ -432,12 +397,12 @@
 
 (define b-collectB (synthesize #:forall (harvest int-behavior)
                                #:guarantee (assert (same collectB-graph
-                                                         sketch-graph1-1
+                                                         (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                          int-behavior))))
 (if (unsat? b-collectB)
     (displayln "!!!!! collectB graph not synthesized !!!!!")
     (begin (displayln "* collectB graph successfully synthesized")
-           (print-from-holes (evaluate holes b-collectB)
+           (print-from-holes (evaluate holes b-collectB) (make-vector 1 #t)
                              (evaluate retval-idx b-collectB) 1)))
 
 ;; collectB-imm
@@ -449,10 +414,10 @@
 
 (define b-collectB-imm (synthesize #:forall (harvest int-behavior)
                                    #:guarantee (assert (same collectB-imm-graph
-                                                             sketch-graph1-1
+                                                             (recursive-sketch holes retval-idx (make-vector 1 #t))
                                                              int-behavior))))
 (if (unsat? b-collectB-imm)
     (displayln "!!!!! collectB-imm graph not synthesized !!!!!")
     (begin (displayln "* collectB-imm graph successfully synthesized")
-           (print-from-holes (evaluate holes b-collectB-imm)
+           (print-from-holes (evaluate holes b-collectB-imm) (make-vector 1 #t)
                              (evaluate retval-idx b-collectB-imm) 1)))
