@@ -226,7 +226,8 @@
                             (λ (e) (if e 'on 'off))
                             (λ (c) (or (>= (time-vec-hour c) 4)
                                        (>= 2 (time-vec-hour c))))
-                            ;(λ (t) (list-ref table t))
+                            (λ (l) (= l 0))
+                            (λ (m) (= m 3))
                             ))
 
 (define table (for/list ([i (range 3)]) (define-symbolic* table-sv integer?) table-sv))
@@ -255,6 +256,8 @@
                                    "(λ (e) (if e 'on 'off))"
                                    "(λ (c) (or (>= (time-vec-hour c) 4)
                                                (>= 2 (time-vec-hour c))))"
+                                   "(λ (l) (= l 0)"
+                                   "(λ (m) (= m 3)"
                                    ))
 (define function-2arg-list-string (list "(λ (clock location) (if (or (>= clock hour-begin) (< clock hour-end))
                                  'night

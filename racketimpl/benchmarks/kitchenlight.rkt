@@ -20,14 +20,14 @@
 
 (define concrete-motion-sensorB (behavior #f '(#t #f)))
 (define concrete-clockB (behavior 0 '(1 2)))
-(define concrete-location (behavior 'home '(not-at-home home)))
+(define concrete-location (behavior 0 '(1 2)))
 
 ;; use fake hour constants for smaller bitwidths
 (define hour-begin 4)
 (define hour-end 2)
 
 (define s-motion-sensorB (new-behavior get-sym-bool stream-length))
-(define s-locationB (new-behavior sym-location stream-length))
+(define s-locationB (new-behavior get-sym-int stream-length))
 ;(define s-clockB (new-behavior sym-time-vec stream-length))
 (define s-clockB (new-behavior get-sym-int stream-length))
 
