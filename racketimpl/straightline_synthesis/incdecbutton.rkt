@@ -43,3 +43,43 @@
 (if (unsat? binding)
     (displayln "synthesis model is unsat")
     (print-from-holes (evaluate holes binding) state-mask (evaluate retval-idx binding) 2))
+
+(displayln "inc/dec benchmark via i/o examples")
+
+(define (io-synth-graph state-mask)
+  (time (synthesize #:forall (harvest s-inc s-dec)
+                    #:guarantee (assert (equal? ((recursive-sketch holes retval-idx state-mask) io-spec-inc-clicks io-spec-dec-clicks) io-spec-output)))))
+
+(define io-binding (io-synth-graph state-mask))
+
+(if (unsat? io-binding)
+    (displayln "spec synthesis model is unsat")
+    (print-from-holes (evaluate holes io-binding) state-mask (evaluate retval-idx io-binding) 2))
+
+(displayln "inc/dec benchmark via minimal i/o examples")
+
+(define small-io-binding
+  (time (synthesize #:forall (harvest s-inc s-dec)
+                    #:guarantee (assert (equal? ((recursive-sketch holes retval-idx state-mask) '(no-evt) '(click)) (behavior 0 '(-1)))))))
+(if (unsat? small-io-binding)
+    (displayln "small io benchmark is unsat")
+    (print-from-holes (evaluate holes small-io-binding) state-mask (evaluate retval-idx small-io-binding) 2))
+
+(define small-io-binding2
+  (time (synthesize #:forall (harvest s-inc s-dec)
+                    #:guarantee (let ([f (recursive-sketch holes retval-idx state-mask)])
+                                  (assert (and (equal? (f '(no-evt) '(click)) (behavior 0 '(-1)))
+                                               (equal? (f '(click) '(no-evt)) (behavior 0 '(1)))))))))
+(if (unsat? small-io-binding2)
+    (displayln "small io benchmark2 is unsat")
+    (print-from-holes (evaluate holes small-io-binding2) state-mask (evaluate retval-idx small-io-binding2) 2))
+
+(define small-io-binding3
+  (time (synthesize #:forall (harvest s-inc s-dec)
+                    #:guarantee (let ([f (recursive-sketch holes retval-idx state-mask)])
+                                  (assert (and (equal? (f '(no-evt) '(click)) (behavior 0 '(-1)))
+                                               (equal? (f '(click) '(no-evt)) (behavior 0 '(1)))
+                                               (equal? (f '(no-evt no-evt) '(click click)) (behavior 0 '(-1 -2)))))))))
+(if (unsat? small-io-binding3)
+    (displayln "small io benchmark3 is unsat")
+    (print-from-holes (evaluate holes small-io-binding3) state-mask (evaluate retval-idx small-io-binding3) 2))

@@ -29,6 +29,10 @@
 (define concrete-dec-clicks (list 'no-evt 'no-evt 'no-evt 'click 'no-evt))
 (define concrete-counter (behavior 0 (list 1 2 2 1 2)))
 
+(define io-spec-inc-clicks '(no-evt click no-evt click no-evt no-evt no-evt))
+(define io-spec-dec-clicks '(no-evt no-evt no-evt no-evt click click click))
+(define io-spec-output (behavior 0 '(0 1 1 2 1 0 -1)))
+
 ;(define s-inc (new-event-stream (sym-union-constructor 'click 'no-evt) stream-length (* 2 stream-length)))
 ;(define s-dec (new-event-stream (sym-union-constructor 'click 'no-evt) stream-length (* 2 stream-length)))
 (define s-inc (new-event-stream (λ () 'click) stream-length))
