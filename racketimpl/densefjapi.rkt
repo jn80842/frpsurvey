@@ -230,7 +230,7 @@
                                 (reverse (cons init-value (take evt-stream (add1 i))))))))
 
 (define (changes behaviorB)
-    (behavior-changes behaviorB))
+    (filterRepeatsE (behavior-changes behaviorB)))
 
 (define (constantB const inputB)
   (behavior const (constantE const (changes inputB))))

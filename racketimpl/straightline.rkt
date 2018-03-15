@@ -145,6 +145,14 @@
                                          (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a" (list-ref function-list-string (get-integer-arg insn))
                                         (get-input-stream insn past-vars)))))
+(define changes-op
+  (operator "changes"
+            (λ (insn past-vars) (changes (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (format "~a" (get-input-stream insn past-vars)))))
+(define notB-op
+  (operator "notB"
+            (λ (insn past-vars) (notB (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (format "~a" (get-input-stream insn past-vars)))))
 
 (define stateless-operator-list (list constantE-imm-op
                                       constantE-op
@@ -159,6 +167,7 @@
                                       snapshotE-op
                                       mapE2-op
                                       filterE-op
+                                      notB-op
                                       ))
 
 (define operator-list (list constantE-imm-op
@@ -183,6 +192,7 @@
                             timerE-op
                             collectB-op
                             collectB-imm-op
+                            changes-op
                             ))
 
 ;; these are collectE specific var names
@@ -228,24 +238,30 @@
                                        (>= 2 (time-vec-hour c))))
                             (λ (l) (= l 0))
                             (λ (m) (= m 3))
+                            (λ (t) (and (eq? (vector-ref t 0) 18)
+                                        (eq? (vector-ref t 1) 0)
+                                        (eq? (vector-ref t 2) 0)))
+                            (λ (t) (and (eq? (vector-ref t 0) 18)
+                                        (<= (vector-ref t 1) 2)))
+                            (λ (e) e)
                             ))
 
 (define table (for/list ([i (range 3)]) (define-symbolic* table-sv integer?) table-sv))
 
-(define function-2arg-list (list (λ (clock location) (if (or (>= clock 4) (< clock 2))
-                                 'night
-                                 (if (equal? location 'home)
-                                     'home
-                                     'away)))
+(define function-2arg-list (list ;(λ (clock location) (if (or (>= clock 4) (< clock 2))
+                                 ;'night
+                                ; (if (equal? location 'home)
+                                ;     'home
+                               ;      'away)))
                                  (λ (elt1 elt2) (+ elt1 elt2))
-                                 (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
-                                 (λ (rain clock) (if (is-midnight? clock) 'midnight rain))
-                                 (λ (r prev) (if (eq? r 'midnight) #f
-                                                 (if r #t prev)))
-                                 (λ (rain clock) (and (not rain)
-                                                  (eq? (time-vec-hour clock) 18)
-                                                  (< (time-vec-min1 clock) 1)))
-                                 (λ (x y) (if x y 'no-evt))
+                               ;  (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
+                               ;  (λ (rain clock) (if (is-midnight? clock) 'midnight rain))
+                               ;  (λ (r prev) (if (eq? r 'midnight) #f
+                               ;                  (if r #t prev)))
+                               ;  (λ (rain clock) (and (not rain)
+                               ;                   (eq? (time-vec-hour clock) 18)
+                               ;                   (< (time-vec-min1 clock) 1)))
+                               ;  (λ (x y) (if x y 'no-evt))
                                  (λ (x y) (if x y x))
                                  ))
 ;(define function-2arg-list (list + -))
@@ -258,21 +274,24 @@
                                                (>= 2 (time-vec-hour c))))"
                                    "(λ (l) (= l 0)"
                                    "(λ (m) (= m 3)"
+                                   "(λ (t) (and (eq? (vector-ref t 0) 18) (eq? (vector-ref t 1) 0) (eq? (vector-ref t 2) 0)))"
+                                   "(λ (t) (and (eq? (vector-ref t 0) 18) (<= (vector-ref t 1) 2)))"
+                                   "(λ (e) e)"
                                    ))
-(define function-2arg-list-string (list "(λ (clock location) (if (or (>= clock hour-begin) (< clock hour-end))
-                                 'night
-                                 (if (equal? location 'home)
-                                     'home
-                                     'away)))"
+(define function-2arg-list-string (list ;"(λ (clock location) (if (or (>= clock hour-begin) (< clock hour-end))
+                                 ;'night
+                                ; (if (equal? location 'home)
+                                ;     'home
+                                ;     'away)))"
                                         "(λ (elt1 elt2) (+ elt1 elt2))"
-                                        "(λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))"
-                                        "(λ (rain clock) (if (is-midnight? clock) 'midnight rain))"
-                                        "(λ (r prev) (if (eq? r 'midnight) #f
-                                                     (if r #t prev)))"
-                                        "(λ (rain clock) (and (not rain)
-                                                  (eq? (time-vec-hour clock) 18)
-                                                  (< (time-vec-min1 clock) 1)))"
-                                        "(λ (x y) (if x y 'no-evt))"
+                                     ;   "(λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))"
+                                      ;  "(λ (rain clock) (if (is-midnight? clock) 'midnight rain))"
+                                     ;   "(λ (r prev) (if (eq? r 'midnight) #f
+                                     ;                (if r #t prev)))"
+                                     ;   "(λ (rain clock) (and (not rain)
+                                     ;             (eq? (time-vec-hour clock) 18)
+                                     ;             (< (time-vec-min1 clock) 1)))"
+                                      ;  "(λ (x y) (if x y 'no-evt))"
                                         "(λ (x y) (if x y x))"
                                         ))
 

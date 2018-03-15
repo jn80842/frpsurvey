@@ -98,6 +98,7 @@
 
 ;; changes tests
 (check-equal? (changes (behavior 0 (list (list 1 1) (list 2 2) (list 3 3)))) (list (list 1 1) (list 2 2) (list 3 3)))
+(check-equal? (changes (behavior 0 '(0 1 1 2 3 3))) '(0 1 no-evt 2 3 no-evt))
 (check-equal? (changes (behavior 0 '())) '())
 
 ;; behavior
