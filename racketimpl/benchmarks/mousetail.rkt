@@ -13,7 +13,7 @@
 
 (current-bitwidth 5)
 
-(define stream-length 2)
+(define stream-length 6)
 (define time-delay 3)
 (define x-offset 5)
 
@@ -42,6 +42,7 @@
 (define (sym-mouse-coord)
   (define i (get-sym-int))
   (assert (>= i 0))
+  (assert (< i 3))
   ;(assert (<= i (- (max-for-current-bitwidth (current-bitwidth)) x-offset)))
   i)
 

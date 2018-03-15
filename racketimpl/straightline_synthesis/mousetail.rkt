@@ -2,7 +2,7 @@
 
 (require "../dense-fjmodels.rkt")
 (require "../densefjapi.rkt")
-(require "../straightline.rkt")
+(require "../uf-straightline.rkt")
 (require "../benchmarks/mousetail.rkt")
 
 (current-bitwidth #f)
@@ -37,41 +37,36 @@
 (define y-holes (for/list ([i (range 1)])
                   (get-insn-holes)))
 (define-symbolic* y-retval-idx integer?)
-(define (x-sketch-graph input)
-  (define r1 input)
-  (define r2 (call-stateless-stream-insn (list-ref x-holes 0) (list r1)))
-  (define r3 (call-stream-insn (list-ref x-holes 1) (list r1 r2)))
-  (list-ref (list r1 r2 r3) x-retval-idx))
-(define (y-sketch-graph input)
-  (define r1 input)
-  (define r2 (call-stream-insn (list-ref y-holes 0) (list r1)))
-  (list-ref (list r1 r2) y-retval-idx))
+(define x-state-mask (list->vector (list #t #f)))
+(define y-state-mask (make-vector 1 #t))
 (define binding (time (synthesize #:forall (harvest s-mouse-x s-mouse-y)
-                                  #:guarantee (assert (and (same mousetail-x-graph
-                                                                x-sketch-graph s-mouse-x)
-                                                           (same mousetail-y-graph
-                                                                 y-sketch-graph s-mouse-y))))))
+                                  #:guarantee (assert (and (same straightline-mousetail-x-graph
+                                                                (recursive-sketch x-holes x-retval-idx x-state-mask)
+                                                                s-mouse-x)
+                                                           (same straightline-mousetail-y-graph
+                                                                 (recursive-sketch y-holes y-retval-idx y-state-mask)
+                                                                 s-mouse-y))))))
 (if (unsat? binding)
     (displayln "unsat")
-    (displayln "sat"))
-    ;(begin (print-from-holes (evaluate x-holes binding)
-    ;                         (evaluate x-retval-idx binding) 1)
-    ;       (print-from-holes (evaluate y-holes binding)
-    ;                         (evaluate y-retval-idx binding) 1)))
+    ;(displayln "sat"))
+    (begin (print-from-holes (evaluate x-holes binding) x-state-mask
+                             (evaluate x-retval-idx binding) 1)
+           (print-from-holes (evaluate y-holes binding) y-state-mask
+                             (evaluate y-retval-idx binding) 1)))
 
-#;(define (x-spec program)
+(define (x-spec program)
   (equal? (program '(1 no-evt no-evt no-evt)) '(no-evt no-evt no-evt 6)))
-#;(define (y-spec program)
+(define (y-spec program)
   (equal? (program '(1 no-evt no-evt no-evt)) '(no-evt no-evt no-evt 1)))
 
-#;(define spec-binding (time (synthesize #:forall '()
-                                       #:guarantee (assert (and (x-spec x-sketch-graph)
-                                                                (y-spec y-sketch-graph))))))
-#;(if (unsat? spec-binding)
+(define spec-binding (time (synthesize #:forall '()
+                                       #:guarantee (assert (and (x-spec (recursive-sketch x-holes x-retval-idx x-state-mask))
+                                                                (y-spec (recursive-sketch y-holes y-retval-idx y-state-mask)))))))
+(if (unsat? spec-binding)
     (displayln "no program found that matches spec")
-    (begin (print-from-holes (evaluate x-holes spec-binding)
+    (begin (print-from-holes (evaluate x-holes spec-binding) x-state-mask
                              (evaluate x-retval-idx spec-binding) 1)
-           (print-from-holes (evaluate y-holes spec-binding)
+           (print-from-holes (evaluate y-holes spec-binding) y-state-mask
                              (evaluate y-retval-idx spec-binding) 1)))
 
 #;(define x-holes-prime (for/list ([i (range 2)])
