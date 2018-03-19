@@ -170,7 +170,7 @@
                                       notB-op
                                       ))
 
-(define operator-list (list ;constantE-imm-op
+(define operator-list (list constantE-imm-op
                             constantE-op
                             mergeE-op
                             mapE-op
@@ -203,8 +203,8 @@
   (define-symbolic* λidx integer?)
   (define-symbolic* arg3 integer?)
   (define-symbolic* arg-int integer?)
-  ;(define-symbolic* f (~> integer? integer? integer?))
-  (define-symbolic* f (~> integer? integer?))
+  (define-symbolic* f (~> integer? integer? integer?))
+  ;(define-symbolic* f (~> integer? integer?))
   (stream-insn op streamidx λidx arg3 arg-int f))
 
 (define (get-input-stream insn past-vars)
@@ -250,20 +250,7 @@
 
 (define table (for/list ([i (range 3)]) (define-symbolic* table-sv integer?) table-sv))
 
-(define function-2arg-list (list ;(λ (clock location) (if (or (>= clock 4) (< clock 2))
-                                 ;'night
-                                ; (if (equal? location 'home)
-                                ;     'home
-                               ;      'away)))
-                                 (λ (elt1 elt2) (+ elt1 elt2))
-                               ;  (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
-                               ;  (λ (rain clock) (if (is-midnight? clock) 'midnight rain))
-                               ;  (λ (r prev) (if (eq? r 'midnight) #f
-                               ;                  (if r #t prev)))
-                               ;  (λ (rain clock) (and (not rain)
-                               ;                   (eq? (time-vec-hour clock) 18)
-                               ;                   (< (time-vec-min1 clock) 1)))
-                               ;  (λ (x y) (if x y 'no-evt))
+(define function-2arg-list (list (λ (elt1 elt2) (+ elt1 elt2))
                                  (λ (x y) (if x y x))
                                  ))
 ;(define function-2arg-list (list + -))
@@ -280,24 +267,11 @@
                                    "(λ (t) (and (eq? (vector-ref t 0) 18) (<= (vector-ref t 1) 2)))"
                                    "(λ (e) e)"
                                    ))
-(define function-2arg-list-string (list ;"(λ (clock location) (if (or (>= clock hour-begin) (< clock hour-end))
-                                 ;'night
-                                ; (if (equal? location 'home)
-                                ;     'home
-                                ;     'away)))"
-                                        "(λ (elt1 elt2) (+ elt1 elt2))"
-                                     ;   "(λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))"
-                                      ;  "(λ (rain clock) (if (is-midnight? clock) 'midnight rain))"
-                                     ;   "(λ (r prev) (if (eq? r 'midnight) #f
-                                     ;                (if r #t prev)))"
-                                     ;   "(λ (rain clock) (and (not rain)
-                                     ;             (eq? (time-vec-hour clock) 18)
-                                     ;             (< (time-vec-min1 clock) 1)))"
-                                      ;  "(λ (x y) (if x y 'no-evt))"
+(define function-2arg-list-string (list "(λ (elt1 elt2) (+ elt1 elt2))"
                                         "(λ (x y) (if x y x))"
                                         ))
 
-(define constantB-consts (list 'on 'off #t #f 'test 1 -1))
+(define constantB-consts (list 'on 'off #t #f 'test))
 
 (define (string-from-holes bound-holes state-mask retval input-count)
   (let* ([arg-list (for/list ([i (range input-count)])

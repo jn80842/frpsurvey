@@ -37,10 +37,10 @@
 (check-equal? (filterE not (list #t #f #t 'no-evt)) (list 'no-evt #f 'no-evt 'no-evt))
 
 ;; ifE tests
-#;(check-equal? (ifE (list #t 'no-evt #f 'no-evt 'no-evt 'no-evt 'no-evt #t)
-                   (list 'a 'b 'c 'd 'e 'f 'g)
-                   (list 'x 'y' z 'aa 'bb 'cc 'dd))
-              (list 'a 'no-evt 'z 'no-evt 'no-evt 'no-evt 'no-evt 'g))
+(check-equal? (ifE (list #t 'no-evt #f 'no-evt 'no-evt 'no-evt 'no-evt #t)
+                   (list 'a 'b 'c 'd 'e 'f 'g 'h)
+                   (list 'x 'y' z 'aa 'bb 'cc 'dd 'ee))
+              (list 'a 'no-evt 'z 'no-evt 'no-evt 'no-evt 'no-evt 'h))
 
 ;; constantE tests
 (check-equal? (constantE "hello" (list 1 'no-evt 3)) (list "hello" 'no-evt "hello"))

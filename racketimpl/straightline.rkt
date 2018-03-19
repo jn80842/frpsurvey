@@ -61,6 +61,14 @@
                                       (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a" (list-ref function-list-string (stream-insn-arg-index2 insn))
                                         (get-input-stream insn past-vars)))))
+(define ifE-op
+  (operator "ifE"
+            (λ (insn past-vars) (ifE (get-input-stream insn past-vars)
+                                     (list-ref past-vars (stream-insn-arg-index2 insn))
+                                     (list-ref past-vars (stream-insn-arg-index3 insn))))
+            (λ (insn past-vars) (format "~a ~a ~a" (get-input-stream insn past-vars)
+                                        (list-ref past-vars (stream-insn-arg-index2 insn))
+                                        (list-ref past-vars (stream-insn-arg-index3 insn))))))
 (define liftB1-op
   (operator "liftB1"
             (λ (insn past-vars) (liftB1 (list-ref function-list (stream-insn-arg-index2 insn))
@@ -168,6 +176,7 @@
                                       mapE2-op
                                       filterE-op
                                       notB-op
+                                      ifE-op
                                       ))
 
 (define operator-list (list constantE-imm-op
@@ -183,6 +192,8 @@
                             snapshotE-op
                             mapE2-op
                             filterE-op
+                            notB-op
+                            ifE-op
                             collectE-imm-op
                             collectE-op
                             startsWith-imm-op
@@ -262,7 +273,7 @@
                                ;                   (eq? (time-vec-hour clock) 18)
                                ;                   (< (time-vec-min1 clock) 1)))
                                ;  (λ (x y) (if x y 'no-evt))
-                                 (λ (x y) (if x y x))
+                               ;  (λ (x y) (if x y x))
                                  ))
 ;(define function-2arg-list (list + -))
 ;(define function-2arg-list-string (list "+" "-"))
@@ -292,7 +303,7 @@
                                      ;             (eq? (time-vec-hour clock) 18)
                                      ;             (< (time-vec-min1 clock) 1)))"
                                       ;  "(λ (x y) (if x y 'no-evt))"
-                                        "(λ (x y) (if x y x))"
+                                      ;  "(λ (x y) (if x y x))"
                                         ))
 
 (define constantB-consts (list 'on 'off #t #f 'test))

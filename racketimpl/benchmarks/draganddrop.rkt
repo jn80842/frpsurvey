@@ -32,7 +32,7 @@
 ;;    #f   mouseUp   #t    mouseDown
 
 ;(current-bitwidth 5)
-(define stream-length 3)
+(define stream-length 6)
 (define max-timestamp (* 2 stream-length))
 (define max-mouse-pos 3)
 

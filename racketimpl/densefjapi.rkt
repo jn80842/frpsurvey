@@ -132,7 +132,7 @@
   (let ([real-evt-stream (filter (λ (e) (not (eq? (get-value e) 'no-evt))) evt-stream)])
     (map (λ (t) (list (get-timestamp t) (valueNow behavior1 (get-timestamp t)))) real-evt-stream)))
 (define (snapshotE evt-stream behavior1)
-  (map (λ (e b) (if (not-empty-event? e) b e)) evt-stream (changes behavior1)))
+  (map (λ (e b) (if (not-empty-event? e) b e)) evt-stream (behavior-changes behavior1)))
 ;; onceE
 
 ;; skipFirstE

@@ -16,9 +16,20 @@
   (define r6 (mergeE r4 r5))
   (define r7 (startsWith #f r6))
   (define r8 (snapshotE r3 r7))
-  ;; this is bitmask -- could be its own operator
-  (define r9 (mapE2 (λ (dragging pos) (if dragging pos 'no-evt)) r8 r3))
-  r9)
+  (define r9 (constantE 'no-evt r1))
+  (define r10 (ifE r8 r3 r9))
+  r10)
+
+(define (straightline2-graph mouse-up mouse-down mouse-pos)
+  (define r1 mouse-up)
+  (define r2 mouse-down)
+  (define r3 mouse-pos)
+  (define r4 (constantE #f r2))
+  (define r5 (mergeE r1 r4))
+  (define r6 (startsWith #t r5))
+  (define r7 (snapshotE r3 r6))
+  (define r8 (ifE r7 r4 r3))
+  r8)
 
 (displayln "drag and drop benchmark")
 
@@ -30,19 +41,11 @@
     (displayln "verified example implementation and straightline program are equivalent")
     (displayln "can't verify that straightline program matches example implementation"))
 
-(define holes (for/list ([i (range 6)])
+(define holes (for/list ([i (range 5)])
                 (get-insn-holes)))
 (define-symbolic* retval-idx integer?)
 
-(define concrete-state-mask (list->vector (list #f #f #f #t #f #f)))
-(define concrete-holes (list
-                        (stream-insn 1 0 0 0 3)
-                        (stream-insn 1 1 0 0 2)
-                        (stream-insn 2 4 3 0 0)
-                        (stream-insn 16 5 0 0 3)
-                        (stream-insn 10 2 6 0 0)
-                        (stream-insn 11 7 6 2 0)))
-(define concrete-retval-idx 8)
+(define state-mask (list->vector (list #f #f #t #f #f #f)))
 
 (define (synth-graph state-mask)
   (time (synthesize #:forall (harvest s-mouse-up s-mouse-down s-mouse-pos)
@@ -50,8 +53,8 @@
                                               (recursive-sketch holes retval-idx state-mask)
                                               s-mouse-up s-mouse-down s-mouse-pos)))))
 
-(define binding (synth-graph concrete-state-mask))
+(define binding (synth-graph state-mask))
 (if (unsat? binding)
     (displayln "no solution for sketch")
-    (print-from-holes (evaluate holes binding) concrete-state-mask
+    (print-from-holes (evaluate holes binding) state-mask
                       (evaluate retval-idx binding) 3))
