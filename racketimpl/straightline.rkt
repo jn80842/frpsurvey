@@ -367,8 +367,9 @@
                         #t)))))
 
 (define (io-specs-satisfiable? sketch-fields specs)
-  (let ([sketch-program (recursive-sketch (get-holes-list (sketchfields-holes-length sketch-fields))
-                                         (get-retval-idx) (sketchfields-state-mask sketch-fields))])
+  (let* ([holes (get-holes-list (sketchfields-holes-length sketch-fields))]
+         [retval-idx (get-retval-idx)]
+         [sketch-program (recursive-sketch holes retval-idx (sketchfields-state-mask sketch-fields))])
     (begin (clear-asserts!)
            (define binding (time (synthesize #:forall '()
                                              #:guarantee (spec-assertions specs sketch-program))))
@@ -376,7 +377,10 @@
                (begin (displayln "Specs are unsatisfiable")
                       #f)
                (begin (displayln "Specs are satisfiable")
+                      (print-from-holes (evaluate holes binding) (sketchfields-state-mask sketch-fields)
+                                        (evaluate retval-idx binding) (sketchfields-inputs-length sketch-fields) "samplesol")
                       #t)))))
+
 (define (io-specs-unique-program? sketch-fields specs)
   (let* ([holes1 (get-holes-list (sketchfields-holes-length sketch-fields))]
          [holes2 (get-holes-list (sketchfields-holes-length sketch-fields))]
