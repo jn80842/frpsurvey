@@ -215,6 +215,9 @@
   (define-symbolic* arg3 integer?)
   (define-symbolic* arg-int integer?)
   (stream-insn op streamidx λidx arg3 arg-int))
+(define (get-retval-idx)
+  (define-symbolic* retval-idx integer?)
+  retval-idx)
 
 (define (get-input-stream insn past-vars)
   (list-ref past-vars (stream-insn-arg-index1 insn)))
@@ -308,7 +311,7 @@
 
 (define constantB-consts (list 'on 'off #t #f 'test))
 
-(define (string-from-holes bound-holes state-mask retval input-count)
+(define (string-from-holes bound-holes state-mask retval input-count funcname)
   (let* ([arg-list (for/list ([i (range input-count)])
                     (format "input~a" (add1 i)))]
          [input-stmt-list (for/list ([i (range input-count)])
@@ -320,7 +323,7 @@
                               (print-stream-insn (vector-ref state-mask i) (list-ref bound-holes i) (list-ref varlist (+ input-count i))
                                                  (take varlist (+ input-count i))))]
          [return-stmt (format "  ~a)" (list-ref varlist retval))])
-    (string-append (format "(define (synthesized-function ~a)\n" (string-join arg-list))
+    (string-append (format "(define (~a ~a)\n" funcname (string-join arg-list))
                    (string-join input-stmt-list "\n")
                    "\n"
                    (string-join synthed-stmt-list "\n")
@@ -328,8 +331,8 @@
                    return-stmt)))
 
 ;; better parameterize the number of input streams
-(define (print-from-holes bound-holes state-mask retval input-count)
-  (displayln (string-from-holes bound-holes state-mask retval input-count)))
+(define (print-from-holes bound-holes state-mask retval input-count [funcname "synthesized-function"])
+  (displayln (string-from-holes bound-holes state-mask retval input-count funcname)))
 
 (define (recursive-sketch holes retval-idx state-mask)
   (letrec ([f (λ (calculated-streams i)
@@ -339,3 +342,61 @@
                                                                  calculated-streams)])
                               (f (append calculated-streams (list next-stream)) (add1 i)))]))])
     (λ inputs (list-ref (f inputs 0) retval-idx))))
+
+(define (get-holes-list count)
+  (for/list ([i (range count)]) (get-insn-holes)))
+
+(struct sketchfields (holes-length inputs-length state-mask) #:transparent)
+(struct io-specs (inputs outputs) #:transparent)
+
+(define (spec-assertions specs sketch-program)
+  (for-each (λ (ios) (assert (equal? (apply sketch-program (io-specs-inputs ios))
+                                   (io-specs-outputs ios)))) specs))
+
+(define (synth-ref-impl sketch-fields ref-impl . inputs)
+  (let* ([holes (get-holes-list (sketchfields-holes-length sketch-fields))]
+         [retval-idx (get-retval-idx)]
+         [sketch-program (recursive-sketch holes retval-idx (sketchfields-state-mask sketch-fields))])
+    (begin (define binding (time (synthesize #:forall (apply harvest inputs)
+                                             #:guarantee (assert (apply (curry same ref-impl sketch-program) inputs)))))
+             (if (unsat? binding)
+                 (begin (displayln "Cannot synthesize program that matches reference implementation")
+                        #f)
+                 (begin (print-from-holes (evaluate holes binding) (sketchfields-state-mask sketch-fields)
+                                          (evaluate retval-idx binding) (sketchfields-inputs-length sketch-fields))
+                        #t)))))
+
+(define (io-specs-satisfiable? sketch-fields specs)
+  (let ([sketch-program (recursive-sketch (get-holes-list (sketchfields-holes-length sketch-fields))
+                                         (get-retval-idx) (sketchfields-state-mask sketch-fields))])
+    (begin (clear-asserts!)
+           (define binding (time (synthesize #:forall '()
+                                             #:guarantee (spec-assertions specs sketch-program))))
+           (if (unsat? binding)
+               (begin (displayln "Specs are unsatisfiable")
+                      #f)
+               (begin (displayln "Specs are satisfiable")
+                      #t)))))
+(define (io-specs-unique-program? sketch-fields specs)
+  (let* ([holes1 (get-holes-list (sketchfields-holes-length sketch-fields))]
+         [holes2 (get-holes-list (sketchfields-holes-length sketch-fields))]
+         [retval-idx1 (get-retval-idx)]
+         [retval-idx2 (get-retval-idx)]
+         [sketch-program1 (recursive-sketch holes1 retval-idx1 (sketchfields-state-mask sketch-fields))]
+         [sketch-program2 (recursive-sketch holes2 retval-idx2 (sketchfields-state-mask sketch-fields))])
+    (begin (displayln "Is there a unique program that satisfies specs?")
+           (clear-asserts!)
+           (define binding (time (synthesize #:forall '()
+                                             #:guarantee (begin (spec-assertions specs sketch-program1)
+                                                                (spec-assertions specs sketch-program2)
+                                                                (assert (or (not (equal? holes1 holes2))
+                                                                            (not (equal? retval-idx1 retval-idx2))))))))
+           (if (unsat? binding)
+               (begin (displayln "No two unique programs that satisfy specs")
+                      #f)
+               (begin (displayln "Two unique programs that satisfy specs")
+                      (print-from-holes (evaluate holes1 binding) (sketchfields-state-mask sketch-fields)
+                                        (evaluate retval-idx1 binding) (sketchfields-inputs-length sketch-fields) "program1")
+                      (print-from-holes (evaluate holes2 binding) (sketchfields-state-mask sketch-fields)
+                                        (evaluate retval-idx2 binding) (sketchfields-inputs-length sketch-fields) "program2")
+                      #t)))))

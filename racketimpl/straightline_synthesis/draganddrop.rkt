@@ -33,28 +33,29 @@
 
 (displayln "drag and drop benchmark")
 
-(define v-binding (verify (assert (same drag-and-drop-graph
+#;(define v-binding (verify (assert (same drag-and-drop-graph
                                         straightline-graph
                                         s-mouse-up s-mouse-down s-mouse-pos))))
 
-(if (unsat? v-binding)
+#;(if (unsat? v-binding)
     (displayln "verified example implementation and straightline program are equivalent")
     (displayln "can't verify that straightline program matches example implementation"))
 
-(define holes (for/list ([i (range 5)])
-                (get-insn-holes)))
-(define-symbolic* retval-idx integer?)
+(define state-mask (list->vector (list #f #f #t #f #f)))
+(define ddsketch (sketchfields 5 3 state-mask))
 
-(define state-mask (list->vector (list #f #f #t #f #f #f)))
+(synth-ref-impl ddsketch straightline-graph s-mouse-up s-mouse-down s-mouse-pos)
 
-(define (synth-graph state-mask)
-  (time (synthesize #:forall (harvest s-mouse-up s-mouse-down s-mouse-pos)
-                    #:guarantee (assert (same straightline-graph
-                                              (recursive-sketch holes retval-idx state-mask)
-                                              s-mouse-up s-mouse-down s-mouse-pos)))))
+(define simple-spec (io-specs (list '(no-evt no-evt click)
+                                   '(click no-evt no-evt)
+                                   (list (coords 1 1) (coords 2 2) (coords 3 3)))
+                             (list (coords 1 1) (coords 2 2) 'no-evt)))
+(define no-clicks-spec (io-specs (list '(no-evt no-evt no-evt)
+                                  '(no-evt no-evt no-evt)
+                                  (list (coords 1 1) (coords 2 2) (coords 3 3)))
+                            '(no-evt no-evt no-evt)))
 
-(define binding (synth-graph state-mask))
-(if (unsat? binding)
-    (displayln "no solution for sketch")
-    (print-from-holes (evaluate holes binding) state-mask
-                      (evaluate retval-idx binding) 3))
+
+
+(io-specs-satisfiable? ddsketch (list simple-spec no-clicks-spec))
+(io-specs-unique-program? ddsketch (list simple-spec no-clicks-spec))
