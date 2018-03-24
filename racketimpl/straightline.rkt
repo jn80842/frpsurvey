@@ -348,6 +348,7 @@
 
 (struct sketchfields (holes-length inputs-length state-mask) #:transparent)
 (struct io-specs (inputs outputs) #:transparent)
+(struct sym-input (name input) #:transparent)
 
 (define (spec-assertions specs sketch-program)
   (for-each (λ (ios) (assert (equal? (apply sketch-program (io-specs-inputs ios))
@@ -366,41 +367,48 @@
                                           (evaluate retval-idx binding) (sketchfields-inputs-length sketch-fields))
                         #t)))))
 
-(define (io-specs-satisfiable? sketch-fields specs)
+(define (specs-synthesis sketch-fields specs sym-inputs)
   (let* ([holes (get-holes-list (sketchfields-holes-length sketch-fields))]
          [retval-idx (get-retval-idx)]
-         [sketch-program (recursive-sketch holes retval-idx (sketchfields-state-mask sketch-fields))])
+         [mask (sketchfields-state-mask sketch-fields)]
+         [sketch-program (recursive-sketch holes retval-idx mask)])
     (begin (clear-asserts!)
            (define binding (time (synthesize #:forall '()
                                              #:guarantee (spec-assertions specs sketch-program))))
            (if (unsat? binding)
-               (begin (displayln "Specs are unsatisfiable")
-                      #f)
+               (displayln "Specs are unsatisfiable")
                (begin (displayln "Specs are satisfiable")
-                      (print-from-holes (evaluate holes binding) (sketchfields-state-mask sketch-fields)
-                                        (evaluate retval-idx binding) (sketchfields-inputs-length sketch-fields) "samplesol")
-                      #t)))))
-
-(define (io-specs-unique-program? sketch-fields specs)
-  (let* ([holes1 (get-holes-list (sketchfields-holes-length sketch-fields))]
-         [holes2 (get-holes-list (sketchfields-holes-length sketch-fields))]
-         [retval-idx1 (get-retval-idx)]
-         [retval-idx2 (get-retval-idx)]
-         [sketch-program1 (recursive-sketch holes1 retval-idx1 (sketchfields-state-mask sketch-fields))]
-         [sketch-program2 (recursive-sketch holes2 retval-idx2 (sketchfields-state-mask sketch-fields))])
-    (begin (displayln "Is there a unique program that satisfies specs?")
-           (clear-asserts!)
-           (define binding (time (synthesize #:forall '()
-                                             #:guarantee (begin (spec-assertions specs sketch-program1)
-                                                                (spec-assertions specs sketch-program2)
-                                                                (assert (or (not (equal? holes1 holes2))
-                                                                            (not (equal? retval-idx1 retval-idx2))))))))
-           (if (unsat? binding)
-               (begin (displayln "No two unique programs that satisfy specs")
-                      #f)
-               (begin (displayln "Two unique programs that satisfy specs")
-                      (print-from-holes (evaluate holes1 binding) (sketchfields-state-mask sketch-fields)
-                                        (evaluate retval-idx1 binding) (sketchfields-inputs-length sketch-fields) "program1")
-                      (print-from-holes (evaluate holes2 binding) (sketchfields-state-mask sketch-fields)
-                                        (evaluate retval-idx2 binding) (sketchfields-inputs-length sketch-fields) "program2")
-                      #t)))))
+                      (let* ([holes1 (evaluate holes binding)]
+                             [holes2 (get-holes-list (sketchfields-holes-length sketch-fields))]
+                             [retval-idx1 (evaluate retval-idx binding)]
+                             [retval-idx2 (get-retval-idx)]
+                             [sketch-program1 (recursive-sketch holes1 retval-idx1 mask)] ;; concrete
+                             [sketch-program2 (recursive-sketch holes2 retval-idx2 mask)]) ;; symbolic
+                        (begin
+                          (print-from-holes (evaluate holes binding) mask
+                                        (evaluate retval-idx binding) (sketchfields-inputs-length sketch-fields) "program1")
+                          (clear-asserts!)
+                          (define binding2
+                            (time (synthesize #:forall '()
+                                              #:guarantee (begin (spec-assertions specs sketch-program1)
+                                                                 (spec-assertions specs sketch-program2)
+                                                                 (assert (not (equal? (apply sketch-program1
+                                                                                             (map (λ (si) (sym-input-input si)) sym-inputs))
+                                                                                      (apply sketch-program2
+                                                                                             (map (λ (si) (sym-input-input si)) sym-inputs))
+                                                                                      )))))))
+                          (if (unsat? binding2)
+                              (displayln "No two unique programs that satisfy specs")
+                              (begin (print-from-holes (evaluate holes2 binding2) mask
+                                                       (evaluate retval-idx2 binding2) (sketchfields-inputs-length sketch-fields) "program2")
+                                     (for-each (λ (i) (begin (displayln (sym-input-name i))
+                                                             (displayln (evaluate (sym-input-input i) binding2)))) sym-inputs)
+                                     (displayln (format "Program1 output: ~a"
+                                                        (apply sketch-program1
+                                                               (map (λ (si) (evaluate (sym-input-input si) binding2)) sym-inputs))))
+                                     (displayln (format "Program2 output: ~a"
+                                                        (apply (recursive-sketch (evaluate holes2 binding2)
+                                                                                 (evaluate retval-idx2 binding2)
+                                                                                 mask)
+                                                               (map (λ (si) (evaluate (sym-input-input si) binding2)) sym-inputs))))
+)))))))))

@@ -42,9 +42,9 @@
     (displayln "can't verify that straightline program matches example implementation"))
 
 (define state-mask (list->vector (list #f #f #t #f #f)))
-(define ddsketch (sketchfields 5 3 state-mask))
+(define ddsketchfields (sketchfields 5 3 state-mask))
 
-(synth-ref-impl ddsketch straightline-graph s-mouse-up s-mouse-down s-mouse-pos)
+;(synth-ref-impl ddsketch straightline-graph s-mouse-up s-mouse-down s-mouse-pos)
 
 (define simple-spec (io-specs (list '(no-evt no-evt click)
                                    '(click no-evt no-evt)
@@ -54,8 +54,8 @@
                                   '(no-evt no-evt no-evt)
                                   (list (coords 1 1) (coords 2 2) (coords 3 3)))
                             '(no-evt no-evt no-evt)))
+(define sym-inputs-list (list (sym-input "mouse-up" s-mouse-up)
+                              (sym-input "mouse-down" s-mouse-down)
+                              (sym-input "mouse-pos" s-mouse-pos)))
 
-
-
-(io-specs-satisfiable? ddsketch (list simple-spec no-clicks-spec))
-(io-specs-unique-program? ddsketch (list simple-spec no-clicks-spec))
+(specs-synthesis ddsketchfields (list simple-spec no-clicks-spec) sym-inputs-list)
