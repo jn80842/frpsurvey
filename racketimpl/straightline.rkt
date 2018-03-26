@@ -2,6 +2,7 @@
 
 (require "dense-fjmodels.rkt")
 (require "densefjapi.rkt")
+(require "specifications.rkt")
 
 (provide (all-defined-out))
 
@@ -347,12 +348,10 @@
   (for/list ([i (range count)]) (get-insn-holes)))
 
 (struct sketchfields (holes-length inputs-length state-mask) #:transparent)
-(struct io-specs (inputs outputs) #:transparent)
-(struct sym-input (name input) #:transparent)
 
-(define (spec-assertions specs sketch-program)
-  (for-each (λ (ios) (assert (equal? (apply sketch-program (io-specs-inputs ios))
-                                   (io-specs-outputs ios)))) specs))
+(define (sketch-from-fields fields)
+  (recursive-sketch (get-holes-list (sketchfields-holes-length fields))
+                    (get-retval-idx) (sketchfields-state-mask fields)))
 
 (define (synth-ref-impl sketch-fields ref-impl . inputs)
   (let* ([holes (get-holes-list (sketchfields-holes-length sketch-fields))]

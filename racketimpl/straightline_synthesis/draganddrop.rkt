@@ -3,6 +3,7 @@
 (require "../dense-fjmodels.rkt")
 (require "../densefjapi.rkt")
 (require "../straightline.rkt")
+(require "../specifications.rkt")
 (require "../benchmarks/draganddrop.rkt")
 
 (current-bitwidth #f)
@@ -54,8 +55,14 @@
                                   '(no-evt no-evt no-evt)
                                   (list (coords 1 1) (coords 2 2) (coords 3 3)))
                             '(no-evt no-evt no-evt)))
+
 (define sym-inputs-list (list (sym-input "mouse-up" s-mouse-up)
                               (sym-input "mouse-down" s-mouse-down)
                               (sym-input "mouse-pos" s-mouse-pos)))
 
-(specs-synthesis ddsketchfields (list simple-spec no-clicks-spec) sym-inputs-list)
+(define (simultaneous-assertions mouse-up mouse-down mouse-pos)
+  (andmap (λ (u d) (nand (not (empty-event? u)) (not (empty-event? d)))) mouse-up mouse-down))
+
+(define simultaneous-invariant (input-invariant sym-inputs-list simultaneous-assertions))
+
+(specs-synthesis ddsketchfields (list simultaneous-invariant simple-spec no-clicks-spec) sym-inputs-list)
