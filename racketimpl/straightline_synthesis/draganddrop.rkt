@@ -65,4 +65,35 @@
 
 (define simultaneous-invariant (input-invariant sym-inputs-list simultaneous-assertions))
 
-(specs-synthesis ddsketchfields (list simultaneous-invariant simple-spec no-clicks-spec) sym-inputs-list)
+(define coords-output-invariant (output-invariant sym-inputs-list (λ (o) (andmap (λ (e) (or (empty-event? e) (coords? e))) o))))
+
+(define (alternate-up-down-checker mouse-up mouse-down mouse-pos)
+  (letrec ([f (λ (pair lst) (cond [(empty? lst) #t]
+                                  [(and (equal? (first pair) 'click)
+                                        (equal? (first (first lst)) 'click)) #f]
+                                  [(and (equal? (second pair) 'click)
+                                        (equal? (second (first lst)) 'click)) #f]
+                                  [(and (empty-event? (first (first lst)))
+                                        (empty-event? (second (first lst)))) (f pair (rest lst))]
+                                  [else (f (first lst) (rest lst))]))])
+    (let ([pairs (map list mouse-up mouse-down)])
+      (f (first pairs) (rest pairs)))))
+
+(define alternate-up-down-invariant (input-invariant sym-inputs-list alternate-up-down-checker))
+
+(define from-synth-spec1 (io-specs (list '(click no-evt no-evt click no-evt click)
+                                         '(no-evt click no-evt no-evt click no-evt)
+                                         (list 'no-evt 'no-evt 'no-evt 'no-evt 'no-evt (coords 0 0)))
+                                   '(no-evt no-evt no-evt no-evt no-evt no-evt)))
+(define from-synth-spec2 (io-specs (list '(no-evt no-evt click no-evt no-evt no-evt)
+                                         '(no-evt click no-evt no-evt no-evt no-evt)
+                                         (list (coords 2 -4) (coords 0 0) (coords 0 0) (coords -2 -3) 'no-evt 'no-evt))
+                                   (list 'no-evt (coords 0 0) 'no-evt 'no-evt 'no-evt 'no-evt)))
+(define from-synth-spec3 (io-specs (list '(click no-evt no-evt no-evt click no-evt)
+                                         '(no-evt click no-evt no-evt no-evt no-evt)
+                                         (list 'no-evt (coords 0 0) 'no-evt (coords 0 0) (coords 0 0) 'no-evt))
+                                   (list 'no-evt (coords 0 0) 'no-evt (coords 0 0) 'no-evt 'no-evt)))
+
+(specs-synthesis ddsketchfields (list simultaneous-invariant alternate-up-down-invariant
+                                      coords-output-invariant
+                                      simple-spec no-clicks-spec from-synth-spec1 from-synth-spec2 from-synth-spec3) sym-inputs-list)
