@@ -45,7 +45,7 @@
 (define state-mask (list->vector (list #f #f #t #f #f)))
 (define ddsketchfields (sketchfields 5 3 state-mask))
 
-;(synth-ref-impl ddsketch straightline-graph s-mouse-up s-mouse-down s-mouse-pos)
+(synth-ref-impl ddsketchfields straightline-graph s-mouse-up s-mouse-down s-mouse-pos)
 
 (define simple-spec (io-specs (list '(no-evt no-evt click)
                                    '(click no-evt no-evt)
@@ -94,6 +94,10 @@
                                          (list 'no-evt (coords 0 0) 'no-evt (coords 0 0) (coords 0 0) 'no-evt))
                                    (list 'no-evt (coords 0 0) 'no-evt (coords 0 0) 'no-evt 'no-evt)))
 
-(specs-synthesis ddsketchfields (list simultaneous-invariant alternate-up-down-invariant
-                                      coords-output-invariant
-                                      simple-spec no-clicks-spec from-synth-spec1 from-synth-spec2 from-synth-spec3) sym-inputs-list)
+(specs-synthesis ddsketchfields (list  simultaneous-invariant alternate-up-down-invariant
+                                       coords-output-invariant
+                                      simple-spec no-clicks-spec
+                                      from-synth-spec1
+                                      from-synth-spec2
+                                      from-synth-spec3
+                                      ) sym-inputs-list)
