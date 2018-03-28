@@ -4,6 +4,7 @@
 (require "../densefjapi.rkt")
 (require "../straightline.rkt")
 (require "../specifications.rkt")
+(require "../properties.rkt")
 (require "../benchmarks/draganddrop.rkt")
 
 (current-bitwidth #f)
@@ -65,7 +66,7 @@
 
 (define simultaneous-invariant (input-invariant sym-inputs-list simultaneous-assertions))
 
-(define coords-output-invariant (output-invariant sym-inputs-list (λ (o) (andmap (λ (e) (or (empty-event? e) (coords? e))) o))))
+(define coords-output-invariant (output-invariant sym-inputs-list (type-event-stream-func coords?)))
 
 (define (alternate-up-down-checker mouse-up mouse-down mouse-pos)
   (letrec ([f (λ (pair lst) (cond [(empty? lst) #t]
