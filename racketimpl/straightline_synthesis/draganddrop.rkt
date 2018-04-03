@@ -3,6 +3,7 @@
 (require "../dense-fjmodels.rkt")
 (require "../densefjapi.rkt")
 (require "../straightline.rkt")
+(require "../sketch.rkt")
 (require "../specifications.rkt")
 (require "../properties.rkt")
 (require "../benchmarks/draganddrop.rkt")
@@ -46,16 +47,19 @@
 (define state-mask (list->vector (list #f #f #t #f #f)))
 (define ddsketchfields (sketchfields 5 3 state-mask))
 
-(synth-ref-impl ddsketchfields straightline-graph s-mouse-up s-mouse-down s-mouse-pos)
+(define dd-sketch (sketch (get-holes-list 5) state-mask (get-retval-idx)
+                          stateless-operator-list stateful-operator-list 3))
+
+(synth-from-ref-impl dd-sketch straightline-graph s-mouse-up s-mouse-down s-mouse-pos)
 
 (define simple-spec (io-specs (list '(no-evt no-evt click)
-                                   '(click no-evt no-evt)
-                                   (list (coords 1 1) (coords 2 2) (coords 3 3)))
-                             (list (coords 1 1) (coords 2 2) 'no-evt)))
+                                    '(click no-evt no-evt)
+                                    (list (coords 1 1) (coords 2 2) (coords 3 3)))
+                              (list (coords 1 1) (coords 2 2) 'no-evt)))
 (define no-clicks-spec (io-specs (list '(no-evt no-evt no-evt)
-                                  '(no-evt no-evt no-evt)
-                                  (list (coords 1 1) (coords 2 2) (coords 3 3)))
-                            '(no-evt no-evt no-evt)))
+                                       '(no-evt no-evt no-evt)
+                                       (list (coords 1 1) (coords 2 2) (coords 3 3)))
+                                 '(no-evt no-evt no-evt)))
 
 (define sym-inputs-list (list (sym-input "mouse-up" s-mouse-up)
                               (sym-input "mouse-down" s-mouse-down)
@@ -95,10 +99,10 @@
                                          (list 'no-evt (coords 0 0) 'no-evt (coords 0 0) (coords 0 0) 'no-evt))
                                    (list 'no-evt (coords 0 0) 'no-evt (coords 0 0) 'no-evt 'no-evt)))
 
-(specs-synthesis ddsketchfields (list  simultaneous-invariant alternate-up-down-invariant
-                                       coords-output-invariant
+(specs-synthesis ddsketchfields (list simultaneous-invariant alternate-up-down-invariant
+                                      coords-output-invariant
                                       simple-spec no-clicks-spec
-                                      from-synth-spec1
-                                      from-synth-spec2
-                                      from-synth-spec3
+                                      ; from-synth-spec1
+                                      ; from-synth-spec2
+                                      ; from-synth-spec3
                                       ) sym-inputs-list)

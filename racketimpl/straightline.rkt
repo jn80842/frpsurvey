@@ -180,32 +180,21 @@
                                       ifE-op
                                       ))
 
-(define operator-list (list constantE-imm-op
-                            constantE-op
-                            mergeE-op
-                            mapE-op
-                            liftB1-op
-                            liftB2-op
-                            andB-op
-                            ifB-op
-                            constantB-imm-op
-                            constantB-op
-                            snapshotE-op
-                            mapE2-op
-                            filterE-op
-                            notB-op
-                            ifE-op
-                            collectE-imm-op
-                            collectE-op
-                            startsWith-imm-op
-                            startsWith-op
-                            delayE-op
-                            filterRepeatsE-op
-                            timerE-op
-                            collectB-op
-                            collectB-imm-op
-                            changes-op
-                            ))
+(define stateful-operator-list
+  (list collectE-imm-op
+                collectE-op
+                startsWith-imm-op
+                startsWith-op
+                delayE-op
+                filterRepeatsE-op
+                timerE-op
+                collectB-op
+                collectB-imm-op
+                changes-op
+                ))
+
+(define operator-list
+  (append stateless-operator-list stateful-operator-list))
 
 ;; these are collectE specific var names
 ;; change back after experiments
@@ -225,24 +214,43 @@
 (define (get-integer-arg insn)
   (stream-insn-arg-int insn))
 
-(define (call-stateless-stream-insn insn past-vars)
+#;(define (call-stateless-stream-insn insn past-vars)
   (let ([op (list-ref stateless-operator-list (stream-insn-op-index insn))])
     ((operator-call op) insn past-vars)))
 
-(define (call-any-stream-insn insn past-vars)
+#;(define (call-any-stream-insn insn past-vars)
   (let ([op (list-ref operator-list (stream-insn-op-index insn))])
     ((operator-call op) insn past-vars)))
 
-(define (call-stream-insn state-flag insn past-vars)
+#;(define (call-stream-insn state-flag insn past-vars)
   (if state-flag
       (call-any-stream-insn insn past-vars)
       (call-stateless-stream-insn insn past-vars)))
+
+#;(define (get-call-stream-insn stateless-operator-list full-operator-list)
+  (λ (state-flag insn past-vars)
+    (let ([op (if state-flag
+                  (list-ref full-operator-list (stream-insn-op-index insn))
+                  (list-ref stateless-operator-list (stream-insn-op-index insn)))])
+      ((operator-call op) insn past-vars))))
 
 (define (print-stream-insn state-flag insn varname past-vars)
   (let ([op (if state-flag
                 (list-ref operator-list (stream-insn-op-index insn))
                 (list-ref stateless-operator-list (stream-insn-op-index insn)))])
     (format "  (define ~a (~a ~a))" varname (operator-name op) ((operator-print op) insn past-vars))))
+
+#;(define (get-print-stream-insn full-operator-list)
+  (λ (insn varname past-vars)
+    (let ([op (list-ref full-operator-list (stream-insn-op-index insn))])
+      (format "  (define ~a (~a ~a))" varname (operator-name op) ((operator-print op) insn past-vars)))))
+;; shuffle both lists of operators
+;; rebind call-stateless-stream-insn, call-any-stream-insn, print-stream-insn using reshuffled lists
+
+#;(define (shuffled-operators stateless-ops stateful-ops)
+  (let ([reshuffled-stateless-ops (shuffle stateless-ops)]
+        [reshuffled-stateful-ops (shuffle stateful-ops)])
+    (list reshuffled-stateless-ops reshuffled-stateful-ops)))
 
 ;; these lists are very unsatisfactory
 (define function-list (list (λ (e) (+ e 5))
@@ -312,7 +320,7 @@
 
 (define constantB-consts (list 'on 'off #t #f 'test))
 
-(define (string-from-holes bound-holes state-mask retval input-count funcname)
+#;(define (string-from-holes bound-holes state-mask retval input-count funcname)
   (let* ([arg-list (for/list ([i (range input-count)])
                     (format "input~a" (add1 i)))]
          [input-stmt-list (for/list ([i (range input-count)])
@@ -332,10 +340,10 @@
                    return-stmt)))
 
 ;; better parameterize the number of input streams
-(define (print-from-holes bound-holes state-mask retval input-count [funcname "synthesized-function"])
+#;(define (print-from-holes bound-holes state-mask retval input-count [funcname "synthesized-function"])
   (displayln (string-from-holes bound-holes state-mask retval input-count funcname)))
 
-(define (recursive-sketch holes retval-idx state-mask)
+#;(define (recursive-sketch holes retval-idx state-mask)
   (letrec ([f (λ (calculated-streams i)
                 (cond [(equal? (length holes) i) calculated-streams]
                       [else (let ([next-stream (call-stream-insn (vector-ref state-mask i)
@@ -344,16 +352,27 @@
                               (f (append calculated-streams (list next-stream)) (add1 i)))]))])
     (λ inputs (list-ref (f inputs 0) retval-idx))))
 
+#;(define (get-recursive-sketch stateless-operator-list full-operator-list)
+  (let ([call-stream-insn (get-call-stream-insn stateless-operator-list full-operator-list)])
+    (λ (holes retval-idx state-mask)
+      (letrec ([f (λ (calculated-streams i)
+                    (cond [(equal? (length holes) i) calculated-streams]
+                          [else (let ([next-stream (call-stream-insn (vector-ref state-mask i)
+                                                                     (list-ref holes i)
+                                                                     calculated-streams)])
+                                  (f (append calculated-streams (list next-stream)) (add1 i)))]))])
+        (λ inputs (list-ref (f inputs 0) retval-idx))))))
+
 (define (get-holes-list count)
   (for/list ([i (range count)]) (get-insn-holes)))
 
 (struct sketchfields (holes-length inputs-length state-mask) #:transparent)
 
-(define (sketch-from-fields fields)
+#;(define (sketch-from-fields fields)
   (recursive-sketch (get-holes-list (sketchfields-holes-length fields))
                     (get-retval-idx) (sketchfields-state-mask fields)))
 
-(define (synth-ref-impl sketch-fields ref-impl . inputs)
+#;(define (synth-ref-impl sketch-fields ref-impl . inputs)
   (let* ([holes (get-holes-list (sketchfields-holes-length sketch-fields))]
          [retval-idx (get-retval-idx)]
          [sketch-program (recursive-sketch holes retval-idx (sketchfields-state-mask sketch-fields))])
@@ -366,11 +385,14 @@
                                           (evaluate retval-idx binding) (sketchfields-inputs-length sketch-fields))
                         #t)))))
 
-(define (specs-synthesis sketch-fields specs sym-inputs)
+#;(define (specs-synthesis sketch-fields specs sym-inputs)
   (let* ([holes (get-holes-list (sketchfields-holes-length sketch-fields))]
          [retval-idx (get-retval-idx)]
          [mask (sketchfields-state-mask sketch-fields)]
-         [sketch-program (recursive-sketch holes retval-idx mask)])
+         [print-func1 print-from-holes]
+         [call-func1 (get-call-stream-insn stateless-operator-list)]
+         [sketch-func1 (get-recursive-sketch stateless-operator-list operator-list)]
+         [sketch-program (sketch-func1 holes retval-idx mask)])
     (begin (clear-asserts!)
            (define binding (time (synthesize #:forall '()
                                              #:guarantee (spec-assertions specs sketch-program))))
