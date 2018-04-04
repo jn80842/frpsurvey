@@ -211,8 +211,6 @@
 (define operator-list
   (append stateless-operator-list stateful-operator-list))
 
-
-
 (define (get-input-stream insn past-vars)
   (list-ref past-vars (stream-insn-arg-index1 insn)))
 

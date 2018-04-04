@@ -2,7 +2,8 @@
 
 (require "../dense-fjmodels.rkt")
 (require "../densefjapi.rkt")
-(require "../straightline.rkt")
+(require "../sketch.rkt")
+(require "../operators.rkt")
 (require "../specifications.rkt")
 (require "../benchmarks/savedraft.rkt")
 
@@ -34,9 +35,10 @@
 (define sym-inputs-list (list (sym-input "textChangedE" s-textChangedE)
                               (sym-input "saveButtonE" s-saveButtonE)))
 
-(define savedraftfields (sketchfields 6 2 state-mask))
+(define sd-sketch (sketch (get-holes-list 6) state-mask (get-retval-idx)
+                          stateless-operator-list stateful-operator-list 2))
 
-;(synth-ref-impl savedraftfields straightline-graph s-textChangedE s-saveButtonE)
+(synth-from-ref-impl sd-sketch straightline-graph s-textChangedE s-saveButtonE)
 
 (define execution-spec (io-specs (list '(no-evt no-evt no-evt save no-evt no-evt no-evt no-evt no-evt no-evt)
                                        '(no-evt change change no-evt no-evt change change no-evt no-evt no-evt))
@@ -49,4 +51,4 @@
 
 (define save-button-io-invariant (input-output-invariant sym-inputs-list save-button-assertion-function))
 
-(specs-synthesis savedraftfields (list execution-spec output-type save-button-io-invariant) sym-inputs-list)
+(specs-synthesis sd-sketch (list execution-spec output-type save-button-io-invariant) sym-inputs-list)

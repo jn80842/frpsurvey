@@ -4,7 +4,9 @@
 
 (require "../dense-fjmodels.rkt")
 (require "../densefjapi.rkt")
-(require "../straightline.rkt")
+(require "../sketch.rkt")
+(require "../operators.rkt")
+(require "../specifications.rkt")
 (require "../benchmarks/thermostat.rkt")
 
 (current-bitwidth #f)
@@ -22,21 +24,18 @@
   (define r8 (ifB r5 r6 r7))
   r8)
 
-(define holes (for/list ([i (range 6)]) (get-insn-holes)))
-(define-symbolic* retval-idx integer?)
-
 (define state-mask (list->vector (list #f #f #f #f #f #f)))
 
-(define (synth-graph state-mask)
-  (time (synthesize #:forall (harvest s-tempB s-clockB)
-                    #:guarantee (assert (same straightline-graph
-                                              (recursive-sketch holes retval-idx state-mask)
-                                              s-tempB s-clockB)))))
+(define thermostat-sketch (sketch (get-holes-list 6) state-mask (get-retval-idx)
+                                  stateless-operator-list stateful-operator-list 2))
 
-(define binding (synth-graph state-mask))
+(synth-from-ref-impl thermostat-sketch straightline-graph s-tempB s-clockB)
 
-(if (unsat? binding)
-    (displayln "unsat")
-    (print-from-holes (evaluate holes binding)
-                      state-mask
-                      (evaluate retval-idx binding) 2))
+(define sym-input-list (list (sym-input "tempB" s-tempB)
+                             (sym-input "clockB" s-clockB)))
+
+(define concrete-execution (io-specs (list (behavior 2 '(2 2 2 4 3 2 2 4 3))
+                                           (behavior 23 '(3 3 4 4 5 0 1 2 2)))
+                                     (behavior 'on '(off off on off off on on off off))))
+
+(specs-synthesis thermostat-sketch (list concrete-execution) sym-input-list)

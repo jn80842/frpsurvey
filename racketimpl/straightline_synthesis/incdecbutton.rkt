@@ -2,7 +2,9 @@
 
 (require "../dense-fjmodels.rkt")
 (require "../densefjapi.rkt")
-(require "../straightline.rkt")
+(require "../operators.rkt")
+(require "../sketch.rkt")
+(require "../specifications.rkt")
 (require "../benchmarks/incdecbutton.rkt")
 
 (current-bitwidth #f)
@@ -27,17 +29,20 @@
     (displayln "can't verify that straightline program matches example implementation"))
 
 (define state-mask (list->vector (list #f #f #f #t #t)))
-(define idbsketch-fields (sketchfields 5 2 state-mask))
+(define idb-sketch (sketch (get-holes-list 5) state-mask (get-retval-idx)
+                           stateless-operator-list stateful-operator-list 2))
+(define sym-input-list (list (sym-input "inc-clicks" s-inc)
+                             (sym-input "dec-clicks" s-dec)))
 
-(synth-ref-impl idbsketch-fields straightline-graph s-inc s-dec)
+(synth-from-ref-impl idb-sketch straightline-graph s-inc s-dec)
 
 (define length-six-specs (io-specs (list '(no-evt click no-evt click no-evt no-evt no-evt)
                                          '(no-evt no-evt no-evt no-evt click click click))
                                    (behavior 0 '(0 1 1 2 1 0 -1))))
 
 (displayln "Length six specs:")
-(io-specs-satisfiable? idbsketch-fields (list length-six-specs))
-(io-specs-unique-program? idbsketch-fields (list length-six-specs))
+
+(specs-synthesis idb-sketch (list length-six-specs) sym-input-list)
 
 (define single-inc-click (io-specs (list '(click) '(no-evt))
                                    (behavior 0 '(-1))))
@@ -47,9 +52,7 @@
                                  (behavior 0 '(-1 -2))))
 
 (displayln "Two small specs:")
-(io-specs-satisfiable? idbsketch-fields (list single-inc-click single-dec-click))
-(io-specs-unique-program? idbsketch-fields (list single-inc-click single-dec-click))
+(specs-synthesis idb-sketch (list single-inc-click single-dec-click) sym-input-list)
 
 (displayln "One length one, one length two specs:")
-(io-specs-satisfiable? idbsketch-fields (list single-inc-click two-dec-clicks))
-(io-specs-unique-program? idbsketch-fields (list single-inc-click two-dec-clicks))
+(specs-synthesis idb-sketch (list single-inc-click two-dec-clicks) sym-input-list)
