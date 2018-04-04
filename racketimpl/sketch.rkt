@@ -1,7 +1,7 @@
 #lang rosette
 
 (require "dense-fjmodels.rkt")
-(require "straightline.rkt")
+(require "operators.rkt")
 (require "specifications.rkt")
 
 (provide (all-defined-out))
@@ -61,6 +61,15 @@
                               (f (append calculated-streams (list next-stream)) (add1 i)))]))])
     (λ inputs (list-ref (f inputs 0) (sketch-retval-idx sk)))))
 
+(define (get-bound-sketch-function sk binding)
+  (letrec ([f (λ (calculated-streams i)
+                (cond [(equal? (length (sketch-holes sk)) i) calculated-streams]
+                      [else (let ([next-stream (call-stream-insn (operator-lookup sk i binding)
+                                                                 (list-ref (evaluate (sketch-holes sk) binding) i)
+                                                                 calculated-streams)])
+                              (f (append calculated-streams (list next-stream)) (add1 i)))]))])
+    (λ inputs (list-ref (f inputs 0) (evaluate (sketch-retval-idx sk) binding)))))
+
 (define (synth-from-ref-impl sk ref-impl . inputs)
   (let ([sketch-program (get-sketch-function sk)])
     (begin (define binding (time (synthesize #:forall (apply harvest inputs)
@@ -77,7 +86,7 @@
            (if (unsat? binding)
                (displayln "Specs are unsatisfiable")
                (begin (displayln "Specs are satisfiable")
-                      (let* ([bound-sketch-program1 (get-sketch-function sk binding)]
+                      (let* ([bound-sketch-program1 (get-bound-sketch-function sk binding)]
                              [shuffled-sketch (sketch (get-holes-list (length (sketch-holes sk)))
                                                       (sketch-state-mask sk)
                                                       (get-retval-idx)
@@ -89,8 +98,7 @@
                                (clear-asserts!)
                                (define binding2
                                  (time (synthesize #:forall '()
-                                                  #:guarantee (begin (spec-assertions specs bound-sketch-program1)
-                                                                     (spec-assertions specs sketch-program2)
+                                                  #:guarantee (begin (spec-assertions specs sketch-program2)
                                                                      (assert (not (equal? (apply bound-sketch-program1 (get-inputs inputs))
                                                                                           (apply sketch-program2 (get-inputs inputs)))))))))
                                (if (unsat? binding2)
@@ -102,4 +110,4 @@
                                           (displayln (format "Program1 output: ~a"
                                                              (execute-sketch sk (evaluate inputs binding2) binding)))
                                           (displayln (format "Program2 output: ~a"
-                                                             (execute-sketch sk (evaluate inputs binding2) binding2))))))))))))
+                                                             (execute-sketch shuffled-sketch (evaluate inputs binding2) binding2))))))))))))

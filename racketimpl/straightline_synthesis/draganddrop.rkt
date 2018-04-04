@@ -2,7 +2,7 @@
 
 (require "../dense-fjmodels.rkt")
 (require "../densefjapi.rkt")
-(require "../straightline.rkt")
+(require "../operators.rkt")
 (require "../sketch.rkt")
 (require "../specifications.rkt")
 (require "../properties.rkt")
@@ -45,7 +45,6 @@
     (displayln "can't verify that straightline program matches example implementation"))
 
 (define state-mask (list->vector (list #f #f #t #f #f)))
-(define ddsketchfields (sketchfields 5 3 state-mask))
 
 (define dd-sketch (sketch (get-holes-list 5) state-mask (get-retval-idx)
                           stateless-operator-list stateful-operator-list 3))
@@ -99,10 +98,10 @@
                                          (list 'no-evt (coords 0 0) 'no-evt (coords 0 0) (coords 0 0) 'no-evt))
                                    (list 'no-evt (coords 0 0) 'no-evt (coords 0 0) 'no-evt 'no-evt)))
 
-(specs-synthesis ddsketchfields (list simultaneous-invariant alternate-up-down-invariant
+(specs-synthesis dd-sketch (list simultaneous-invariant alternate-up-down-invariant
                                       coords-output-invariant
                                       simple-spec no-clicks-spec
-                                      ; from-synth-spec1
-                                      ; from-synth-spec2
-                                      ; from-synth-spec3
+                                      from-synth-spec1
+                                      from-synth-spec2
+                                      from-synth-spec3
                                       ) sym-inputs-list)
