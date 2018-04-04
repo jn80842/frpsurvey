@@ -234,11 +234,8 @@
                   (list-ref stateless-operator-list (stream-insn-op-index insn)))])
       ((operator-call op) insn past-vars))))
 
-(define (print-stream-insn state-flag insn varname past-vars)
-  (let ([op (if state-flag
-                (list-ref operator-list (stream-insn-op-index insn))
-                (list-ref stateless-operator-list (stream-insn-op-index insn)))])
-    (format "  (define ~a (~a ~a))" varname (operator-name op) ((operator-print op) insn past-vars))))
+(define (print-stream-insn op insn varname past-vars)
+    (format "  (define ~a (~a ~a))" varname (operator-name op) ((operator-print op) insn past-vars)))
 
 #;(define (get-print-stream-insn full-operator-list)
   (λ (insn varname past-vars)

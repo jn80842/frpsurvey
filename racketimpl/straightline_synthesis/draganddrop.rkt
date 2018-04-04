@@ -50,7 +50,7 @@
 (define dd-sketch (sketch (get-holes-list 5) state-mask (get-retval-idx)
                           stateless-operator-list stateful-operator-list 3))
 
-(synth-from-ref-impl dd-sketch straightline-graph s-mouse-up s-mouse-down s-mouse-pos)
+;(synth-from-ref-impl dd-sketch straightline-graph s-mouse-up s-mouse-down s-mouse-pos)
 
 (define simple-spec (io-specs (list '(no-evt no-evt click)
                                     '(click no-evt no-evt)
