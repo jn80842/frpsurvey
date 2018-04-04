@@ -55,10 +55,10 @@
 (define (get-sketch-function sk)
   (letrec ([f (λ (calculated-streams i)
                 (cond [(equal? (length (sketch-holes sk)) i) calculated-streams]
-                      [else (let ([next-stream ((operator-call (operator-lookup sk i))
-                                                (list-ref (sketch-holes sk) i)
-                                                calculated-streams)])
-                                      (f (append calculated-streams (list next-stream)) (add1 i)))]))])
+                      [else (let ([next-stream (call-stream-insn (operator-lookup sk i)
+                                                                 (list-ref (sketch-holes sk) i)
+                                                                 calculated-streams)])
+                              (f (append calculated-streams (list next-stream)) (add1 i)))]))])
     (λ inputs (list-ref (f inputs 0) (sketch-retval-idx sk)))))
 
 (define (synth-from-ref-impl sk ref-impl . inputs)
