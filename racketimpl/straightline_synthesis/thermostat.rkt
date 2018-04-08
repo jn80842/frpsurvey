@@ -36,6 +36,6 @@
 
 (define concrete-execution (io-specs (list (behavior 2 '(2 2 2 4 3 2 2 4 3))
                                            (behavior 23 '(3 3 4 4 5 0 1 2 2)))
-                                     (behavior 'on '(off off on off off on on off off))))
+                                     (behavior 'on '(off no-evt no-evt no-evt off on no-evt off no-evt))))
 
 (specs-synthesis thermostat-sketch (list concrete-execution) sym-input-list)
