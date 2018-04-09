@@ -108,23 +108,20 @@
                                         (list-ref past-vars (stream-insn-arg-index3 insn))))))
 (define liftB-op
   (operator "liftB"
-            (λ (insn past-vars) (liftB1 (curry (list-ref (append inttointfuncs inttoboolfuncs) (stream-insn-arg-index2 insn))
-                                               (stream-insn-arg-index3 insn))
-                                        (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (liftB1 (curry (list-ref (append inttointfuncs inttoboolfuncs) (stream-insn-arg-index2 insn)) (stream-insn-arg-index3 insn)) (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
-                                        (format (list-ref (append inttointfuncs-string inttoboolfuncs-string) (stream-insn-arg-index2 insn))
-                                                (stream-insn-arg-index3 insn))
+                                        (format (list-ref (append inttointfuncs-string inttoboolfuncs-string) (stream-insn-arg-index2 insn)) (stream-insn-arg-index3 insn))
                                         (get-input-stream insn past-vars)))))
 
 (define liftB-twoconst-op
   (operator "liftB"
             (λ (insn past-vars) (liftB1 (curry (list-ref inttoboolfuncs-twoconst (stream-insn-arg-index2 insn))
                                                (stream-insn-arg-index3 insn) (stream-insn-arg-int insn))
-                                        (get-input-stream past-vars insn)))
+                                        (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
                                         (format (list-ref inttoboolsfuncs-twoconst-string (stream-insn-arg-index2 insn))
                                                 (stream-insn-arg-index3 insn) (stream-insn-arg-int insn))
-                                        (get-input-stream past-vars insn)))))
+                                        (get-input-stream insn past-vars)))))
             
 #;(define liftB2-op
   (operator "liftB2"
@@ -293,7 +290,8 @@
 (define inttointfuncs-string (list "(λ (i) (+ i ~a))"
                                    "(λ (i) (- i ~a))"
                                    "(λ (i) (- ~a i))"
-                                   "(λ (i) (* i ~a))"))
+                                  ; "(λ (i) (* i ~a))"
+                                   ))
 ;; int -> bool
 (define inttoboolfuncs (list (λ (placeholder i) (<= i placeholder))
                              (λ (placeholder i) (>= i placeholder))
@@ -312,13 +310,14 @@
 ;; note that these can be composed from the inttoboolfuncs
 (define inttoboolfuncs-twoconst (list
                                  ;; outside of range
-                                 (λ (placeholder placeholder2 i) (or (<= i placeholder) (>= i placeholder2)))
+                                 ;  (define r3 (liftB1 (λ (c) (or (>= c 18) (<= c 8))) r1))
+                                 (λ (placeholder placeholder2 i) (or (>= i placeholder) (<= i placeholder2)))
                                  ;; inside of range
                                  (λ (placeholder placeholder2 i) (and (>= i placeholder) (<= i placeholder2)))
                                  ))
 
 (define inttoboolsfuncs-twoconst-string (list
-                                         "(λ (i) (or (<= i ~a) (>= i ~a)))"
+                                         "(λ (i) (or (>= i ~a) (<= i ~a)))"
                                          "(λ (i) (and (>= i ~a) (<= i ~a)))"
                                          ))
 ;; bool -> bool

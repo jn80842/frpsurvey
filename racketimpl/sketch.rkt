@@ -35,7 +35,7 @@
                                          (list-ref (evaluate (sketch-holes sk) binding) i)
                                          (list-ref varlist (+ input-count i))
                                          (take varlist (+ input-count i))))]
-         [return-stmt (format "  ~a" (list-ref varlist (evaluate (sketch-retval-idx sk) binding)))])
+         [return-stmt (format "  ~a)" (list-ref varlist (evaluate (sketch-retval-idx sk) binding)))])
     (string-append (format "(define (~a ~a)\n" funcname (string-join arg-list))
                    (string-join input-stmt-list "\n")
                    "\n"

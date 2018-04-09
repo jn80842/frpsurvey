@@ -233,7 +233,7 @@
     (filterRepeatsE (behavior-changes behaviorB)))
 
 (define (constantB const inputB)
-  (behavior const (constantE const (changes inputB))))
+  (behavior const (map (λ (e) const) (changes inputB))))
 
 #;(define (delayB interval behavior1)
   (behavior (behavior-init behavior1) (delayE interval (behavior-changes behavior1))))

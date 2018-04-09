@@ -1,4 +1,4 @@
-#lang rosette/safe
+#lang rosette
 (require rosette/lib/synthax)
 
 (require "../dense-fjmodels.rkt")
@@ -13,7 +13,9 @@
 ;;      λ  motionSensorB  λ clockB locationB
 
 (current-bitwidth 5)
-(define stream-length 2)
+(define stream-length 5)
+
+(define dummyB (behavior 'a (make-list stream-length 'a)))
 
 (define (sym-location)
   (if (get-sym-bool) 'home 'not-at-home))
