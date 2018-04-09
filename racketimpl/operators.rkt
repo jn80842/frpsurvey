@@ -211,7 +211,7 @@
                                                 (stream-insn-arg-index2 insn))
                                          (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
-                                        (format (list-ref function-list-string (get-integer-arg insn))
+                                        (format (list-ref inttoboolfuncs-string (get-integer-arg insn))
                                                 (stream-insn-arg-index2 insn))
                                         (get-input-stream insn past-vars)))))
 (define changes-op
@@ -339,74 +339,5 @@
                                          "max"
                                          ))
 
-;; these lists are very unsatisfactory
-(define function-list (list (λ (e) (+ e 5))
-                            (λ (t) (<= t 2))
-                            (λ (c) (or (>= c 4) (>= 2 c)))
-                            (λ (e) (if e 'on 'off))
-                            (λ (c) (or (>= (time-vec-hour c) 4)
-                                       (>= 2 (time-vec-hour c))))
-                            (λ (l) (= l 0))
-                            (λ (m) (= m 3))
-                            (λ (t) (and (eq? (vector-ref t 0) 18)
-                                        (eq? (vector-ref t 1) 0)
-                                        (eq? (vector-ref t 2) 0)))
-                            (λ (t) (and (eq? (vector-ref t 0) 18)
-                                        (<= (vector-ref t 1) 2)))
-                            (λ (e) e)
-                            ))
-
-(define table (for/list ([i (range 3)]) (define-symbolic* table-sv integer?) table-sv))
-
-(define function-2arg-list (list ;(λ (clock location) (if (or (>= clock 4) (< clock 2))
-                                 ;'night
-                                ; (if (equal? location 'home)
-                                ;     'home
-                               ;      'away)))
-                                 (λ (elt1 elt2) (+ elt1 elt2))
-                               ;  (λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))
-                               ;  (λ (rain clock) (if (is-midnight? clock) 'midnight rain))
-                               ;  (λ (r prev) (if (eq? r 'midnight) #f
-                               ;                  (if r #t prev)))
-                               ;  (λ (rain clock) (and (not rain)
-                               ;                   (eq? (time-vec-hour clock) 18)
-                               ;                   (< (time-vec-min1 clock) 1)))
-                               ;  (λ (x y) (if x y 'no-evt))
-                               ;  (λ (x y) (if x y x))
-                                 ))
-;(define function-2arg-list (list + -))
-;(define function-2arg-list-string (list "+" "-"))
-(define function-list-string (list "(λ (e) (+ e 5))"
-                                   "(λ (t) (<= t 2))"
-                                   "(λ (c) (or (>= c 4) (>= 2 c)))"
-                                   "(λ (e) (if e 'on 'off))"
-                                   "(λ (c) (or (>= (time-vec-hour c) 4)
-                                               (>= 2 (time-vec-hour c))))"
-                                   "(λ (l) (= l 0)"
-                                   "(λ (m) (= m 3)"
-                                   "(λ (t) (and (eq? (vector-ref t 0) 18) (eq? (vector-ref t 1) 0) (eq? (vector-ref t 2) 0)))"
-                                   "(λ (t) (and (eq? (vector-ref t 0) 18) (<= (vector-ref t 1) 2)))"
-                                   "(λ (e) e)"
-                                   ))
-(define function-2arg-list-string (list ;"(λ (clock location) (if (or (>= clock hour-begin) (< clock hour-end))
-                                 ;'night
-                                ; (if (equal? location 'home)
-                                ;     'home
-                                ;     'away)))"
-                                        "(λ (elt1 elt2) (+ elt1 elt2))"
-                                     ;   "(λ (light mode) (if (equal? light 'on) (if (equal? mode 'night) 'orange 'white) 'none))"
-                                      ;  "(λ (rain clock) (if (is-midnight? clock) 'midnight rain))"
-                                     ;   "(λ (r prev) (if (eq? r 'midnight) #f
-                                     ;                (if r #t prev)))"
-                                     ;   "(λ (rain clock) (and (not rain)
-                                     ;             (eq? (time-vec-hour clock) 18)
-                                     ;             (< (time-vec-min1 clock) 1)))"
-                                      ;  "(λ (x y) (if x y 'no-evt))"
-                                      ;  "(λ (x y) (if x y x))"
-                                        ))
-
 (define constantB-consts (list 'on 'off #t #f 'test))
 
-
-
-(struct sketchfields (holes-length inputs-length state-mask) #:transparent)
