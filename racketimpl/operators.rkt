@@ -310,7 +310,6 @@
 ;; note that these can be composed from the inttoboolfuncs
 (define inttoboolfuncs-twoconst (list
                                  ;; outside of range
-                                 ;  (define r3 (liftB1 (λ (c) (or (>= c 18) (<= c 8))) r1))
                                  (λ (placeholder placeholder2 i) (or (>= i placeholder) (<= i placeholder2)))
                                  ;; inside of range
                                  (λ (placeholder placeholder2 i) (and (>= i placeholder) (<= i placeholder2)))
@@ -340,4 +339,3 @@
                                          ))
 
 (define constantB-consts (list 'on 'off #t #f 'test))
-
