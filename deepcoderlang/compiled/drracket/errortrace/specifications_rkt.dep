@@ -1,1 +1,0 @@
-("6.8" ("0e17eb29e1b13e62293aeb0fb09473f880c6d7c5" . "75dc6272ba308bce62f4cbe70e4f2ff41eda7106") (collects #"racket" #"runtime-config.rkt") (collects #"rosette" #"lang" #"reader.rkt") (collects #"rosette" #"main.rkt"))

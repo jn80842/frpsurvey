@@ -1,1 +1,0 @@
-("6.8" ("47e986990580b33fc3d45ea1470b1d53d230c5fb" . "e088e0e5e8abd950ca8df2a4a684612dcd8804b2") #"/Users/mpu/research/realtime/comparison/deepcoderlang/api.rkt" (collects #"racket" #"runtime-config.rkt") (collects #"rosette" #"lang" #"reader.rkt") (collects #"rosette" #"main.rkt"))

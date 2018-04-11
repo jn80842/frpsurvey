@@ -11,3 +11,4 @@ racketimpl/straightline_synthesis/fixed_graph/compiled/
 racketimpl/clock/compiled/
 rx/racketimpl/compiled/
 rx/racketimpl/benchmarks/compiled/
+deepcoderlang/compiled/
