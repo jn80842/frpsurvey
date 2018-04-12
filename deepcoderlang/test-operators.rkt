@@ -10,14 +10,14 @@
 (check-equal? (call-dc-insn (dc-insn 1 0 0 0) (list '(1 2 3 4 5))) 5)
 (check-equal? (call-dc-insn (dc-insn 1 0 0 0) (list '())) 'null)
 ;; take
-(check-equal? (call-dc-insn (dc-insn 2 0 0 2) (list '(1 2 3 4 5))) '(1 2))
-(check-equal? (call-dc-insn (dc-insn 2 0 0 10) (list '(1 2 3 4 5))) '(1 2 3 4 5))
+(check-equal? (call-dc-insn (dc-insn 2 0 0 1) (list '(1 2 3 4 5) 2)) '(1 2))
+(check-equal? (call-dc-insn (dc-insn 2 0 0 1) (list '(1 2 3 4 5) 10)) '(1 2 3 4 5))
 ;; drop
-(check-equal? (call-dc-insn (dc-insn 3 0 0 2) (list '(1 2 3 4 5))) '(3 4 5))
-(check-equal? (call-dc-insn (dc-insn 3 0 0 10) (list '(1 2 3 4 5))) '())
+(check-equal? (call-dc-insn (dc-insn 3 0 0 1) (list '(1 2 3 4 5) 2)) '(3 4 5))
+(check-equal? (call-dc-insn (dc-insn 3 0 0 1) (list '(1 2 3 4 5) 10)) '())
 ;; access
-(check-equal? (call-dc-insn (dc-insn 4 0 0 2) (list '(1 2 3 4 5))) 3)
-(check-equal? (call-dc-insn (dc-insn 4 0 0 10) (list '(1 2 3 4 5))) 'null)
+(check-equal? (call-dc-insn (dc-insn 4 0 0 1) (list '(1 2 3 4 5) 2)) 3)
+(check-equal? (call-dc-insn (dc-insn 4 0 0 1) (list '(1 2 3 4 5) 10)) 'null)
 ;; minimum
 (check-equal? (call-dc-insn (dc-insn 5 0 0 0) (list '(1 2 3 4 5))) 1)
 (check-equal? (call-dc-insn (dc-insn 5 0 0 0) (list '())) 'null)

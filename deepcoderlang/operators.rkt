@@ -36,6 +36,12 @@
 (define (get-input-list insn vars)
   (list-ref vars (dc-insn-input-idx insn)))
 
+(define (get-2nd-input-list insn vars)
+  (list-ref vars (dc-insn-int-input insn)))
+
+;; important! all operators that take ints are args cannot use
+;; fields from the instruction -- they have to come from the vars
+
 (define head-op
   (operator "head"
             (λ (insn vars) (head-dc (get-input-list insn vars)))
@@ -46,16 +52,16 @@
             (λ (insn vars) (format "~a" (get-input-list insn vars)))))
 (define take-op
   (operator "take"
-            (λ (insn vars) (take-dc (dc-insn-int-input insn) (get-input-list insn vars)))
-            (λ (insn vars) (format "~a ~a" (dc-insn-int-input insn) (get-input-list insn vars)))))
+            (λ (insn vars) (take-dc (get-2nd-input-list insn vars) (get-input-list insn vars)))
+            (λ (insn vars) (format "~a ~a" (get-2nd-input-list insn vars) (get-input-list insn vars)))))
 (define drop-op
   (operator "drop"
-            (λ (insn vars) (drop-dc (dc-insn-int-input insn) (get-input-list insn vars)))
-            (λ (insn vars) (format "~a ~a" (dc-insn-int-input insn) (get-input-list insn vars)))))
+            (λ (insn vars) (drop-dc (get-2nd-input-list insn vars) (get-input-list insn vars)))
+            (λ (insn vars) (format "~a ~a" (get-2nd-input-list insn vars) (get-input-list insn vars)))))
 (define access-op
   (operator "access"
-            (λ (insn vars) (access-dc (dc-insn-int-input insn) (get-input-list insn vars)))
-            (λ (insn vars) (format "~a ~a" (dc-insn-int-input insn) (get-input-list insn vars)))))
+            (λ (insn vars) (access-dc (get-2nd-input-list insn vars) (get-input-list insn vars)))
+            (λ (insn vars) (format "~a ~a" (get-2nd-input-list insn vars) (get-input-list insn vars)))))
 (define minimum-op
   (operator "minimum"
             (λ (insn vars) (minimum-dc (get-input-list insn vars)))

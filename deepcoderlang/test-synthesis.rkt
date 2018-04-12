@@ -6,8 +6,11 @@
 (require "sketch.rkt")
 (require "specifications.rkt")
 
+;(current-bitwidth #f)
+
 (define ilist (sym-int-list 3))
 (define ilist2 (sym-int-list 3))
+(define sym-int (get-sym-int))
 
 (define sketch1-1 (sketch (get-holes-list 1) (get-retval-idx) 1))
 (define sketch1-2 (sketch (get-holes-list 1) (get-retval-idx) 2))
@@ -17,7 +20,7 @@
   (define r2 (head-dc input))
   r2)
 
-(synth-from-ref-impl sketch1-1 head-graph (sym-int-list 3))
+(synth-from-ref-impl sketch1-1 head-graph ilist)
 
 (define (last-graph input)
   (define r1 input)
@@ -26,26 +29,29 @@
 
 (synth-from-ref-impl sketch1-1 last-graph ilist)
 
-(define (take-graph input)
+(define (take-graph input int-input)
   (define r1 input)
-  (define r2 (take-dc 1 r1))
-  r2)
+  (define r2 int-input)
+  (define r3 (take-dc r2 r1))
+  r3)
 
-(synth-from-ref-impl sketch1-1 take-graph ilist)
+(synth-from-ref-impl sketch1-2 take-graph ilist sym-int)
 
-(define (drop-graph input)
+(define (drop-graph input int-input)
   (define r1 input)
-  (define r2 (drop-dc 1 r1))
-  r2)
+  (define r2 int-input)
+  (define r3 (drop-dc r2 r1))
+  r3)
 
-(synth-from-ref-impl sketch1-1 drop-graph ilist)
+(synth-from-ref-impl sketch1-2 drop-graph ilist sym-int)
 
-(define (access-graph input)
+(define (access-graph input int-input)
   (define r1 input)
-  (define r2 (access-dc 1 r1))
-  r2)
+  (define r2 int-input)
+  (define r3 (access-dc r2 r1))
+  r3)
 
-(synth-from-ref-impl sketch1-1 access-graph ilist)
+(synth-from-ref-impl sketch1-2 access-graph ilist sym-int)
 
 (define (minimum-graph input)
   (define r1 input)
