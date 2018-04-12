@@ -24,7 +24,7 @@
 (define (drop-dc n xs)
   (if (>= n (length xs))
       '()
-      (drop xs n)))
+      (list-tail xs n)))
 
 (define (access-dc n xs)
   (if (> n (length xs))
@@ -48,7 +48,7 @@
   (sort xs <))
 
 (define (sum-dc xs)
-  (foldl + 0 xs))
+  (list (foldl + 0 xs)))
 
 (define (map-dc f xs)
   (map f xs))

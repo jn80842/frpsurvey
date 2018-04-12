@@ -31,8 +31,8 @@
 (check-equal? (call-dc-insn (dc-insn 8 0 0 0) (list '(3 2 5 4 1))) '(1 2 3 4 5))
 (check-equal? (call-dc-insn (dc-insn 8 0 0 0) (list '())) '())
 ;; sum
-(check-equal? (call-dc-insn (dc-insn 9 0 0 0) (list '(1 2 3 4 5))) 15)
-(check-equal? (call-dc-insn (dc-insn 9 0 0 0) (list '())) 0)
+(check-equal? (call-dc-insn (dc-insn 9 0 0 0) (list '(1 2 3 4 5))) '(15))
+(check-equal? (call-dc-insn (dc-insn 9 0 0 0) (list '())) '(0))
 ;; map (λ (+ i 1)
 (check-equal? (call-dc-insn (dc-insn 10 0 0 0) (list '(1 2 3 4 5))) '(2 3 4 5 6))
 (check-equal? (call-dc-insn (dc-insn 10 0 0 0) (list '())) '())

@@ -30,8 +30,8 @@
 (check-equal? (sort-dc '(3 2 5 4 1)) '(1 2 3 4 5))
 (check-equal? (sort-dc '()) '())
 
-(check-equal? (sum-dc '(1 2 3 4 5)) 15)
-(check-equal? (sum-dc '()) 0)
+(check-equal? (sum-dc '(1 2 3 4 5)) '(15))
+(check-equal? (sum-dc '()) '(0))
 
 (check-equal? (map-dc add1 '(1 2 3 4 5)) '(2 3 4 5 6))
 (check-equal? (map-dc add1 '()) '())
