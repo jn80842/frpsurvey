@@ -16,3 +16,7 @@
 (define (sym-int-list size)
   (for/list ([i (range size)])
     (get-sym-int)))
+
+(define (get-random-list size)
+  (for/list ([i (range size)])
+    (random 64)))

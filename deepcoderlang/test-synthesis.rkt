@@ -6,7 +6,7 @@
 (require "sketch.rkt")
 (require "specifications.rkt")
 
-;(current-bitwidth #f)
+(current-bitwidth 9)
 
 (define ilist (sym-int-list 3))
 (define ilist2 (sym-int-list 3))
