@@ -45,7 +45,7 @@
                             (get-sketch-function sk))])
     (apply sketch-program inputs)))
 
-(define (synth-from-ref-impl sk ref-impl . inputs)
+#;(define (synth-from-ref-impl sk ref-impl . inputs)
   (begin (clear-asserts!)
          ;; evaluating functions here puts things on the assertion store
          ;; find out why???
@@ -59,6 +59,20 @@
              (if (unsat? binding)
                  (displayln "Cannot synthesize program that matches reference implementation")
                  (print-sketch sk binding))))))
+
+(define (synth-from-ref-impl sk ref-impl . inputs)
+  (begin (clear-asserts!)
+         (begin
+           (asserts)
+             (define binding (time (synthesize #:forall (apply harvest inputs)
+                                               #:guarantee (begin (assert (equal? (apply ref-impl inputs)
+                                                                           (apply (get-sketch-function sk) inputs)))
+                                                                  (asserts)))))
+             (asserts)
+             (clear-asserts!)
+             (if (unsat? binding)
+                 (displayln "Cannot synthesize program that matches reference implementation")
+                 (print-sketch sk binding)))))
 
 (define (synth-from-io-pairs sk inputs outputs)
   (begin (clear-asserts!)

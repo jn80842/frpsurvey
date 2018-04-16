@@ -78,6 +78,19 @@
                (displayln "Cannot synthesize program that matches reference implementation")
                (print-sketch sk binding)))))
 
+#;(define (synth-from-ref-impl sk ref-impl . inputs)
+  (begin (clear-asserts!)
+  (let* ([sketch-program (get-sketch-function sk)]
+        [evaled-sk (apply sketch-program inputs)]
+        [evaled-ref (apply ref-impl inputs)])
+    (begin ;(clear-asserts!)
+           (define binding (time (synthesize #:forall (apply harvest inputs)
+                                             #:guarantee (assert (equal? evaled-sk evaled-ref)))))
+           (clear-asserts!)
+           (if (unsat? binding)
+               (displayln "Cannot synthesize program that matches reference implementation")
+               (print-sketch sk binding))))))
+
 (define (specs-synthesis sk specs inputs)
   (let ([sketch-program1 (get-sketch-function sk)])
     (begin (clear-asserts!)
