@@ -113,7 +113,7 @@
             (λ (insn vars) (format "~a ~a" (list-ref int-to-int-to-int-funcs-string (dc-insn-function-idx insn))
                                    (get-input-list insn vars)))))
 
-(define operator-list (list head-op
+(define operator-list (list  head-op
                             last-op
                             take-op
                             drop-op
@@ -126,18 +126,20 @@
                             map-op
                             filter-op
                             count-op
-                            zipwith-op
-                            scanl1-op))
+                           ; zipwith-op
+                           ; scanl1-op
+                            ))
 
 (define int-to-int-funcs (list (λ (i) (+ i 1))
                                (λ (i) (- i 1))
                                (λ (i) (* i 2))
-                               (λ (i) (/ i 2))
+                               (λ (i) (quotient i 2))
                                (λ (i) (expt i 2))
                                (λ (i) (* i 3))
-                               (λ (i) (/ i 3))
+                               (λ (i) (quotient i 3))
                                (λ (i) (* i 4))
-                               (λ (i) (/ i 4))))
+                               (λ (i) (quotient i 4))
+                               ))
 (define int-to-int-funcs-string (list "(λ (i) (+ i 1))"
                                       "(λ (i) (- i 1))"
                                       "(λ (i) (* i 2))"
@@ -146,7 +148,8 @@
                                       "(λ (i) (* i 3))"
                                       "(λ (i) (/ i 3))"
                                       "(λ (i) (* i 4))"
-                                      "(λ (i) (/ i 4))"))
+                                      "(λ (i) (/ i 4))"
+                                      ))
 (define int-to-bool-funcs (list even?
                                 odd?
                                 positive?
