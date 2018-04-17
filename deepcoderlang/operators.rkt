@@ -126,8 +126,8 @@
                             map-op
                             filter-op
                             count-op
-                           ; zipwith-op
-                           ; scanl1-op
+                            zipwith-op
+                            scanl1-op
                             ))
 
 (define int-to-int-funcs (list (λ (i) (+ i 1))
@@ -153,18 +153,36 @@
 (define int-to-bool-funcs (list even?
                                 odd?
                                 positive?
-                                negative?))
+                                negative?
+                                even?
+                                even?
+                                even?
+                                even?
+                                even?))
 (define int-to-bool-funcs-string (list "even?"
                                        "odd?"
                                        "positive?"
-                                       "negative?"))
+                                       "negative?"
+                                       "even?"
+                                       "even?"
+                                       "even?"
+                                       "even?"
+                                       "even?"))
 (define int-to-int-to-int-funcs (list +
                                       -
                                       *
                                       min
-                                      max))
+                                      max
+                                      +
+                                      +
+                                      +
+                                      +))
 (define int-to-int-to-int-funcs-string (list "+"
                                              "-"
                                              "*"
                                              "min"
-                                             "max"))
+                                             "max"
+                                             "+"
+                                             "+"
+                                             "+"
+                                             "+"))
