@@ -17,17 +17,21 @@
       (last xs)))
 
 (define (take-dc n xs)
-  (if (> n (length xs))
-      xs
-      (take xs n)))
+  (if (negative? n)
+      '()
+      (if (> n (length xs))
+          xs
+          (take xs n))))
 
 (define (drop-dc n xs)
-  (if (>= n (length xs))
-      '()
-      (list-tail xs n)))
+  (if (negative? n)
+      xs
+      (if (>= n (length xs))
+          '()
+          (list-tail xs n))))
 
 (define (access-dc n xs)
-  (if (> n (length xs))
+  (if (|| (negative? n) (> n (length xs)))
       'null
       (list-ref xs n)))
 
