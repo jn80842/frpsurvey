@@ -132,9 +132,9 @@
 
 (define int-to-int-funcs (list (λ (i) (+ i 1))
                                (λ (i) (- i 1))
-                               add1
-                               add1
-                               add1
+                               (λ (i) (+ i i))
+                               (λ (i) (+ i i i))
+                               (λ (i) (+ i i i i))
                               ; (λ (i) (* i 2))
                               ; (λ (i) (quotient i 2))
                               ; (λ (i) (expt i 2))
@@ -145,9 +145,9 @@
                                ))
 (define int-to-int-funcs-string (list "(λ (i) (+ i 1))"
                                       "(λ (i) (- i 1))"
-                                      "add1"
-                                      "add1"
-                                      "add1"
+                                      "(λ (i) (* i 2))"
+                                      "(λ (i) (* i 3))"
+                                      "(λ (i) (* i 4))"
                                      ; "(λ (i) (* i 2))"
                                      ; "(λ (i) (/ i 2))"
                                      ; "(λ (i) (expt i 2))"

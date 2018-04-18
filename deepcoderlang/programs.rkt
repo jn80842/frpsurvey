@@ -32,8 +32,8 @@
                            (list (random 6) (get-random-list input-stream-length))))
 (define program0-outputs (map (λ (i) (apply program0-graph i)) program0-inputs))
 
-(synth-from-ref-impl sketch3-2 program0-graph (get-sym-int) (sym-int-list symbolic-stream-length)) ;; 48s ;; 19s
-(synth-from-io-pairs sketch3-2 program0-inputs program0-outputs program0-graph (get-sym-int) (sym-int-list symbolic-stream-length)) ;; 9s ;; 41s
+(synth-from-ref-impl sketch3-2 program0-graph (get-sym-int) (sym-int-list symbolic-stream-length))
+(synth-from-io-pairs sketch3-2 program0-inputs program0-outputs program0-graph (get-sym-int) (sym-int-list symbolic-stream-length))
 
 (displayln "~~~~~ program1")
 
@@ -50,8 +50,9 @@
 (define program1-outputs (map (λ (i) (apply program1-graph i)) program1-inputs))
 
 (synth-from-ref-impl sketch3-2 program1-graph (sym-int-list symbolic-stream-length)
-                     (sym-int-list symbolic-stream-length)) ;; 35s ;; 99s
-(synth-from-io-pairs sketch3-2 program1-inputs program1-outputs program1-graph (sym-int-list symbolic-stream-length)) ;; 38s ;; 111s
+                     (sym-int-list symbolic-stream-length))
+(synth-from-io-pairs sketch3-2 program1-inputs program1-outputs program1-graph (sym-int-list symbolic-stream-length)
+                     (sym-int-list symbolic-stream-length))
 
 (displayln "~~~~~ program2")
 
@@ -66,8 +67,8 @@
                                                                   (get-random-list input-stream-length))))
 (define program2-outputs (map (λ (i) (apply program2-graph i)) program2-inputs))
 
-(synth-from-ref-impl sketch2-2 program2-graph (sym-int-list symbolic-stream-length) (sym-int-list symbolic-stream-length)) ;; 7s
-(synth-from-io-pairs sketch2-2 program2-inputs program2-outputs program2-graph (sym-int-list symbolic-stream-length) (sym-int-list symbolic-stream-length)) ;; 9s
+(synth-from-ref-impl sketch2-2 program2-graph (sym-int-list symbolic-stream-length) (sym-int-list symbolic-stream-length))
+(synth-from-io-pairs sketch2-2 program2-inputs program2-outputs program2-graph (sym-int-list symbolic-stream-length) (sym-int-list symbolic-stream-length))
 
 (displayln "~~~~~ program3")
 
@@ -82,8 +83,8 @@
 (define program3-inputs (for/list ([i (range input-count)]) (list (get-random-list input-stream-length))))
 (define program3-outputs (map (λ (i) (apply program3-graph i)) program3-inputs))
 
-(synth-from-ref-impl sketch4-1 program3-graph (sym-int-list symbolic-stream-length)) ;; >300s
-(synth-from-io-pairs sketch4-1 program3-inputs program3-outputs program3-graph (sym-int-list symbolic-stream-length)) ;; 63s
+(synth-from-ref-impl sketch4-1 program3-graph (sym-int-list symbolic-stream-length))
+(synth-from-io-pairs sketch4-1 program3-inputs program3-outputs program3-graph (sym-int-list symbolic-stream-length))
 
 (displayln "~~~~~ program4")
 
@@ -115,8 +116,8 @@
 (define program5-inputs (for/list ([i (range input-count)]) (list (get-random-list input-stream-length))))
 (define program5-outputs (map (λ (i) (apply program5-graph i)) program5-inputs))
 
-(synth-from-ref-impl sketch2-1 program5-graph (sym-int-list symbolic-stream-length)) ;; 2s
-(synth-from-io-pairs sketch2-1 program5-inputs program5-outputs program5-graph (sym-int-list symbolic-stream-length)) ;; 3s
+(synth-from-ref-impl sketch2-1 program5-graph (sym-int-list symbolic-stream-length))
+(synth-from-io-pairs sketch2-1 program5-inputs program5-outputs program5-graph (sym-int-list symbolic-stream-length))
 
 (displayln "~~~~~ program6")
 
@@ -134,8 +135,8 @@
 (define program6-outputs (map (λ (i) (apply program6-graph i)) program6-inputs))
 
 (synth-from-ref-impl sketch4-2 program6-graph (sym-int-list symbolic-stream-length)
-                     (sym-int-list symbolic-stream-length)) ;; >300s
-(synth-from-io-pairs sketch4-2 program6-inputs program6-outputs program6-graph (sym-int-list symbolic-stream-length) (sym-int-list symbolic-stream-length)) ;; 292s
+                     (sym-int-list symbolic-stream-length))
+(synth-from-io-pairs sketch4-2 program6-inputs program6-outputs program6-graph (sym-int-list symbolic-stream-length) (sym-int-list symbolic-stream-length))
 
 (displayln "~~~~~ program7")
 
@@ -153,7 +154,7 @@
 
 (synth-from-ref-impl sketch3-2 program7-graph (sym-int-list symbolic-stream-length)
                      (sym-int-list symbolic-stream-length))
-(synth-from-io-pairs sketch3-2 program7-inputs program7-outputs program7-graph (sym-int-list symbolic-stream-length) (sym-int-list symbolic-stream-length)) ;; 32s
+(synth-from-io-pairs sketch3-2 program7-inputs program7-outputs program7-graph (sym-int-list symbolic-stream-length) (sym-int-list symbolic-stream-length))
 
 (displayln "~~~~~ program8")
 
@@ -168,5 +169,5 @@
 (define program8-inputs (for/list ([i (range input-count)]) (list (get-random-list input-stream-length))))
 (define program8-outputs (map (λ (i) (apply program8-graph i)) program8-inputs))
 
-(synth-from-ref-impl sketch4-1 program8-graph (sym-int-list symbolic-stream-length)) ;; >300s
-(synth-from-io-pairs sketch4-1 program8-inputs program8-outputs program8-graph (sym-int-list symbolic-stream-length)) ;; 276s
+(synth-from-ref-impl sketch4-1 program8-graph (sym-int-list symbolic-stream-length))
+(synth-from-io-pairs sketch4-1 program8-inputs program8-outputs program8-graph (sym-int-list symbolic-stream-length))
