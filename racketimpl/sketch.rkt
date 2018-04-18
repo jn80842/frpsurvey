@@ -70,7 +70,7 @@
                               (f (append calculated-streams (list next-stream)) (add1 i)))]))])
     (λ inputs (list-ref (f inputs 0) (evaluate (sketch-retval-idx sk) binding)))))
 
-(define (synth-from-ref-impl sk ref-impl . inputs)
+#;(define (synth-from-ref-impl sk ref-impl . inputs)
   (let ([sketch-program (get-sketch-function sk)])
     (begin (define binding (time (synthesize #:forall (apply harvest inputs)
                                              #:guarantee (assert (apply (curry same ref-impl sketch-program) inputs)))))
@@ -78,18 +78,50 @@
                (displayln "Cannot synthesize program that matches reference implementation")
                (print-sketch sk binding)))))
 
-#;(define (synth-from-ref-impl sk ref-impl . inputs)
+(define (synth-from-ref-impl sk ref-impl . inputs)
   (begin (clear-asserts!)
-  (let* ([sketch-program (get-sketch-function sk)]
-        [evaled-sk (apply sketch-program inputs)]
+  (let ([evaled-sk (apply (get-sketch-function sk) inputs)]
         [evaled-ref (apply ref-impl inputs)])
-    (begin ;(clear-asserts!)
-           (define binding (time (synthesize #:forall (apply harvest inputs)
+    (begin (define binding (time (synthesize #:forall (apply harvest inputs)
                                              #:guarantee (assert (equal? evaled-sk evaled-ref)))))
            (clear-asserts!)
            (if (unsat? binding)
                (displayln "Cannot synthesize program that matches reference implementation")
                (print-sketch sk binding))))))
+
+#;(define (specs-synthesis sk specs inputs)
+  (let ([sketch-program1 (get-sketch-function sk)])
+    (begin (clear-asserts!)
+           (define binding (time (synthesize #:forall '()
+                                            #:guarantee (spec-assertions specs sketch-program1))))
+           (if (unsat? binding)
+               (displayln "Specs are unsatisfiable")
+               (begin (displayln "Specs are satisfiable")
+                      (let* ([bound-sketch-program1 (get-bound-sketch-function sk binding)]
+                             [shuffled-sketch (sketch (get-holes-list (length (sketch-holes sk)))
+                                                      (sketch-state-mask sk)
+                                                      (get-retval-idx)
+                                                      (shuffle stateless-operator-list)
+                                                      (shuffle stateful-operator-list)
+                                                      (sketch-input-count sk))]
+                             [sketch-program2 (get-sketch-function shuffled-sketch)])
+                        (begin (print-sketch sk binding)
+                               (clear-asserts!)
+                               (define binding2
+                                 (time (synthesize #:forall '()
+                                                  #:guarantee (begin (spec-assertions specs sketch-program2)
+                                                                     (assert (not (equal? (apply bound-sketch-program1 (get-inputs inputs))
+                                                                                          (apply sketch-program2 (get-inputs inputs)))))))))
+                               (if (unsat? binding2)
+                                   (displayln "No two distinct programs that satisfy specs")
+                                   (begin (print-sketch shuffled-sketch binding2)
+                                          (displayln "Distinguishing inputs:")
+                                          (for-each (λ (i) (begin (displayln (sym-input-name i))
+                                                                  (displayln (evaluate (sym-input-input i) binding2)))) inputs)
+                                          (displayln (format "Program1 output: ~a"
+                                                             (execute-sketch sk (evaluate inputs binding2) binding)))
+                                          (displayln (format "Program2 output: ~a"
+                                                             (execute-sketch shuffled-sketch (evaluate inputs binding2) binding2))))))))))))
 
 (define (specs-synthesis sk specs inputs)
   (let ([sketch-program1 (get-sketch-function sk)])
