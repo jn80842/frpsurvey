@@ -15,6 +15,13 @@
                               (f (append calculated-streams (list next-stream)) (add1 i)))]))])
     (λ inputs (list-ref (f inputs 0) (sketch-retval-idx sk)))))
 
+(define (get-bound-sketch-function sk binding)
+  (letrec ([f (λ (calculated-streams i)
+                (cond [(equal? (length (sketch-holes sk)) i) calculated-streams]
+                      [else (let ([next-stream (call-dc-insn (list-ref (evaluate (sketch-holes sk) binding) i) calculated-streams)])
+                              (f (append calculated-streams (list next-stream)) (add1 i)))]))])
+    (λ inputs (list-ref (f inputs 0) (evaluate (sketch-retval-idx sk) binding)))))
+
 (define (string-from-sketch sk binding funcname)
   (let* ([input-count (sketch-input-count sk)]
          [arg-list (for/list ([i (range input-count)])
@@ -47,8 +54,6 @@
 
 (define (synth-from-ref-impl sk ref-impl . inputs)
   (begin (clear-asserts!)
-         ;; evaluating functions here puts things on the assertion store
-         ;; find out why???
          (let ([evaled-sketch-program (apply (get-sketch-function sk) inputs)]
                [evaled-ref-program (apply ref-impl inputs)])
            (begin
@@ -73,13 +78,23 @@
                  (displayln "Cannot synthesize program that matches reference implementation")
                  (print-sketch sk binding)))))
 
-(define (synth-from-io-pairs sk inputs outputs)
+(define (synth-from-io-pairs sk inputs outputs ref-impl . sym-inputs)
   (begin (clear-asserts!)
-         (let ([sk-function (get-sketch-function sk)])
+         (let* ([sk-function (get-sketch-function sk)]
+                [phi (andmap (λ (i o) (equal? (apply sk-function i) o)) inputs outputs)])
            (define binding (time (synthesize #:forall '()
-                                             #:guarantee (assert (andmap (λ (i o) (equal? (apply sk-function i) o)) inputs outputs)))))
+                                             #:guarantee (assert phi))))
                                                           ;(equal? (apply (get-sketch-function sk) inputs) output)))))
            (clear-asserts!)
            (if (unsat? binding)
                (displayln "Cannot synthesize program that matches input/output pair")
-               (print-sketch sk binding)))))
+               (begin (print-sketch sk binding)
+                      (verify-sketch ref-impl sk binding sym-inputs))))))
+
+(define (verify-sketch ref-impl sk binding inputs)
+  (let ([sk-phi (apply (get-bound-sketch-function sk binding) inputs)]
+        [ref-phi (apply ref-impl inputs)])
+    (begin (define m (verify (assert (equal? sk-phi ref-phi))))
+           (if (unsat? m)
+               (displayln "Synthesized function is equivalent to reference implementation")
+               (displayln "Synthesized function is NOT equivalent to reference implementation")))))

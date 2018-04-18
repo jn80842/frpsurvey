@@ -53,8 +53,15 @@
 (define (map-dc f xs)
   (map f xs))
 
-(define (filter-dc f xs)
+#;(define (filter-dc f xs)
   (filter f xs))
+(define (filter-dc f xs)
+  (letrec ([f (λ (xs)
+                (cond [(not (list? xs)) '()]
+                      [(empty? xs) '()]
+                      [(f (first xs)) (append (list (first xs)) (f (cdr xs)))]
+                      [else (f (cdr xs))]))])
+        (f xs)))
 
 (define (count-dc f xs)
   (count f xs))
