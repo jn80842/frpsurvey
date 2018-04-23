@@ -183,7 +183,8 @@
                                   last-tyop
                                   access-tyop
                                   minimum-tyop
-                                  maximum-tyop))
+                                  maximum-tyop
+                                  count-tyop))
 (define list-tyoperator-list (list take-tyop
                                    drop-tyop
                                    reverse-tyop
@@ -191,7 +192,6 @@
                                    sum-tyop
                                    map-tyop
                                    filter-tyop
-                                   count-tyop
                                    zipwith-tyop
                                    scanl1-tyop))
 
@@ -202,6 +202,23 @@
 
 (define (get-operator-idx op-string)
   (hash-ref tyoperator-lookup op-string))
+
+(define does-not-require-int-input-list (list head-tyop
+                                              last-tyop
+                                              minimum-tyop
+                                              maximum-tyop
+                                              count-tyop
+                                              reverse-tyop
+                                              sort-tyop
+                                              sum-tyop
+                                              map-tyop
+                                              filter-tyop
+                                              zipwith-tyop
+                                              scanl1-tyop))
+
+(define does-not-require-int-input-idxs (for/list ([i (range (length does-not-require-int-input-list))])
+                                          (get-operator-idx (tyoperator-name
+                                                             (list-ref does-not-require-int-input-list i)))))
 
 (define (is-int-insn? insn)
   (< (tdc-insn-op-index insn) (length int-tyoperator-list)))

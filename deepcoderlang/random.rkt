@@ -7,12 +7,14 @@
 (define (random-number magnitude)
   (- (random (* magnitude 2)) magnitude))
 
-(define (get-random-list size)
+(define (get-random-list size magnitude)
   (for/list ([i (range size)])
-    (random-number 32)))
+    (random-number magnitude)))
 
 (define (get-random-typed-insn int-idxs list-idxs)
-  (let ([random-op (random (length tyoperator-list))])
+  (let ([random-op (if (equal? 0 int-idxs)
+                       (list-ref does-not-require-int-input-idxs (random (length does-not-require-int-input-idxs)))
+                       (random (length tyoperator-list)))])
     ((tyoperator-random-insn (list-ref tyoperator-list random-op)) int-idxs list-idxs)))
 
 ;; NB: when picking input indexes we might want to bias toward higher indexes
