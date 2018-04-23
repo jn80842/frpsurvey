@@ -22,6 +22,34 @@
                               (f (append calculated-streams (list next-stream)) (add1 i)))]))])
     (λ inputs (list-ref (f inputs 0) (evaluate (sketch-retval-idx sk) binding)))))
 
+(define (get-concrete-program-function insns retval)
+  (letrec ([f (λ (calculated-streams i)
+                (cond [(equal? (length insns) i) calculated-streams]
+                      [else (let ([next-stream (call-dc-insn (list-ref insns i) calculated-streams)])
+                              (f (append calculated-streams (list next-stream)) (add1 i)))]))])
+    (λ inputs (list-ref (f inputs 0) retval))))
+
+(define (string-from-concrete-program input-count insns retval funcname)
+  (let* ([arg-list (for/list ([i (range input-count)])
+                     (format "input~a" (add1 i)))]
+         [input-stmt-list (for/list ([i (range input-count)])
+                            (format "  (define r~a input~a)" (add1 i) (add1 i)))]
+         [varlist (for/list ([i (range (add1 (+ input-count (length insns))))])
+                    (format "r~a" (add1 i)))]
+         [stmt-list (for/list ([i (range (length insns))])
+                      (print-dc-insn (list-ref insns i)
+                                     (list-ref varlist (+ input-count i))
+                                     (take varlist (+ input-count i))))]
+         [return-stmt (format "  ~a)" (list-ref varlist retval))])
+    (string-append (format "(define (~a ~a)\n" funcname (string-join arg-list))
+                   (string-join input-stmt-list "\n")
+                   "\n"
+                   (string-join stmt-list "\n")
+                   "\n"
+                   return-stmt)))
+(define (print-from-concrete-program input-count insns retval [funcname "random-function"])
+  (displayln (string-from-concrete-program input-count insns retval funcname)))
+
 (define (string-from-sketch sk binding funcname)
   (let* ([input-count (sketch-input-count sk)]
          [arg-list (for/list ([i (range input-count)])
@@ -64,27 +92,12 @@
                  (displayln "Cannot synthesize program that matches reference implementation")
                  (print-sketch sk binding))))))
 
-#;(define (synth-from-ref-impl sk ref-impl . inputs)
-  (begin (clear-asserts!)
-         (begin
-           (asserts)
-             (define binding (time (synthesize #:forall (apply harvest inputs)
-                                               #:guarantee (begin (assert (equal? (apply ref-impl inputs)
-                                                                           (apply (get-sketch-function sk) inputs)))
-                                                                  (asserts)))))
-             (asserts)
-             (clear-asserts!)
-             (if (unsat? binding)
-                 (displayln "Cannot synthesize program that matches reference implementation")
-                 (print-sketch sk binding)))))
-
 (define (synth-from-io-pairs sk inputs outputs ref-impl . sym-inputs)
   (begin (clear-asserts!)
          (let* ([sk-function (get-sketch-function sk)]
                 [phi (andmap (λ (i o) (equal? (apply sk-function i) o)) inputs outputs)])
            (define binding (time (synthesize #:forall '()
                                              #:guarantee (assert phi))))
-                                                          ;(equal? (apply (get-sketch-function sk) inputs) output)))))
            (clear-asserts!)
            (if (unsat? binding)
                (displayln "Cannot synthesize program that matches input/output pair")
@@ -98,3 +111,4 @@
            (if (unsat? m)
                (displayln "Synthesized function is equivalent to reference implementation")
                (displayln "Synthesized function is NOT equivalent to reference implementation")))))
+

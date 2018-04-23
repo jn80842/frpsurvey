@@ -31,7 +31,7 @@
           (list-tail xs n))))
 
 (define (access-dc n xs)
-  (if (|| (negative? n) (> n (length xs)))
+  (if (|| (negative? n) (>= n (length xs)))
       'null
       (list-ref xs n)))
 
@@ -79,3 +79,54 @@
       '()
       (for/list ([i (range (length xs))])
         (foldl f (first xs) (take (drop xs 1) i)))))
+
+(define int-to-int-funcs (list (λ (i) (+ i 1))
+                               (λ (i) (- i 1))
+                               (λ (i) (+ i i))
+                               (λ (i) (+ i i i))
+                               (λ (i) (+ i i i i))
+                              ; (λ (i) (* i 2))
+                              ; (λ (i) (quotient i 2))
+                              ; (λ (i) (expt i 2))
+                              ; (λ (i) (* i 3))
+                              ; (λ (i) (quotient i 3))
+                              ; (λ (i) (* i 4))
+                              ; (λ (i) (quotient i 4))
+                               ))
+(define int-to-int-funcs-string (list "(λ (i) (+ i 1))"
+                                      "(λ (i) (- i 1))"
+                                      "(λ (i) (* i 2))"
+                                      "(λ (i) (* i 3))"
+                                      "(λ (i) (* i 4))"
+                                     ; "(λ (i) (* i 2))"
+                                     ; "(λ (i) (/ i 2))"
+                                     ; "(λ (i) (expt i 2))"
+                                     ; "(λ (i) (* i 3))"
+                                     ; "(λ (i) (/ i 3))"
+                                     ; "(λ (i) (* i 4))"
+                                     ; "(λ (i) (/ i 4))"
+                                      ))
+(define int-to-bool-funcs (list ; even?
+                                ; odd?
+                                positive?
+                                negative?
+                                ))
+(define int-to-bool-funcs-string (list ;"even?"
+                                       ;"odd?"
+                                       "positive?"
+                                       "negative?"
+                                       ))
+(define int-to-int-to-int-funcs (list +
+                                      -
+                                    ;  *
+                                      min
+                                      max
+                                      +
+                                      ))
+(define int-to-int-to-int-funcs-string (list "+"
+                                             "-"
+                                            ; "*"
+                                             "min"
+                                             "max"
+                                             "+"
+                                             ))

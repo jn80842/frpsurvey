@@ -8,7 +8,7 @@
 (current-bitwidth #f)
 
 (define input-count 3)
-(define input-stream-length 3)
+(define input-stream-length 4)
 (define symbolic-stream-length 3)
 
 (define sketch2-1 (sketch (get-holes-list 2) (get-retval-idx) 1))
@@ -103,7 +103,7 @@
 (define program4-outputs (map (λ (i) (apply program4-graph i)) program4-inputs))
 
 ;(synth-from-ref-impl sketch5-2 program4-graph (sym-int-list symbolic-stream-length) (sym-int-list symbolic-stream-length))
-;(synth-from-io-pairs sketch5-2 program4-inputs program4-outputs program4-graph (sym-int-list symbolic-stream-length) (sym-int-list symbolic-stream-length)) ;; >300s
+;(synth-from-io-pairs sketch5-2 program4-inputs program4-outputs program4-graph (sym-int-list symbolic-stream-length) (sym-int-list symbolic-stream-length))
 
 (displayln "~~~~~ program5")
 

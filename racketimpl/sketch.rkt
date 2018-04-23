@@ -124,10 +124,10 @@
                                                              (execute-sketch shuffled-sketch (evaluate inputs binding2) binding2))))))))))))
 
 (define (specs-synthesis sk specs inputs)
-  (let ([sketch-program1 (get-sketch-function sk)])
+  (let ([formulas (spec-formulas specs (get-sketch-function sk))])
     (begin (clear-asserts!)
            (define binding (time (synthesize #:forall '()
-                                            #:guarantee (spec-assertions specs sketch-program1))))
+                                            #:guarantee (assert formulas))))
            (if (unsat? binding)
                (displayln "Specs are unsatisfiable")
                (begin (displayln "Specs are satisfiable")
@@ -138,12 +138,13 @@
                                                       (shuffle stateless-operator-list)
                                                       (shuffle stateful-operator-list)
                                                       (sketch-input-count sk))]
-                             [sketch-program2 (get-sketch-function shuffled-sketch)])
+                             [sketch-program2 (get-sketch-function shuffled-sketch)]
+                             [formulas2 (spec-formulas specs sketch-program2)])
                         (begin (print-sketch sk binding)
                                (clear-asserts!)
                                (define binding2
                                  (time (synthesize #:forall '()
-                                                  #:guarantee (begin (spec-assertions specs sketch-program2)
+                                                  #:guarantee (begin (assert formulas2)
                                                                      (assert (not (equal? (apply bound-sketch-program1 (get-inputs inputs))
                                                                                           (apply sketch-program2 (get-inputs inputs)))))))))
                                (if (unsat? binding2)

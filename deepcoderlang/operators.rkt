@@ -4,14 +4,22 @@
 
 (provide (all-defined-out))
 
-(struct dc-insn (op-index input-idx function-idx int-input) #:transparent)
+(struct dc-insn (op-index
+                 input-idx
+                 input2-idx
+                 λi2i-idx
+                 λi2b-idx
+                 λi2i2i-idx) #:transparent)
 
 (define (get-insn-holes)
   (define-symbolic* op integer?)
   (define-symbolic* input-idx integer?)
-  (define-symbolic* function-idx integer?)
+  (define-symbolic* input2-idx integer?)
+  (define-symbolic* λi2i-idx integer?)
+  (define-symbolic* λi2b-idx integer?)
+  (define-symbolic* λi2i2i-idx integer?)
   (define-symbolic* int-input integer?)
-  (dc-insn op input-idx function-idx int-input))
+  (dc-insn op input-idx input2-idx λi2i-idx λi2b-idx λi2i2i-idx))
 
 (define (get-holes-list count)
   (for/list ([i (range count)]) (get-insn-holes)))
@@ -37,7 +45,7 @@
   (list-ref vars (dc-insn-input-idx insn)))
 
 (define (get-2nd-input-list insn vars)
-  (list-ref vars (dc-insn-int-input insn)))
+  (list-ref vars (dc-insn-input2-idx insn)))
 
 ;; important! all operators that take ints are args cannot use
 ;; fields from the instruction -- they have to come from the vars
@@ -84,36 +92,54 @@
             (λ (insn vars) (format "~a" (get-input-list insn vars)))))
 (define map-op
   (operator "map"
-            (λ (insn vars) (map-dc (list-ref int-to-int-funcs (dc-insn-function-idx insn))
+            (λ (insn vars) (map-dc (list-ref int-to-int-funcs (dc-insn-λi2i-idx insn))
                                    (get-input-list insn vars)))
-            (λ (insn vars) (format "~a ~a" (list-ref int-to-int-funcs-string (dc-insn-function-idx insn))
+            (λ (insn vars) (format "~a ~a" (list-ref int-to-int-funcs-string (dc-insn-λi2i-idx insn))
                                    (get-input-list insn vars)))))
 (define filter-op
   (operator "filter"
-            (λ (insn vars) (filter-dc (list-ref int-to-bool-funcs (dc-insn-function-idx insn))
+            (λ (insn vars) (filter-dc (list-ref int-to-bool-funcs (dc-insn-λi2b-idx insn))
                                       (get-input-list insn vars)))
-            (λ (insn vars) (format "~a ~a" (list-ref int-to-bool-funcs-string (dc-insn-function-idx insn))
+            (λ (insn vars) (format "~a ~a" (list-ref int-to-bool-funcs-string (dc-insn-λi2b-idx insn))
                                    (get-input-list insn vars)))))
 (define count-op
   (operator "count"
-            (λ (insn vars) (count-dc (list-ref int-to-bool-funcs (dc-insn-function-idx insn))
+            (λ (insn vars) (count-dc (list-ref int-to-bool-funcs (dc-insn-λi2b-idx insn))
                                      (get-input-list insn vars)))
-            (λ (insn vars) (format "~a ~a" (list-ref int-to-bool-funcs-string (dc-insn-function-idx insn))
+            (λ (insn vars) (format "~a ~a" (list-ref int-to-bool-funcs-string (dc-insn-λi2b-idx insn))
                                    (get-input-list insn vars)))))
 (define zipwith-op
   (operator "zipwith"
-            (λ (insn vars) (zipwith-dc (list-ref int-to-int-to-int-funcs (dc-insn-function-idx insn))
-                                       (get-input-list insn vars) (list-ref vars (dc-insn-int-input insn))))
-            (λ (insn vars) (format "~a ~a ~a" (list-ref int-to-int-to-int-funcs-string (dc-insn-function-idx insn))
-                                   (get-input-list insn vars) (list-ref vars (dc-insn-int-input insn))))))
+            (λ (insn vars) (zipwith-dc (list-ref int-to-int-to-int-funcs (dc-insn-λi2i2i-idx insn))
+                                       (get-input-list insn vars) (get-2nd-input-list insn vars)))
+            (λ (insn vars) (format "~a ~a ~a" (list-ref int-to-int-to-int-funcs-string (dc-insn-λi2i2i-idx insn))
+                                   (get-input-list insn vars) (get-2nd-input-list insn vars)))))
 (define scanl1-op
   (operator "scanl1"
-            (λ (insn vars) (scanl1-dc (list-ref int-to-int-to-int-funcs (dc-insn-function-idx insn))
+            (λ (insn vars) (scanl1-dc (list-ref int-to-int-to-int-funcs (dc-insn-λi2i2i-idx insn))
                                       (get-input-list insn vars)))
-            (λ (insn vars) (format "~a ~a" (list-ref int-to-int-to-int-funcs-string (dc-insn-function-idx insn))
+            (λ (insn vars) (format "~a ~a" (list-ref int-to-int-to-int-funcs-string (dc-insn-λi2i2i-idx insn))
                                    (get-input-list insn vars)))))
 
-(define operator-list (list head-op
+(define int-operator-list (list head-op
+                                last-op
+                                access-op
+                                minimum-op
+                                maximum-op))
+(define list-operator-list (list take-op
+                                 drop-op
+                                 reverse-op
+                                 sort-op
+                                 sum-op
+                                 map-op
+                                 filter-op
+                                 count-op
+                                 zipwith-op
+                                 scanl1-op))
+
+(define operator-list (append int-operator-list list-operator-list))
+
+#;(define operator-list (list head-op
                             last-op
                             take-op
                             drop-op
@@ -129,76 +155,3 @@
                             zipwith-op
                             scanl1-op
                             ))
-
-(define int-to-int-funcs (list (λ (i) (+ i 1))
-                               (λ (i) (- i 1))
-                               (λ (i) (+ i i))
-                               (λ (i) (+ i i i))
-                               (λ (i) (+ i i i i))
-                              ; (λ (i) (* i 2))
-                              ; (λ (i) (quotient i 2))
-                              ; (λ (i) (expt i 2))
-                              ; (λ (i) (* i 3))
-                              ; (λ (i) (quotient i 3))
-                              ; (λ (i) (* i 4))
-                              ; (λ (i) (quotient i 4))
-                               ))
-(define int-to-int-funcs-string (list "(λ (i) (+ i 1))"
-                                      "(λ (i) (- i 1))"
-                                      "(λ (i) (* i 2))"
-                                      "(λ (i) (* i 3))"
-                                      "(λ (i) (* i 4))"
-                                     ; "(λ (i) (* i 2))"
-                                     ; "(λ (i) (/ i 2))"
-                                     ; "(λ (i) (expt i 2))"
-                                     ; "(λ (i) (* i 3))"
-                                     ; "(λ (i) (/ i 3))"
-                                     ; "(λ (i) (* i 4))"
-                                     ; "(λ (i) (/ i 4))"
-                                      ))
-(define int-to-bool-funcs (list ; even?
-                                ; odd?
-                                positive?
-                                negative?
-                                positive?
-                                negative?
-                                positive?
-                               ; even?
-                               ; even?
-                               ; even?
-                               ; even?
-                               ; even?
-                                ))
-(define int-to-bool-funcs-string (list ;"even?"
-                                       ;"odd?"
-                                       "positive?"
-                                       "negative?"
-                                       "positive?"
-                                       "negative?"
-                                       "positive?"
-                                      ; "even?"
-                                      ; "even?"
-                                      ; "even?"
-                                      ; "even?"
-                                      ; "even?"
-                                       ))
-(define int-to-int-to-int-funcs (list +
-                                      -
-                                    ;  *
-                                      min
-                                      max
-                                      +
-                                     ; +
-                                     ; +
-                                     ; +
-                                      ))
-(define int-to-int-to-int-funcs-string (list "+"
-                                             "-"
-                                            ; "*"
-                                             "min"
-                                             "max"
-                                             "+"
-                                            ; "+"
-                                            ; "+"
-                                            ; "+"
-                                             ))
