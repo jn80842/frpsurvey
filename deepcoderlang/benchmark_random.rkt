@@ -9,11 +9,11 @@
 
 (current-bitwidth #f)
 (define input-count 2)
-(define insn-count 5)
+(define insn-count 3)
 (define retval-idx 4)
 (define stream-length 5)
 (define random-input-count 5)
-(define magnitude 32)
+(define magnitude 4)
 
 (define (get-symbolic-inputs-by-signature int-count list-count)
   (list (for/list ([i (range int-count)])
@@ -58,8 +58,8 @@
     (begin
       (define m (verify (assert (equal? sk-phi ref-phi))))
            (if (unsat? m)
-               (displayln "Synthesized function is equivalent to reference implementation")
-               (displayln "Synthesized function is NOT equivalent to reference implementation")))))
+               (displayln "SAME - Synthesized function is equivalent to reference implementation")
+               (displayln "DIFF - Synthesized function is NOT equivalent to reference implementation")))))
 
 (define (benchmark-program int-count list-count)
   (let ([program-insns (get-random-program insn-count int-count list-count)])
