@@ -69,20 +69,20 @@
   (tyoperator "head"
             (λ (insn int-vars list-vars) (head-dc (get-list-input insn list-vars)))
             (λ (insn int-vars list-vars) (format "~a" (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "head") 0 (random list-count) 0 0 0 0))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "head") 0 (sub1 list-count) 0 0 0 0))))
             ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "head") 0 (random-list-member list-idxs) 0 0 0 0))))
 (define last-tyop
   (tyoperator "last"
             (λ (insn int-vars list-vars) (last-dc (get-list-input insn list-vars)))
             (λ (insn int-vars list-vars) (format "~a" (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "last") 0 (random list-count) 0 0 0 0))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "last") 0 (sub1 list-count) 0 0 0 0))))
            ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "last") 0 (random-list-member list-idxs) 0 0 0 0))))
 (define take-tyop
   (tyoperator "take"
             (λ (insn int-vars list-vars) (take-dc (get-int-input insn int-vars) (get-list-input insn list-vars)))
             (λ (insn int-vars list-vars) (format "~a ~a" (get-int-input insn int-vars)
                                                  (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "take") (random int-count) (random list-count) 0 0 0 0))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "take") (sub1 int-count) (sub1 list-count) 0 0 0 0))))
             ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "take") (random-list-member int-idxs)
              ;                                         (random-list-member list-idxs) 0 0 0 0))))
 (define drop-tyop
@@ -90,7 +90,7 @@
             (λ (insn int-vars list-vars) (drop-dc (get-int-input insn int-vars) (get-list-input insn list-vars)))
             (λ (insn int-vars list-vars) (format "~a ~a" (get-int-input insn int-vars)
                                                  (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "drop") (random int-count) (random list-count) 0 0 0 0))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "drop") (sub1 int-count) (sub1 list-count) 0 0 0 0))))
             ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "drop") (random-list-member int-idxs)
             ;                                  (random-list-member list-idxs) 0 0 0 0))))
 (define access-tyop
@@ -98,38 +98,38 @@
             (λ (insn int-vars list-vars) (access-dc (get-int-input insn int-vars) (get-list-input insn list-vars)))
             (λ (insn int-vars list-vars) (format "~a ~a" (get-int-input insn int-vars)
                                                  (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "access") (random int-count) (random list-count) 0 0 0 0))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "access") (sub1 int-count) (sub1 list-count) 0 0 0 0))))
             ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "access") (random-list-member int-idxs)
             ;                                  (random-list-member list-idxs) 0 0 0 0))))
 (define minimum-tyop
   (tyoperator "minimum"
             (λ (insn int-vars list-vars) (minimum-dc (get-list-input insn list-vars)))
             (λ (insn int-vars list-vars) (format "~a" (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "minimum") 0 (random list-count) 0 0 0 0))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "minimum") 0 (sub1 list-count) 0 0 0 0))))
             ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "minimum") 0 (random-list-member list-idxs) 0 0 0 0))))
 (define maximum-tyop
   (tyoperator "maximum"
             (λ (insn int-vars list-vars) (maximum-dc (get-list-input insn list-vars)))
             (λ (insn int-vars list-vars) (format "~a" (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "maximum") 0 (random list-count) 0 0 0 0))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "maximum") 0 (sub1 list-count) 0 0 0 0))))
             ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "maximum") 0 (random-list-member list-idxs) 0 0 0 0))))
 (define reverse-tyop
   (tyoperator "reverse"
             (λ (insn int-vars list-vars) (reverse-dc (get-list-input insn list-vars)))
             (λ (insn int-vars list-vars) (format "~a" (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "reverse") 0 (random list-count) 0 0 0 0))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "reverse") 0 (sub1 list-count) 0 0 0 0))))
            ; (λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "reverse") 0 (random-list-member list-idxs) 0 0 0 0))))
 (define sort-tyop
   (tyoperator "sort"
             (λ (insn int-vars list-vars) (sort-dc (get-list-input insn list-vars)))
             (λ (insn int-vars list-vars) (format "~a" (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "sort") 0 (random list-count) 0 0 0 0))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "sort") 0 (sub1 list-count) 0 0 0 0))))
             ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "sort") 0 (random-list-member list-idxs) 0 0 0 0))))
 (define sum-tyop
   (tyoperator "sum"
             (λ (insn int-vars list-vars) (sum-dc (get-list-input insn list-vars)))
             (λ (insn int-vars list-vars) (format "~a" (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "sum") 0 (random list-count) 0 0 0 0))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "sum") 0 (sub1 list-count) 0 0 0 0))))
             ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "sum") 0 (random-list-member list-idxs) 0 0 0 0))))
 (define map-tyop
   (tyoperator "map"
@@ -137,7 +137,7 @@
                                    (get-list-input insn list-vars)))
             (λ (insn int-vars list-vars) (format "~a ~a" (list-ref int-to-int-funcs-string (tdc-insn-λi2i-idx insn))
                                    (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "map") 0 (random list-count) 0 (random (length int-to-int-funcs)) 0 0))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "map") 0 (sub1 list-count) 0 (random (length int-to-int-funcs)) 0 0))))
             ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "map") 0 (random-list-member list-idxs) 0
             ;                                  (random (length int-to-int-funcs)) 0 0))))
 (define filter-tyop
@@ -146,7 +146,7 @@
                                       (get-list-input insn list-vars)))
             (λ (insn int-vars list-vars) (format "~a ~a" (list-ref int-to-bool-funcs-string (tdc-insn-λi2b-idx insn))
                                    (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "filter") 0 (random list-count) 0 0 (random (length int-to-bool-funcs)) 0))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "filter") 0 (sub1 list-count) 0 0 (random (length int-to-bool-funcs)) 0))))
             ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "filter") 0 (random-list-member list-idxs) 0 0
             ;                                  (random (length int-to-bool-funcs)) 0))))
 (define count-tyop
@@ -155,7 +155,7 @@
                                      (get-list-input insn list-vars)))
             (λ (insn int-vars list-vars) (format "~a ~a" (list-ref int-to-bool-funcs-string (tdc-insn-λi2b-idx insn))
                                    (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "count") 0 (random list-count) 0 0 (random (length int-to-bool-funcs)) 0))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "count") 0 (sub1 list-count) 0 0 (random (length int-to-bool-funcs)) 0))))
             ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "count") 0 (random-list-member list-idxs) 0 0
             ;                                  (random (length int-to-bool-funcs)) 0))))
 (define zipwith-tyop
@@ -165,7 +165,9 @@
             (λ (insn int-vars list-vars) (format "~a ~a ~a"
                                                  (list-ref int-to-int-to-int-funcs-string (tdc-insn-λi2i2i-idx insn))
                                                  (get-list-input insn list-vars) (get-list2-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "zipwith") 0 (random list-count) (random list-count) 0 0 (random (length int-to-int-to-int-funcs))))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "zipwith") 0 (sub1 list-count) (if (> list-count 1)
+                                                                                                     (- list-count 2)
+                                                                                                     (sub1 list-count)) 0 0 (random (length int-to-int-to-int-funcs))))))
             ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "zipwith") 0 (random-list-member list-idxs)
              ; (random-list-member list-idxs) 0 0 (random (length int-to-int-to-int-funcs))))))
 (define scanl1-tyop
@@ -175,7 +177,7 @@
             (λ (insn int-vars list-vars) (format "~a ~a"
                                                  (list-ref int-to-int-to-int-funcs-string (tdc-insn-λi2i2i-idx insn))
                                                  (get-list-input insn list-vars)))
-            (λ (int-count list-count) (tdc-insn (get-operator-idx "scanl1") 0 (random list-count) 0 0 0 (random (length int-to-int-to-int-funcs))))))
+            (λ (int-count list-count) (tdc-insn (get-operator-idx "scanl1") 0 (sub1 list-count) 0 0 0 (random (length int-to-int-to-int-funcs))))))
             ;(λ (int-idxs list-idxs) (tdc-insn (get-operator-idx "scanl1") 0 (random-list-member list-idxs) 0
             ;                                  0 0 (random (length int-to-int-to-int-funcs))))))
 

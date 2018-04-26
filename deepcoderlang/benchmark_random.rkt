@@ -13,7 +13,7 @@
 (define retval-idx 4)
 (define stream-length 5)
 (define random-input-count 5)
-(define magnitude 4)
+(define magnitude 32)
 
 (define (get-symbolic-inputs-by-signature int-count list-count)
   (list (for/list ([i (range int-count)])
