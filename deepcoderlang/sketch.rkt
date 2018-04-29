@@ -105,10 +105,12 @@
                       (verify-sketch ref-impl sk binding sym-inputs))))))
 
 (define (verify-sketch ref-impl sk binding inputs)
-  (let ([sk-phi (apply (get-bound-sketch-function sk binding) inputs)]
-        [ref-phi (apply ref-impl inputs)])
-    (begin (define m (verify (assert (equal? sk-phi ref-phi))))
-           (if (unsat? m)
-               (displayln "Synthesized function is equivalent to reference implementation")
-               (displayln "Synthesized function is NOT equivalent to reference implementation")))))
+  (begin (clear-asserts!)
+         (let ([sk-phi (apply (get-bound-sketch-function sk binding) inputs)]
+               [ref-phi (apply ref-impl inputs)])
+           (begin (define m (verify (assert (equal? sk-phi ref-phi))))
+                  (clear-asserts!)
+                  (if (unsat? m)
+                      (displayln "Synthesized function is equivalent to reference implementation")
+                      (displayln "Synthesized function is NOT equivalent to reference implementation"))))))
 
