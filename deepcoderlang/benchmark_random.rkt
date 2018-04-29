@@ -1,5 +1,7 @@
 #lang rosette
 
+(require racket/engine)
+
 (require "api.rkt")
 (require "operators.rkt")
 (require "typed-operators.rkt")
@@ -9,8 +11,8 @@
 
 (current-bitwidth #f)
 (define input-count 2)
-(define insn-count 3)
-(define retval-idx 4)
+(define insn-count 5)
+(define retval-idx 6)
 (define stream-length 5)
 (define random-input-count 5)
 (define magnitude 32)
@@ -72,12 +74,14 @@
                   [random-outputs (for/list ([i (range (length random-inputs))])
                                     (apply program-function (list-ref random-inputs i)))])
              (begin
-               (displayln "Synthesize function against concrete program")
-               (synth-from-ref-impl-random program-sketch program-function sym-inputs)
+              ; (displayln "Synthesize function against concrete program")
+              ; (synth-from-ref-impl-random program-sketch program-function sym-inputs)
                (displayln "Synthesize function from input-output pairs")
                (synth-from-io-pairs-random program-sketch random-inputs random-outputs program-function sym-inputs)
                )))))
 
 (define list-inputs (random 1 input-count))
 (define int-inputs (- input-count list-inputs))
-(benchmark-program int-inputs list-inputs)
+(define e (engine
+           (λ (_) (benchmark-program list-inputs int-inputs))))
+(engine-run 3600000 e)
