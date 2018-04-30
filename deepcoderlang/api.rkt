@@ -2,9 +2,12 @@
 
 (provide (all-defined-out))
 
+(current-bitwidth #f)
+
 ;; rn null is 'null symbol
 ;; but could be racket null which is '()
 
+(require (only-in racket [integer? concrete-integer?]))
 
 (define (head-dc xs)
   (if (empty? xs)
@@ -116,17 +119,75 @@
                                        "positive?"
                                        "negative?"
                                        ))
+
+(define-symbolic times (~> integer? integer? integer?))
+
+(define (multiply x y)
+  (cond [(and (concrete-integer? x) (concrete-integer? y)) (* x y)]
+        [(= x 0) 0]
+        [(= y 0) 0]
+        [(= x 1) y]
+        [(= y 1) x]
+        [(= x -1) (- y)]
+        [(= y -1) (- x)]
+        [(= x 2) (+ y y)]
+        [(= y 2) (+ x x)]
+        [(= x 3) (+ y y y)]
+        [(= y 3) (+ x x x)]
+        [(= x -2) (- (+ y y))]
+        [(= y -2) (- (+ x x))]
+        [(= x -3) (- (+ y y y))]
+        [(= y -3) (- (+ x x x))]
+        [(<= x y) (times x y)]
+        [else (times y x)]))
+
+(define (get-lookup-mult magnitude)
+  (displayln (format "Synthesizing lookup multiplication with range ~a-~a" (- magnitude) magnitude ))
+  (define-symbolic i1 integer?)
+  (define-symbolic i2 integer?)
+  (clear-asserts!)
+  (assert (<= i1 magnitude))
+  (assert (<= i2 magnitude))
+  (assert (>= i1 (- magnitude)))
+  (assert (>= i2 (- magnitude)))
+  (define b (time (synthesize #:forall (list i1 i2)
+                              #:guarantee (assert (= (multiply i1 i2) (* i1 i2))))))
+  (clear-asserts!)
+  (let ([m (evaluate times b)])
+    (λ (x y)
+      (begin   (assert (<= x magnitude))
+               (assert (<= y magnitude))
+               (assert (>= x (- magnitude)))
+               (assert (>= y (- magnitude)))
+               (cond [(and (concrete-integer? x) (concrete-integer? y)) (* x y)]
+                     [(= x 0) 0]
+                     [(= y 0) 0]
+                     [(= x 1) y]
+                     [(= y 1) x]
+                     [(= x -1) (- y)]
+                     [(= y -1) (- x)]
+                     [(= x 2) (+ y y)]
+                     [(= y 2) (+ x x)]
+                     [(= x 3) (+ y y y)]
+                     [(= y 3) (+ x x x)]
+                     [(= x -2) (- (+ y y))]
+                     [(= y -2) (- (+ x x))]
+                     [(= x -3) (- (+ y y y))]
+                     [(= y -3) (- (+ x x x))]
+                     [(<= x y) (m x y)]
+                     [else (m y x)])))))
+
+(define lut-mult6 (get-lookup-mult 6))
+
 (define int-to-int-to-int-funcs (list +
                                       -
-                                    ;  *
+                                      lut-mult6 ;  *
                                       min
                                       max
-                                      +
                                       ))
 (define int-to-int-to-int-funcs-string (list "+"
                                              "-"
-                                            ; "*"
+                                             "*"
                                              "min"
                                              "max"
-                                             "+"
                                              ))
