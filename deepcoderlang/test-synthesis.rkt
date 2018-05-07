@@ -121,6 +121,22 @@
 (displayln "map add1")
 (bounded-synth-from-ref-impl sketch1-1 map-graph ilist)
 
+(define (map-div3-graph input)
+  (define r1 input)
+  (define r2 (map-dc (λ (i) (quotient i 3)) r1))
+  r2)
+
+(displayln "map div3")
+(bounded-synth-from-ref-impl sketch1-1 map-div3-graph ilist)
+
+(define (map-expt2-graph input)
+  (define r1 input)
+  (define r2 (map-dc (λ (i) (expt i 2)) r1))
+  r2)
+
+(displayln "map expt2")
+(bounded-synth-from-ref-impl sketch1-1 map-expt2-graph ilist)
+
 (define (filter-graph input)
   (define r1 input)
   (define r2 (filter-dc odd? r1))
