@@ -79,7 +79,7 @@
                (print-sketch sk binding)))))
 
 (define (synth-from-ref-impl sk ref-impl . inputs)
-  (begin (clear-asserts!)
+  (begin
   (let ([evaled-sk (apply (get-sketch-function sk) inputs)]
         [evaled-ref (apply ref-impl inputs)])
     (begin (define binding (time (synthesize #:forall (apply harvest inputs)
