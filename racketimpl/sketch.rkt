@@ -6,8 +6,7 @@
 
 (provide (all-defined-out))
 
-(struct sketch (holes state-mask retval-idx
-                      stateless-op-list stateful-op-list input-count) #:transparent)
+(struct sketch (holes state-mask stateless-op-list stateful-op-list input-count) #:transparent)
 
 (define (full-op-list sk)
   (append (sketch-stateless-op-list sk) (sketch-stateful-op-list sk)))
@@ -28,14 +27,14 @@
          [input-stmt-list (for/list ([i (range input-count)])
                             (format "  (define r~a input~a)" (add1 i) (add1 i)))]
          [depth (length (sketch-holes sk))]
-         [varlist (for/list ([i (range (add1 (+ input-count depth)))])
+         [varlist (for/list ([i (range (+ input-count depth))])
                     (format "r~a" (add1 i)))]
          [stmt-list (for/list ([i (range depth)])
                       (print-stream-insn (operator-lookup sk i binding)
                                          (list-ref (evaluate (sketch-holes sk) binding) i)
                                          (list-ref varlist (+ input-count i))
                                          (take varlist (+ input-count i))))]
-         [return-stmt (format "  ~a)" (list-ref varlist (evaluate (sketch-retval-idx sk) binding)))])
+         [return-stmt (format "  ~a)" (last varlist))])
     (string-append (format "(define (~a ~a)\n" funcname (string-join arg-list))
                    (string-join input-stmt-list "\n")
                    "\n"
@@ -59,7 +58,7 @@
                                                                  (list-ref (sketch-holes sk) i)
                                                                  calculated-streams)])
                               (f (append calculated-streams (list next-stream)) (add1 i)))]))])
-    (λ inputs (list-ref (f inputs 0) (sketch-retval-idx sk)))))
+    (λ inputs (last (f inputs 0)))))
 
 (define (get-bound-sketch-function sk binding)
   (letrec ([f (λ (calculated-streams i)
@@ -68,7 +67,7 @@
                                                                  (list-ref (evaluate (sketch-holes sk) binding) i)
                                                                  calculated-streams)])
                               (f (append calculated-streams (list next-stream)) (add1 i)))]))])
-    (λ inputs (list-ref (f inputs 0) (evaluate (sketch-retval-idx sk) binding)))))
+    (λ inputs (last (f inputs 0)))))
 
 #;(define (synth-from-ref-impl sk ref-impl . inputs)
   (let ([sketch-program (get-sketch-function sk)])
@@ -100,7 +99,6 @@
                       (let* ([bound-sketch-program1 (get-bound-sketch-function sk binding)]
                              [shuffled-sketch (sketch (get-holes-list (length (sketch-holes sk)))
                                                       (sketch-state-mask sk)
-                                                      (get-retval-idx)
                                                       (shuffle stateless-operator-list)
                                                       (shuffle stateful-operator-list)
                                                       (sketch-input-count sk))]
@@ -134,7 +132,6 @@
                       (let* ([bound-sketch-program1 (get-bound-sketch-function sk binding)]
                              [shuffled-sketch (sketch (get-holes-list (length (sketch-holes sk)))
                                                       (sketch-state-mask sk)
-                                                      (get-retval-idx)
                                                       (shuffle stateless-operator-list)
                                                       (shuffle stateful-operator-list)
                                                       (sketch-input-count sk))]

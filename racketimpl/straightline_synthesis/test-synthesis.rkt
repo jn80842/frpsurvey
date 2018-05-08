@@ -11,7 +11,6 @@
 (define stream-length 5)
 
 (define holes (list (get-insn-holes)))
-(define-symbolic* retval-idx integer?)
 
 (define int-stream (new-event-stream get-sym-int stream-length))
 (define int-stream2 (new-event-stream get-sym-int stream-length))
@@ -24,10 +23,10 @@
 (define bool-behavior (new-behavior get-sym-bool stream-length))
 (define bool-behavior2 (new-behavior get-sym-bool stream-length))
 
-(define sketch1-f-1 (sketch holes (make-vector 1 #f) retval-idx stateless-operator-list stateful-operator-list 1))
-(define sketch1-t-1 (sketch holes (make-vector 1 #t) retval-idx stateless-operator-list stateful-operator-list 1))
-(define sketch1-f-2 (sketch holes (make-vector 1 #f) retval-idx stateless-operator-list stateful-operator-list 2))
-(define sketch1-f-3 (sketch holes (make-vector 1 #f) retval-idx stateless-operator-list stateful-operator-list 3))
+(define sketch1-f-1 (sketch holes (make-vector 1 #f) stateless-operator-list stateful-operator-list 1))
+(define sketch1-t-1 (sketch holes (make-vector 1 #t) stateless-operator-list stateful-operator-list 1))
+(define sketch1-f-2 (sketch holes (make-vector 1 #f) stateless-operator-list stateful-operator-list 2))
+(define sketch1-f-3 (sketch holes (make-vector 1 #f) stateless-operator-list stateful-operator-list 3))
 ;; constantE-imm
 
 (define (constantE-imm-graph e)

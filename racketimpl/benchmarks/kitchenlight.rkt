@@ -32,6 +32,7 @@
 (define s-locationB (new-behavior get-sym-int stream-length))
 ;(define s-clockB (new-behavior sym-time-vec stream-length))
 (define s-clockB (new-behavior get-sym-int stream-length))
+(define s-modeB (new-behavior get-sym-int stream-length))
 
 #;(define (mode-assumptions clockB locationB)
   (and; (valid-behavior? clockB)
