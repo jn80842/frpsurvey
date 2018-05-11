@@ -5,9 +5,13 @@
 (require "../operators.rkt")
 (require "../sketch.rkt")
 (require "../specifications.rkt")
-(require "../benchmarks/incdecbutton.rkt")
+;(require "../benchmarks/incdecbutton.rkt")
 
 (current-bitwidth #f)
+
+(define stream-length 4)
+(define s-inc (new-event-stream (λ () 'click) stream-length))
+(define s-dec (new-event-stream (λ () 'click) stream-length))
 
 (define (straightline-graph inc dec)
   (define r1 inc)
@@ -21,10 +25,10 @@
 
 (displayln "inc/dec button benchmark")
 
-(define v-binding (verify (assert (same inc-dec-button-graph
+#;(define v-binding (verify (assert (same inc-dec-button-graph
                                         straightline-graph
                                         s-inc s-dec))))
-(if (unsat? v-binding)
+#;(if (unsat? v-binding)
     (displayln "verified example implementation and straightline program are equivalent")
     (displayln "can't verify that straightline program matches example implementation"))
 

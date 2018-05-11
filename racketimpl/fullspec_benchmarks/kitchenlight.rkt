@@ -37,7 +37,7 @@
 
 ;; 22s
 (displayln "synthesize mode function")
-(synth-from-ref-impl mode-sketch mode-full-graph s-clockB s-locationB)
+;(synth-from-ref-impl mode-sketch mode-full-graph s-clockB s-locationB)
 
 (define (kitchen-light-straightline-graph mode motionSensor)
   (define r1 mode)
@@ -66,4 +66,29 @@
 
 ;; 159s
 (displayln "synthesize kitchen light given mode")
-(synth-from-ref-impl mode-sketch kitchen-light-straightline-graph s-modeB s-motion-sensorB)
+;(synth-from-ref-impl mode-sketch kitchen-light-straightline-graph s-modeB s-motion-sensorB)
+
+(define (full-kitchen-light-graph clockB userLocationB motionSensorB)
+  (define r1 clockB)
+  (define r2 userLocationB)
+  (define r3 (liftB1 (λ (c) (or (>= c 18) (<= c 8))) r1))
+  (define r4 (liftB1 (λ (l) (= l location-home)) r2))
+  (define r5 (constantB location-home userLocationB))
+  (define r6 (constantB location-away userLocationB))
+  (define r7 (constantB location-night userLocationB))
+  (define r8 (ifB r4 r5 r6))
+  (define r9 (ifB r3 r7 r8))
+  (define r10 motionSensorB)
+  (define r11 (liftB1 (λ (m) (= m location-night)) r9))
+  (define r12 (constantB light-on-orange r1))
+  (define r13 (constantB light-on-white r1))
+  (define r14 (ifB r11 r12 r13))
+  (define r15 (constantB light-off r1))
+  (define r16 (ifB r10 r14 r15))
+  r16)
+
+
+(define full-mask (make-vector 13 #f))
+(define full-sketch (sketch (get-holes-list 13) full-mask stateless-operator-list stateful-operator-list 3))
+
+(synth-from-ref-impl full-sketch full-kitchen-light-graph s-clockB s-locationB s-motion-sensorB)

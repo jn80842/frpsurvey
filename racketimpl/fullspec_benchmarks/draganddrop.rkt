@@ -6,9 +6,27 @@
 (require "../sketch.rkt")
 (require "../specifications.rkt")
 (require "../properties.rkt")
-(require "../benchmarks/draganddrop.rkt")
+;(require "../benchmarks/draganddrop.rkt")
 
 (current-bitwidth #f)
+
+(define stream-length 10)
+(define (sym-coords)
+  (define-symbolic* x integer?)
+  (define-symbolic* y integer?)
+  (coords x y))
+
+#;(define (harvest-coords c)
+  (list (car (first (union-contents c)))
+        (coords-x (cdr (first (union-contents c))))
+        (coords-y (cdr (first (union-contents c))))))
+
+(define (harvest-coords-stream clist)
+  (apply append (map harvest-coords clist)))
+
+(define s-mouse-up (new-event-stream (λ () 'click) stream-length))
+(define s-mouse-down (new-event-stream (λ () 'click) stream-length))
+(define s-mouse-pos (new-event-stream sym-coords stream-length))
 
 (define (straightline-graph mouse-up mouse-down mouse-pos)
   (define r1 mouse-up)
@@ -36,11 +54,11 @@
 
 (displayln "drag and drop benchmark")
 
-(define v-binding (verify (assert (same drag-and-drop-graph
+#;(define v-binding (verify (assert (same drag-and-drop-graph
                                         straightline-graph
                                         s-mouse-up s-mouse-down s-mouse-pos))))
 
-(if (unsat? v-binding)
+#;(if (unsat? v-binding)
     (displayln "verified example implementation and straightline program are equivalent")
     (displayln "can't verify that straightline program matches example implementation"))
 
@@ -49,4 +67,47 @@
 (define dd-sketch (sketch (get-holes-list 5) state-mask
                           stateless-operator-list stateful-operator-list 3))
 
-(synth-from-ref-impl dd-sketch straightline-graph s-mouse-up s-mouse-down s-mouse-pos)
+;(synth-from-ref-impl dd-sketch straightline-graph s-mouse-up s-mouse-down s-mouse-pos)
+
+(define (verify-sketch ref-impl sk binding inputs)
+  (begin (clear-asserts!)
+         (let ([sk-phi (apply (get-bound-sketch-function sk binding) inputs)]
+               [ref-phi (apply ref-impl inputs)])
+           (begin (define m (verify (assert (equal? sk-phi ref-phi))))
+                  (clear-asserts!)
+                  (if (unsat? m)
+                      (displayln "Synthesized function is equivalent to reference implementation")
+                      (displayln "Synthesized function is NOT equivalent to reference implementation"))))))
+
+(define (synth-for-benchmarks sk ref-impl inputs long-inputs)
+  (begin
+  (let ([evaled-sk (apply (get-sketch-function sk) inputs)]
+        [evaled-ref (apply ref-impl inputs)])
+    (begin (define binding (time (synthesize #:forall (apply harvest inputs)
+                                             #:guarantee (assert (equal? evaled-sk evaled-ref)))))
+           (clear-asserts!)
+           (if (unsat? binding)
+               (displayln "Cannot synthesize program that matches reference implementation")
+               (begin (print-sketch sk binding)
+                      (verify-sketch ref-impl sk binding long-inputs)
+                      ))))))
+
+(define long-mouse-up (new-event-stream (λ () 'click) 10))
+(define long-mouse-down (new-event-stream (λ () 'click) 10))
+(define long-mouse-pos (new-event-stream sym-coords 10))
+
+(for ([n (range 10)])
+  (begin
+    (displayln (format "######### input length ~a #######" (add1 n)))
+    (define stream-length (add1 n))
+    (define s-mouse-up (new-event-stream (λ () 'click) stream-length))
+    (define s-mouse-down (new-event-stream (λ () 'click) stream-length))
+    (define s-mouse-pos (new-event-stream sym-coords stream-length))
+    (for ([i (range 10)])
+      (begin
+        (displayln (format "insn count ~a" (add1 i)))
+        (define sk (sketch (get-holes-list (add1 i)) (list->vector (list #f #f #t #f #f #f #f #f #f #f))
+                           stateless-operator-list stateful-operator-list 3))
+        (synth-for-benchmarks sk straightline-graph (list s-mouse-up s-mouse-down s-mouse-pos)
+                              (list long-mouse-up long-mouse-down long-mouse-pos))))))
+    
