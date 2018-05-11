@@ -94,7 +94,7 @@
                                              (stream-insn-arg-index3 insn) (stream-insn-arg-int insn))
                                       (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
-                                        (format (list-ref inttoboolfuncs-twoconst (stream-insn-arg-index2 insn))
+                                        (format (list-ref inttoboolsfuncs-twoconst-string (stream-insn-arg-index2 insn))
                                                 (stream-insn-arg-index3 insn) (stream-insn-arg-int insn))
                                         (get-input-stream insn past-vars)))))
 
