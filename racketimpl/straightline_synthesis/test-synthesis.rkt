@@ -125,6 +125,26 @@
 (displayln "ifE")
 (synth-from-ref-impl sketch1-f-3 ifE-graph bool-stream int-stream int-stream2)
 
+;; filterE
+
+(define (filterE-graph e)
+  (define r1 e)
+  (define r2 (filterE identity r1))
+  r2)
+
+(displayln "filterE")
+(synth-from-ref-impl sketch1-f-1 filterE-graph int-stream)
+
+;; filterE const
+
+(define (filterE-const-graph e)
+  (define r1 e)
+  (define r2 (filterE (λ (e) (= e 3)) r1))
+  r2)
+
+(displayln "filterE const")
+(synth-from-ref-impl sketch1-f-1 filterE-const-graph int-stream)
+
 ;; filterRepeatsE
 
 (define (filterRepeatsE-graph e)
@@ -235,16 +255,6 @@
 
 (displayln "constantB-imm")
 (synth-from-ref-impl sketch1-f-1 constantB-imm-graph int-behavior)
-
-;; collectB
-
-(define (collectB-graph b1)
-  (define r1 b1)
-  (define r2 (collectB 'on (λ (x y) (if x y x)) b1))
-  r2)
-
-(displayln "collectB")
-(synth-from-ref-impl sketch1-t-1 collectB-graph int-behavior)
 
 ;; collectB-imm
 
