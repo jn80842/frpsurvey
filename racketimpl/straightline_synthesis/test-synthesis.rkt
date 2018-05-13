@@ -195,13 +195,15 @@
 (displayln "liftB")
 (synth-from-ref-impl sketch1-f-1 liftB-graph int-behavior)
 
-;; liftB2
+;; liftB 2 consts
 
-(define (liftB2-graph b1 b2)
-  (define r1 b1)
-  (define r2 b2)
-  (define r3 (liftB2 (λ (elt1 elt2) (+ elt1 elt2)) r1 r2))
-  r3)
+(define (liftB-twoconst-graph b)
+  (define r1 b)
+  (define r2 (liftB1 (λ (i) (and (>= i 2) (<= i 6))) r1))
+  r2)
+
+(displayln "liftB 2 consts")
+(synth-from-ref-impl sketch1-f-1 liftB-twoconst-graph int-behavior)
 
 ;; andB
 

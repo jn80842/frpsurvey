@@ -131,8 +131,8 @@
                                         (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
                                         (format (list-ref inttoboolsfuncs-twoconst-string (stream-insn-λi2b2c-idx insn))
-                                                (get-integer-arg insn) get-integer-arg2 insn))
-                                        (get-input-stream insn past-vars))))
+                                                (get-integer-arg insn) (get-integer-arg2 insn))
+                                        (get-input-stream insn past-vars)))))
             
 #;(define liftB2-op
   (operator "liftB2"
@@ -159,7 +159,7 @@
 (define constantB-imm-op
   (operator "constantB"
             (λ (insn past-vars) (constantB (get-integer-arg insn) (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a" (get-integer-arg insn)))))
+            (λ (insn past-vars) (format "~a ~a" (get-integer-arg insn) (get-input-stream insn past-vars)))))
 (define constantB-op
   (operator "constantB"
             (λ (insn past-vars) (constantB (list-ref constantB-consts (stream-insn-const-idx insn))

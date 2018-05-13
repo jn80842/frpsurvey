@@ -69,7 +69,7 @@
 
 ;(synth-from-ref-impl dd-sketch straightline-graph s-mouse-up s-mouse-down s-mouse-pos)
 
-(define (verify-sketch ref-impl sk binding inputs)
+#;(define (verify-sketch ref-impl sk binding inputs)
   (begin (clear-asserts!)
          (let ([sk-phi (apply (get-bound-sketch-function sk binding) inputs)]
                [ref-phi (apply ref-impl inputs)])
@@ -78,6 +78,15 @@
                   (if (unsat? m)
                       (displayln "Synthesized function is equivalent to reference implementation")
                       (displayln "Synthesized function is NOT equivalent to reference implementation"))))))
+
+(define (verify-sketch ref-impl sk binding inputs)
+  (begin (clear-asserts!)
+         (begin (define m (verify (assert (equal? (apply (get-bound-sketch-function sk binding) inputs)
+                                                  (apply ref-impl inputs)))))
+                  (clear-asserts!)
+                  (if (unsat? m)
+                      (displayln "Synthesized function is equivalent to reference implementation")
+                      (displayln "Synthesized function is NOT equivalent to reference implementation")))))
 
 (define (synth-for-benchmarks sk ref-impl inputs long-inputs)
   (begin
@@ -89,12 +98,22 @@
            (if (unsat? binding)
                (displayln "Cannot synthesize program that matches reference implementation")
                (begin (print-sketch sk binding)
+                      (for ([i (range (length (sketch-holes sk)))])
+                        (displayln (list-ref (evaluate (sketch-holes sk) binding) i)))
                       (verify-sketch ref-impl sk binding long-inputs)
                       ))))))
 
 (define long-mouse-up (new-event-stream (λ () 'click) 10))
 (define long-mouse-down (new-event-stream (λ () 'click) 10))
 (define long-mouse-pos (new-event-stream sym-coords 10))
+
+(define smol-mouse-up (new-event-stream (λ () 'click) 1))
+(define smol-mouse-down (new-event-stream (λ () 'click) 1))
+(define smol-mouse-pos (new-event-stream sym-coords 1))
+
+(define (get-sketch-by-size i)
+  (sketch (get-holes-list i) (list->vector (list #f #f #t #f #f #f #f #f #f #f))
+                           stateless-operator-list stateful-operator-list 3))
 
 (for ([n (range 10)])
   (begin
