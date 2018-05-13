@@ -15,9 +15,9 @@
 (check-equal? (zeroE) '())
 
 ;; mapE tests
-(check-equal? (mapE add1 '(11 12 13)) '(12 13 14))
-(check-equal? (mapE add1 '()) '())
-(check-equal? (mapE add1 '(11 no-evt 13)) '(12 no-evt 14))
+(check-equal? (mapE (λ (c c2 i) (add1 i)) 0 '(11 12 13)) '(12 13 14))
+(check-equal? (mapE (λ (c c2 i) (add1 i)) 0 '()) '())
+(check-equal? (mapE (λ (c c2 i) (add1 i)) 0 '(11 no-evt 13)) '(12 no-evt 14))
 
 ;; mergeE tests
 (check-equal? (mergeE '(one no-evt three) '(no-evt two no-evt)) '(one two three))
@@ -34,7 +34,7 @@
 ;              (list 'no-evt 'a 'no-evt 'b 'd 'e))
 
 ;; filterE tests
-(check-equal? (filterE not (list #t #f #t 'no-evt)) (list 'no-evt #f 'no-evt 'no-evt))
+(check-equal? (filterE (λ (c e) (not e)) 0 (list #t #f #t 'no-evt)) (list 'no-evt #f 'no-evt 'no-evt))
 
 ;; ifE tests
 (check-equal? (ifE (list #t 'no-evt #f 'no-evt 'no-evt 'no-evt 'no-evt #t)

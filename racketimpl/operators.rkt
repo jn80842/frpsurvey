@@ -87,10 +87,8 @@
                                         (get-input-stream insn past-vars)))))
 (define mapE-op
   (operator "mapE"
-            (λ (insn past-vars) (mapE (curry (list-ref (append
-                                                        inttointfuncs
-                                                        inttoboolfuncs) (stream-insn-λmap-idx insn))
-                                             (get-integer-arg insn))
+            (λ (insn past-vars) (mapE (list-ref (append inttointfuncs inttoboolfuncs) (stream-insn-λmap-idx insn))
+                                      (get-integer-arg insn)
                                       (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
                                         (format (list-ref (append inttointfuncs-string inttoboolfuncs-string)
@@ -100,8 +98,8 @@
 
 (define mapE-twoconst-op
   (operator "mapE"
-            (λ (insn past-vars) (mapE (curry (list-ref inttoboolfuncs-twoconst (stream-insn-λi2b2c-idx insn))
-                                             (get-integer-arg insn) (get-integer-arg2 insn))
+            (λ (insn past-vars) (mapE (list-ref inttoboolfuncs-twoconst (stream-insn-λi2b2c-idx insn))
+                                      (get-integer-arg insn) (get-integer-arg2 insn)
                                       (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
                                         (format (list-ref inttoboolsfuncs-twoconst-string (stream-insn-λi2b2c-idx insn))
@@ -214,14 +212,14 @@
             (λ (insn past-vars) (format "~a ~a" (get-integer-arg insn) (get-input-stream insn past-vars)))))
 (define filterE-op
   (operator "filterE"
-            (λ (insn past-vars) (filterE (list-ref genericfuncs (stream-insn-λfilter-idx insn))
+            (λ (insn past-vars) (filterE (list-ref genericfuncs (stream-insn-λfilter-idx insn)) 0
                                          (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a" (list-ref genericfuncs-string (stream-insn-λfilter-idx insn))
                                         (get-input-stream insn past-vars)))))
 (define filterE-const-op
   (operator "filterE"
-            (λ (insn past-vars) (filterE (curry (list-ref inttoboolfuncs (stream-insn-λi2b-idx insn))
-                                                (get-integer-arg insn))
+            (λ (insn past-vars) (filterE (list-ref inttoboolfuncs (stream-insn-λi2b-idx insn))
+                                         (get-integer-arg insn)
                                          (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
                                         (format (list-ref inttoboolfuncs-string (stream-insn-λi2b-idx insn))
@@ -241,10 +239,9 @@
         constantE-op
         mergeE-op
         mapE-op
-        mapE-twoconst-op
         liftB-op
         liftB-twoconst-op
-        ;liftB2-op
+       ; liftB2-op
         andB-op
         ifB-op
         constantB-imm-op
@@ -297,14 +294,14 @@
 ;; predicate function library
 
 ;; ? -> ?
-(define genericfuncs (list identity))
+(define genericfuncs (list (λ (c i) (identity i))))
 
 (define genericfuncs-string (list "(λ (e) e)"))
 
 ;; int -> int
-(define inttointfuncs (list (λ (placeholder i) (+ i placeholder))
-                            (λ (placeholder i) (- i placeholder))
-                            (λ (placeholder i) (- placeholder i))
+(define inttointfuncs (list (λ (placeholder p2 i) (+ i placeholder))
+                            (λ (placeholder p2 i) (- i placeholder))
+                            (λ (placeholder p2 i) (- placeholder i))
                            ; (λ (placeholder i) (* i placeholder))
                            ; (λ (i) (/ i placeholder)) ;; leave out division?
                            ; (λ (i) (/ placeholder i))
@@ -315,11 +312,11 @@
                                   ; "(λ (i) (* i ~a))"
                                    ))
 ;; int -> bool
-(define inttoboolfuncs (list (λ (placeholder i) (<= i placeholder))
-                             (λ (placeholder i) (>= i placeholder))
-                             (λ (placeholder i) (< i placeholder))
-                             (λ (placeholder i) (> i placeholder))
-                             (λ (placeholder i) (= i placeholder))
+(define inttoboolfuncs (list (λ (placeholder p2 i) (<= i placeholder))
+                             (λ (placeholder p2 i) (>= i placeholder))
+                             (λ (placeholder p2 i) (< i placeholder))
+                             (λ (placeholder p2 i) (> i placeholder))
+                             (λ (placeholder p2 i) (= i placeholder))
                              ))
 
 (define inttoboolfuncs-string (list "(λ (i) (<= i ~a))"
