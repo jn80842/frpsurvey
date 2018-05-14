@@ -21,6 +21,23 @@
         (list-ref (full-op-list sk) op-id)
         (list-ref (sketch-stateless-op-list sk) op-id))))
 
+(define (make-sketch-assertions sk)
+  (for ([i (range (length (sketch-holes sk)))])
+    (let ([insn (list-ref (sketch-holes sk) i)]
+          [past-vars-length (+ i 1 (sketch-input-count sk))])
+      (begin
+        (assert (>= (stream-insn-op-index insn) 0))
+        (assert (< (stream-insn-op-index insn) (length (append (sketch-stateless-op-list sk)
+                                                               (sketch-stateful-op-list sk)))))
+        (assert (>= (stream-insn-arg-index1 insn) 0))
+        (assert (< (stream-insn-arg-index1 insn) past-vars-length))
+        (assert (>= (stream-insn-arg-index2 insn) 0))
+        (assert (< (stream-insn-arg-index2 insn) past-vars-length))
+        (assert (>= (stream-insn-arg-index3 insn) 0))
+        (assert (< (stream-insn-arg-index3 insn) past-vars-length))
+        (assert (>= (stream-insn-option-index insn) 0))
+        (assert (< (stream-insn-option-index insn) (length constantB-consts)))))))
+
 (define (string-from-sketch sk binding funcname)
   (let* ([input-count (sketch-input-count sk)]
          [arg-list (for/list ([i (range input-count)])
