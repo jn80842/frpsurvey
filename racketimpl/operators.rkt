@@ -94,7 +94,7 @@
                                              (stream-insn-arg-index3 insn) (stream-insn-arg-int insn))
                                       (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
-                                        (format (list-ref inttoboolfuncs-twoconst (stream-insn-arg-index2 insn))
+                                        (format (list-ref inttoboolsfuncs-twoconst-string (stream-insn-arg-index2 insn))
                                                 (stream-insn-arg-index3 insn) (stream-insn-arg-int insn))
                                         (get-input-stream insn past-vars)))))
 
@@ -224,37 +224,37 @@
             (λ (insn past-vars) (format "~a" (get-input-stream insn past-vars)))))
 
 (define stateless-operator-list
-  (list constantE-imm-op
-        constantE-op
-        mergeE-op
-        mapE-op
-        mapE-twoconst-op
-        liftB-op
-        liftB-twoconst-op
+  (list constantE-imm-op ;0
+        constantE-op ;1
+        mergeE-op ;2
+        mapE-op ;3
+        mapE-twoconst-op ;4
+        liftB-op ;5
+        liftB-twoconst-op ;6
         ;liftB2-op
-        andB-op
-        ifB-op
-        constantB-imm-op
-        constantB-op
-        snapshotE-op
+        andB-op ;7
+        ifB-op ;8
+        constantB-imm-op ;9
+        constantB-op ;10
+        snapshotE-op ;11
         ; mapE2-op
-        filterE-op
-        filterE-const-op
-        notB-op
-        ifE-op
+        filterE-op ;12
+        filterE-const-op ;13
+        notB-op ;14
+        ifE-op ;15
         ))
 
 (define stateful-operator-list
-  (list collectE-imm-op
+  (list collectE-imm-op ;16
         ; collectE-op
-        startsWith-imm-op
-        startsWith-op
-        delayE-op
-        filterRepeatsE-op
-        timerE-op
+        startsWith-imm-op ;17
+        startsWith-op ;18
+        delayE-op ;19
+        filterRepeatsE-op ;20
+        timerE-op ;21
         ; collectB-op
-        collectB-imm-op
-        changes-op
+        collectB-imm-op ;22
+        changes-op ;23
         ))
 
 (define operator-list

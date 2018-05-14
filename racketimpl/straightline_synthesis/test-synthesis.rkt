@@ -244,8 +244,8 @@
   (define r2 (collectB 'on (λ (x y) (if x y x)) b1))
   r2)
 
-(displayln "collectB")
-(synth-from-ref-impl sketch1-t-1 collectB-graph int-behavior)
+;(displayln "collectB")
+;(synth-from-ref-impl sketch1-t-1 collectB-graph int-behavior)
 
 ;; collectB-imm
 
