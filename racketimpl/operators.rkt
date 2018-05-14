@@ -7,7 +7,7 @@
 (provide (all-defined-out))
 
 (struct stream-insn 
-  (op-index arg-index1 arg-index2 arg-index3 option-index arg-int) #:transparent)
+  (op-index arg-index1 arg-index2 arg-index3 option-index arg-int arg-int2) #:transparent)
 
 (define (get-insn-holes)
   (define-symbolic* op integer?)
@@ -16,7 +16,8 @@
   (define-symbolic* arg3 integer?)
   (define-symbolic* option-index integer?)
   (define-symbolic* arg-int integer?)
-  (stream-insn op streamidx arg2 arg3 option-index arg-int))
+  (define-symbolic* arg-int2 integer?)
+  (stream-insn op streamidx arg2 arg3 option-index arg-int arg-int2))
 
 (define (get-holes-list count)
   (for/list ([i (range count)]) (get-insn-holes)))
@@ -42,10 +43,9 @@
                                         (get-input-stream insn past-vars)))))
 (define mergeE-op
   (operator "mergeE"
-            (λ (insn past-vars) (mergeE (list-ref past-vars (stream-insn-arg-index2 insn))
-                                        (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a ~a" (list-ref past-vars (stream-insn-arg-index2 insn))
-                                        (get-input-stream insn past-vars)))))
+            (λ (insn past-vars) (mergeE (get-input-stream insn past-vars) (list-ref past-vars (stream-insn-arg-index2 insn))))
+            (λ (insn past-vars) (format "~a ~a" (get-input-stream insn past-vars) (list-ref past-vars (stream-insn-arg-index2 insn))))))
+
 (define collectE-imm-op
   (operator "collectE"
             (λ (insn past-vars) (collectE (get-integer-arg insn) (list-ref
@@ -74,22 +74,22 @@
             (λ (insn past-vars) (mapE (curry (list-ref (append
                                                         inttointfuncs
                                                         inttoboolfuncs) (stream-insn-option-index insn))
-                                             (stream-insn-arg-index3 insn))
+                                             (get-integer-arg insn))
                                       (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
                                         (format (list-ref (append inttointfuncs-string inttoboolfuncs-string)
                                                           (stream-insn-option-index insn))
-                                                (stream-insn-arg-index3 insn))
+                                                (get-integer-arg insn))
                                         (get-input-stream insn past-vars)))))
 
 (define mapE-twoconst-op
   (operator "mapE"
             (λ (insn past-vars) (mapE (curry (list-ref inttoboolfuncs-twoconst (stream-insn-option-index insn))
-                                             (stream-insn-arg-index3 insn) (stream-insn-arg-int insn))
+                                             (get-integer-arg insn) (get-integer-arg2 insn))
                                       (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
                                         (format (list-ref inttoboolsfuncs-twoconst-string (stream-insn-option-index insn))
-                                                (stream-insn-arg-index3 insn) (stream-insn-arg-int insn))
+                                                (get-integer-arg insn) (get-integer-arg2 insn))
                                         (get-input-stream insn past-vars)))))
 
 (define ifE-op
@@ -102,19 +102,19 @@
                                         (list-ref past-vars (stream-insn-arg-index3 insn))))))
 (define liftB-op
   (operator "liftB"
-            (λ (insn past-vars) (liftB1 (curry (list-ref (append inttointfuncs inttoboolfuncs) (stream-insn-option-index insn)) (stream-insn-arg-index3 insn)) (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (liftB1 (curry (list-ref (append inttointfuncs inttoboolfuncs) (stream-insn-option-index insn)) (get-integer-arg insn)) (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
-                                        (format (list-ref (append inttointfuncs-string inttoboolfuncs-string) (stream-insn-option-index insn)) (stream-insn-arg-index3 insn))
+                                        (format (list-ref (append inttointfuncs-string inttoboolfuncs-string) (stream-insn-option-index insn)) (get-integer-arg insn))
                                         (get-input-stream insn past-vars)))))
 
 (define liftB-twoconst-op
   (operator "liftB"
             (λ (insn past-vars) (liftB1 (curry (list-ref inttoboolfuncs-twoconst (stream-insn-option-index insn))
-                                               (stream-insn-arg-index3 insn) (stream-insn-arg-int insn))
+                                               (get-integer-arg insn) (get-integer-arg2 insn))
                                         (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
                                         (format (list-ref inttoboolsfuncs-twoconst-string (stream-insn-option-index insn))
-                                                (stream-insn-arg-index3 insn) (stream-insn-arg-int insn))
+                                                (get-integer-arg insn) (get-integer-arg2 insn))
                                         (get-input-stream insn past-vars)))))
             
 #;(define liftB2-op
@@ -127,10 +127,9 @@
                                         (list-ref past-vars (stream-insn-arg-index1 insn))))))
 (define andB-op
   (operator "andB"
-            (λ (insn past-vars) (andB (list-ref past-vars (stream-insn-arg-index2 insn))
-                                      (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a ~a" (list-ref past-vars (stream-insn-arg-index2 insn))
-                                        (list-ref past-vars (stream-insn-arg-index1 insn))))))
+            (λ (insn past-vars) (andB (get-input-stream insn past-vars) (list-ref past-vars (stream-insn-arg-index2 insn))))
+            (λ (insn past-vars) (format "~a ~a" (get-input-stream insn past-vars) (list-ref past-vars (stream-insn-arg-index2 insn))))))
+
 (define ifB-op
   (operator "ifB"
             (λ (insn past-vars) (ifB (get-input-stream insn past-vars)
@@ -141,8 +140,8 @@
                                         (list-ref past-vars (stream-insn-arg-index3 insn))))))
 (define constantB-imm-op
   (operator "constantB"
-            (λ (insn past-vars) (constantB (stream-insn-arg-int insn) (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a" (stream-insn-arg-int insn)))))
+            (λ (insn past-vars) (constantB (get-integer-arg insn) (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (format "~a" (get-integer-arg insn)))))
 (define constantB-op
   (operator "constantB"
             (λ (insn past-vars) (constantB (list-ref constantB-consts (stream-insn-option-index insn))
@@ -202,11 +201,11 @@
 (define filterE-const-op
   (operator "filterE"
             (λ (insn past-vars) (filterE (curry (list-ref inttoboolfuncs (stream-insn-option-index insn))
-                                                (stream-insn-arg-index2 insn))
+                                                (get-integer-arg insn))
                                          (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
                                         (format (list-ref inttoboolfuncs-string (stream-insn-option-index insn))
-                                                (stream-insn-arg-index2 insn))
+                                                (get-integer-arg insn))
                                         (get-input-stream insn past-vars)))))
 (define changes-op
   (operator "changes"
@@ -259,6 +258,9 @@
 
 (define (get-integer-arg insn)
   (stream-insn-arg-int insn))
+
+(define (get-integer-arg2 insn)
+  (stream-insn-arg-int2 insn))
 
 (define (call-stream-insn op insn past-vars)
   ((operator-call op) insn past-vars))
