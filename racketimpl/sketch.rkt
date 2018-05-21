@@ -140,6 +140,14 @@
                                           (displayln (format "Program2 output: ~a"
                                                              (execute-sketch shuffled-sketch (evaluate inputs binding2) binding2))))))))))))
 
+(define (shuffle-sketch sk)
+  (sketch (get-holes-list (length (sketch-holes sk)))
+                                                      (sketch-state-mask sk)
+                                                      (get-retval-idx)
+                                                      (shuffle stateless-operator-list)
+                                                      (shuffle stateful-operator-list)
+                                                      (sketch-input-count sk)))
+
 (define (specs-synthesis sk specs inputs)
   (let ([formulas (spec-formulas specs (get-sketch-function sk))])
     (begin (clear-asserts!)
