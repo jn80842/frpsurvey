@@ -11,6 +11,19 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+;;;;; flapjax grammar ;;;;;
+;;
+;; S -> R | S R
+;; R -> E | B
+;; E -> identityE | onceE | zeroE | mapE Pred E E | mergeE E E
+;;       | filterE Pred E | ifE E E E | constantE const E | collectE int Pred E 
+;;       | filterRepeatsE E | snapshotE E B | delayE const E | timerE const E
+;;       | changes B | BoolE 
+;; BoolE -> andE BoolE BoolE | orE BoolE BoolE | notE BoolE 
+;; B -> startsWith const E | constantB const B | delayB const B | andB B B | orB B B
+;;       | notB B | liftB Pred B | ifB B B B | timerB const B 
+
 ;;;;; flapjax API ;;;;;
 
 (define (identityE evt-stream)
@@ -26,8 +39,8 @@
   '()) ;; a stream that never fires
 
 ;; is it better to return e or no-evt if event is empty?
-(define (mapE proc evt-stream)
-  (map (λ (e) (if (empty-event? e) e (proc e))) evt-stream))
+(define (mapE proc const evt-stream [const2 0])
+  (map (λ (e) (if (empty-event? e) e (proc const const2 e))) evt-stream))
 
 (define (mapE2 proc evt-stream1 evt-stream2)
   (map (λ (e1 e2) (if (or (empty-event? e1) (empty-event? e2)) 'no-evt (proc e1 e2))) evt-stream1 evt-stream2))
@@ -60,8 +73,10 @@
 
 ;; condE
 
-(define (filterE pred stream)
+#;(define (filterE pred stream)
   (map (λ (e) (if (and (not-empty-event? e) (pred e)) e 'no-evt)) stream))
+(define (filterE pred const stream [const2 0])
+  (map (λ (e) (if (and (not-empty-event? e) (pred const const2 e)) e 'no-evt)) stream))
 
 (define (ifE guard-stream true-stream false-stream)
   (map (λ (guard true false) (if (empty-event? guard) 'no-evt (if guard true false)))

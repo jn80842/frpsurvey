@@ -11,7 +11,6 @@
 (define stream-length 5)
 
 (define holes (list (get-insn-holes)))
-(define-symbolic* retval-idx integer?)
 
 (define int-stream (new-event-stream get-sym-int stream-length))
 (define int-stream2 (new-event-stream get-sym-int stream-length))
@@ -24,10 +23,10 @@
 (define bool-behavior (new-behavior get-sym-bool stream-length))
 (define bool-behavior2 (new-behavior get-sym-bool stream-length))
 
-(define sketch1-f-1 (sketch holes (make-vector 1 #f) retval-idx stateless-operator-list stateful-operator-list 1))
-(define sketch1-t-1 (sketch holes (make-vector 1 #t) retval-idx stateless-operator-list stateful-operator-list 1))
-(define sketch1-f-2 (sketch holes (make-vector 1 #f) retval-idx stateless-operator-list stateful-operator-list 2))
-(define sketch1-f-3 (sketch holes (make-vector 1 #f) retval-idx stateless-operator-list stateful-operator-list 3))
+(define sketch1-f-1 (sketch holes (make-vector 1 #f) stateless-operator-list stateful-operator-list 1))
+(define sketch1-t-1 (sketch holes (make-vector 1 #t) stateless-operator-list stateful-operator-list 1))
+(define sketch1-f-2 (sketch holes (make-vector 1 #f) stateless-operator-list stateful-operator-list 2))
+(define sketch1-f-3 (sketch holes (make-vector 1 #f) stateless-operator-list stateful-operator-list 3))
 ;; constantE-imm
 
 (define (constantE-imm-graph e)
@@ -108,7 +107,7 @@
 
 (define (mapE-graph e)
   (define r1 e)
-  (define r2 (mapE (λ (x) (+ x 5)) e))
+  (define r2 (mapE (λ (c x) (+ x c)) 5 e))
   r2)
 
 (displayln "mapE (λ (x) (+ x 5))")
@@ -125,6 +124,26 @@
 
 (displayln "ifE")
 (synth-from-ref-impl sketch1-f-3 ifE-graph bool-stream int-stream int-stream2)
+
+;; filterE
+
+(define (filterE-graph e)
+  (define r1 e)
+  (define r2 (filterE (λ (c i) (identity i)) 0 r1))
+  r2)
+
+(displayln "filterE")
+(synth-from-ref-impl sketch1-f-1 filterE-graph int-stream)
+
+;; filterE const
+
+(define (filterE-const-graph e)
+  (define r1 e)
+  (define r2 (filterE (λ (c e) (= e c)) 3 r1))
+  r2)
+
+(displayln "filterE const")
+(synth-from-ref-impl sketch1-f-1 filterE-const-graph int-stream)
 
 ;; filterRepeatsE
 
@@ -176,13 +195,15 @@
 (displayln "liftB")
 (synth-from-ref-impl sketch1-f-1 liftB-graph int-behavior)
 
-;; liftB2
+;; liftB 2 consts
 
-(define (liftB2-graph b1 b2)
-  (define r1 b1)
-  (define r2 b2)
-  (define r3 (liftB2 (λ (elt1 elt2) (+ elt1 elt2)) r1 r2))
-  r3)
+(define (liftB-twoconst-graph b)
+  (define r1 b)
+  (define r2 (liftB1 (λ (i) (and (>= i 2) (<= i 6))) r1))
+  r2)
+
+(displayln "liftB 2 consts")
+(synth-from-ref-impl sketch1-f-1 liftB-twoconst-graph int-behavior)
 
 ;; andB
 
