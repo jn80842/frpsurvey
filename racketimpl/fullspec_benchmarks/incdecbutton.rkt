@@ -5,7 +5,6 @@
 (require "../operators.rkt")
 (require "../sketch.rkt")
 (require "../specifications.rkt")
-;(require "../benchmarks/incdecbutton.rkt")
 
 (current-bitwidth #f)
 
@@ -33,7 +32,7 @@
     (displayln "can't verify that straightline program matches example implementation"))
 
 (define state-mask (list->vector (list #f #f #f #t #t)))
-(define idb-sketch (sketch (get-holes-list 5) state-mask
+(define idb-sketch (sketch (get-holes-list 5) state-mask (get-retval-idx)
                            stateless-operator-list stateful-operator-list 2))
 (define sym-input-list (list (sym-input "inc-clicks" s-inc)
                              (sym-input "dec-clicks" s-dec)))

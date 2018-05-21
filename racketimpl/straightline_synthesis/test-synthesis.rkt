@@ -107,7 +107,7 @@
 
 (define (mapE-graph e)
   (define r1 e)
-  (define r2 (mapE (λ (c x) (+ x c)) 5 e))
+  (define r2 (mapE (λ (x) (+ x 5)) r1))
   r2)
 
 (displayln "mapE (λ (x) (+ x 5))")
@@ -129,7 +129,7 @@
 
 (define (filterE-graph e)
   (define r1 e)
-  (define r2 (filterE (λ (c i) (identity i)) 0 r1))
+  (define r2 (filterE identity r1))
   r2)
 
 (displayln "filterE")
@@ -139,7 +139,7 @@
 
 (define (filterE-const-graph e)
   (define r1 e)
-  (define r2 (filterE (λ (c e) (= e c)) 3 r1))
+  (define r2 (filterE (λ (e) (= e 3)) r1))
   r2)
 
 (displayln "filterE const")

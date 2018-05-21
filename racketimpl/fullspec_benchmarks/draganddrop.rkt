@@ -6,7 +6,6 @@
 (require "../sketch.rkt")
 (require "../specifications.rkt")
 (require "../properties.rkt")
-;(require "../benchmarks/draganddrop.rkt")
 
 (current-bitwidth #f)
 
@@ -15,11 +14,6 @@
   (define-symbolic* x integer?)
   (define-symbolic* y integer?)
   (coords x y))
-
-#;(define (harvest-coords c)
-  (list (car (first (union-contents c)))
-        (coords-x (cdr (first (union-contents c))))
-        (coords-y (cdr (first (union-contents c))))))
 
 (define (harvest-coords-stream clist)
   (apply append (map harvest-coords clist)))
@@ -115,7 +109,7 @@
   (sketch (get-holes-list i) (list->vector (list #f #f #t #f #f #f #f #f #f #f))
                            stateless-operator-list stateful-operator-list 3))
 
-(for ([n (range 10)])
+#;(for ([n (range 10)])
   (begin
     (displayln (format "######### input length ~a #######" (add1 n)))
     (define stream-length (add1 n))

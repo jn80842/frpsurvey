@@ -32,7 +32,7 @@
 
 (define mode-state-mask (make-vector 7 #f))
 
-(define mode-sketch (sketch (get-holes-list 7) mode-state-mask
+(define mode-sketch (sketch (get-holes-list 7) mode-state-mask (get-retval-idx)
                             stateless-operator-list stateful-operator-list 2))
 
 ;; 22s
@@ -89,6 +89,6 @@
 
 
 (define full-mask (make-vector 13 #f))
-(define full-sketch (sketch (get-holes-list 13) full-mask stateless-operator-list stateful-operator-list 3))
+(define full-sketch (sketch (get-holes-list 13) full-mask (get-retval-idx) stateless-operator-list stateful-operator-list 3))
 
 (synth-from-ref-impl full-sketch full-kitchen-light-graph s-clockB s-locationB s-motion-sensorB)

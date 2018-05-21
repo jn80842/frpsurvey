@@ -6,7 +6,7 @@
 
 (provide (all-defined-out))
 
-(struct sketch (holes state-mask stateless-op-list stateful-op-list input-count) #:transparent)
+(struct sketch (holes state-mask retval-idx stateless-op-list stateful-op-list input-count) #:transparent)
 
 (define (full-op-list sk)
   (append (sketch-stateless-op-list sk) (sketch-stateful-op-list sk)))
@@ -75,7 +75,7 @@
                                                                  (list-ref (sketch-holes sk) i)
                                                                  calculated-streams)])
                               (f (append calculated-streams (list next-stream)) (add1 i)))]))])
-    (λ inputs (last (f inputs 0)))))
+    (λ inputs (list-ref (f inputs 0) (sketch-retval-idx sk)))))
 
 (define (get-bound-sketch-function sk binding)
   (letrec ([f (λ (calculated-streams i)
@@ -84,7 +84,7 @@
                                                                  (list-ref (evaluate (sketch-holes sk) binding) i)
                                                                  calculated-streams)])
                               (f (append calculated-streams (list next-stream)) (add1 i)))]))])
-    (λ inputs (last (f inputs 0)))))
+    (λ inputs (list-ref (f inputs 0) (evaluate (sketch-retval-idx sk) binding)))))
 
 #;(define (synth-from-ref-impl sk ref-impl . inputs)
   (let ([sketch-program (get-sketch-function sk)])
@@ -157,6 +157,7 @@
                       (let* ([bound-sketch-program1 (get-bound-sketch-function sk binding)]
                              [shuffled-sketch (sketch (get-holes-list (length (sketch-holes sk)))
                                                       (sketch-state-mask sk)
+                                                      (get-retval-idx)
                                                       (shuffle stateless-operator-list)
                                                       (shuffle stateful-operator-list)
                                                       (sketch-input-count sk))]

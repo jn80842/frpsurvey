@@ -26,7 +26,7 @@
 
 (define state-mask (list->vector (list #f #f #f #f #f #f)))
 
-(define thermostat-sketch (sketch (get-holes-list 6) state-mask
+(define thermostat-sketch (sketch (get-holes-list 6) state-mask (get-retval-idx)
                                   stateless-operator-list stateful-operator-list 2))
 
 (synth-from-ref-impl thermostat-sketch straightline-graph s-tempB s-clockB)

@@ -34,9 +34,9 @@
 (define x-state-mask (list->vector (list #t #f)))
 (define y-state-mask (make-vector 1 #t))
 
-(define mouse-x-sketch (sketch (get-holes-list 2) x-state-mask
+(define mouse-x-sketch (sketch (get-holes-list 2) x-state-mask (get-retval-idx)
                                stateless-operator-list stateful-operator-list 1))
-(define mouse-y-sketch (sketch (get-holes-list 1) y-state-mask
+(define mouse-y-sketch (sketch (get-holes-list 1) y-state-mask (get-retval-idx)
                                stateless-operator-list stateful-operator-list 1))
 
 (synth-from-ref-impl mouse-x-sketch straightline-mousetail-x-graph s-mouse-x)

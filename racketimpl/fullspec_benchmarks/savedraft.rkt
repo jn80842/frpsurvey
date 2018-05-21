@@ -35,7 +35,7 @@
 (define sym-inputs-list (list (sym-input "textChangedE" s-textChangedE)
                               (sym-input "saveButtonE" s-saveButtonE)))
 
-(define sd-sketch (sketch (get-holes-list 6) state-mask
+(define sd-sketch (sketch (get-holes-list 6) state-mask (get-retval-idx)
                           stateless-operator-list stateful-operator-list 2))
 
 (synth-from-ref-impl sd-sketch straightline-graph s-textChangedE s-saveButtonE)
