@@ -4,7 +4,6 @@
 
 (require "api.rkt")
 (require "operators.rkt")
-(require "typed-operators.rkt")
 (require "sketch.rkt")
 (require "specifications.rkt")
 (require "random.rkt")
