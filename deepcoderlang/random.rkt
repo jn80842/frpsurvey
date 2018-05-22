@@ -7,6 +7,9 @@
 (define (random-number magnitude)
   (- (random (* magnitude 2)) magnitude))
 
+(define (random-positive-number magnitude)
+  (random magnitude))
+
 (define (get-random-list size magnitude)
   (for/list ([i (range size)])
     (random-number magnitude)))

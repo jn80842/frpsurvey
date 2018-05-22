@@ -21,9 +21,9 @@
         (for/list ([i (range list-count)])
           (sym-int-list stream-length))))
 
-(define (get-concrete-inputs-by-signature int-count list-count)
+(define (get-concrete-inputs-by-signature int-count list-count input-length)
   (list (for/list ([i (range int-count)])
-          (random-number magnitude))
+          (random-positive-number input-length))
         (for/list ([i (range list-count)])
           (get-random-list stream-length magnitude))))
 
@@ -73,7 +73,9 @@
                   [program-sketch (get-sketch insn-count (+ int-count list-count))]
                   [sym-inputs (get-symbolic-inputs-by-signature int-count list-count)]
                   [random-inputs (for/list ([i (range random-input-count)])
-                                   (get-concrete-inputs-by-signature int-count list-count))]
+                                   (let ([i (get-concrete-inputs-by-signature int-count list-count stream-length)])
+                                     (begin (displayln i)
+                                            i)))]
                   [random-outputs (for/list ([i (range (length random-inputs))])
                                     (apply program-function (list-ref random-inputs i)))])
              (begin
