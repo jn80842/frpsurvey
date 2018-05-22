@@ -8,6 +8,9 @@
 
 (struct sketch (holes retval-idx input-count) #:transparent)
 
+(define (get-sketch insn-count input-count)
+  (sketch (get-holes-list insn-count) (get-sym-int) input-count))
+
 (define (get-sketch-function sk)
   (letrec ([f (λ (calculated-streams i)
                 (cond [(equal? (length (sketch-holes sk)) i) calculated-streams]

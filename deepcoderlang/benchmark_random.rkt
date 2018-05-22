@@ -3,7 +3,6 @@
 (require racket/engine)
 
 (require "api.rkt")
-(require "operators.rkt")
 (require "sketch.rkt")
 (require "specifications.rkt")
 (require "random.rkt")
@@ -28,7 +27,9 @@
         (for/list ([i (range list-count)])
           (get-random-list stream-length magnitude))))
 
-;; hacky alternation to handle different signatures for typed and untyped functions
+;; inputs is a list of two lists (list of ints, list of lists of ints)
+;; sketch program takes all inputs as separate arguments
+;; generated program takes a list of ints and a list of list of ints as arguments
 (define (synth-from-ref-impl-random sk ref-impl inputs)
   (begin (clear-asserts!)
          (let ([evaled-sketch-program (apply (get-sketch-function sk) (append (first inputs) (second inputs)))]
@@ -62,11 +63,14 @@
                (displayln "SAME - Synthesized function is equivalent to reference implementation")
                (displayln "DIFF - Synthesized function is NOT equivalent to reference implementation")))))
 
+;; note: we use the typed operators to generate a random program (to make sure it's valid and well typed)
+;; but synthesize a program sketch using untyped operator
+;; (for no real good reason other than to avoid rewriting sketch code)
 (define (benchmark-program int-count list-count)
   (let ([program-insns (get-random-program insn-count int-count list-count)])
     (begin (print-from-random-program program-insns int-count list-count)
            (let* ([program-function (get-random-program-function program-insns)]
-                  [program-sketch (sketch (get-holes-list insn-count) (get-sym-int) (+ int-count list-count))]
+                  [program-sketch (get-sketch insn-count (+ int-count list-count))]
                   [sym-inputs (get-symbolic-inputs-by-signature int-count list-count)]
                   [random-inputs (for/list ([i (range random-input-count)])
                                    (get-concrete-inputs-by-signature int-count list-count))]
