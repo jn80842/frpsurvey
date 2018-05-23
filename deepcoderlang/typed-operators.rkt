@@ -53,7 +53,7 @@
 
 (define (print-tdc-insn insn varname int-vars list-vars)
   (let ([op (get-tyop insn)])
-    (format "  (define ~a (~a ~a))" varname (tyoperator-name op)
+    (format "  (define ~a (~a-dc ~a))" varname (tyoperator-name op)
           ((tyoperator-print op) insn int-vars list-vars))))
 
 (define (get-int-input insn int-vars)

@@ -76,6 +76,7 @@
                                    (let ([i (get-concrete-inputs-by-signature int-count list-count stream-length)])
                                      (begin (displayln i)
                                             i)))]
+                  ;; some inputs will cause programs to fail; if so this will throw an exception and quit
                   [random-outputs (for/list ([i (range (length random-inputs))])
                                     (apply program-function (list-ref random-inputs i)))])
              (begin

@@ -38,7 +38,7 @@
 
 (define (print-dc-insn insn varname vars)
   (let ([op (get-op insn)])
-    (format "  (define ~a (~a ~a))" varname (operator-name op)
+    (format "  (define ~a (~a-dc ~a))" varname (operator-name op)
           ((operator-print op) insn vars))))
 
 (define (get-input-list insn vars)
