@@ -95,15 +95,15 @@
                (print-sketch sk binding)))))
 
 (define (synth-from-ref-impl sk ref-impl . inputs)
-  (begin
-  (let ([evaled-sk (apply (get-sketch-function sk) inputs)]
-        [evaled-ref (apply ref-impl inputs)])
-    (begin (define binding (time (synthesize #:forall (apply harvest inputs)
-                                             #:guarantee (assert (equal? evaled-sk evaled-ref)))))
-           (clear-asserts!)
-           (if (unsat? binding)
-               (displayln "Cannot synthesize program that matches reference implementation")
-               (print-sketch sk binding))))))
+  (begin (clear-asserts!)
+         (make-sketch-assertions sk)
+         (define binding (time (synthesize #:forall (apply harvest inputs)
+                                           #:guarantee (assert (equal? (apply (get-sketch-function sk) inputs)
+                                                                       (apply ref-impl inputs))))))
+         (clear-asserts!)
+         (if (unsat? binding)
+             (displayln "Cannot synthesize program that matches reference implementation")
+             (print-sketch sk binding))))
 
 #;(define (specs-synthesis sk specs inputs)
   (let ([sketch-program1 (get-sketch-function sk)])
