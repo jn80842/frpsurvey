@@ -21,7 +21,6 @@
     ((tyoperator-random-insn (list-ref tyoperator-list random-op)) int-idxs list-idxs)))
 
 ;; NB: when picking input indexes we might want to bias toward higher indexes
-;; maybe just insert later indexes multiply times?
 #;(define (get-random-program reg-count int-count list-count)
   (letrec ([f (λ (insn int-idxs list-idxs i)
                 (cond [(equal? reg-count i) insn]
@@ -83,12 +82,16 @@
                    (string-join stmt-list "\n")
                    "\n"
                    return-stmt)))
-                                      
 
 (define (print-from-random-program insn int-count list-count [funcname "random-function"])
   (displayln (string-from-random-program insn int-count list-count funcname)))
 
+(define (write-random-program-to-file filename p-insn)
+  (with-output-to-file filename
+    (λ () (for ([i (range (length p-insn))])
+               (writeln (tdc-insn->string (list-ref p-insn i)))))))
 
-
-                                                                                 
-        
+(define (read-program-from-file filename insn-count)
+  (call-with-input-file filename
+    (λ (in) (for/list ([i (range insn-count)])
+              (string->tdc-insn (read-line in))))))

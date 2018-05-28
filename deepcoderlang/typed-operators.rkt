@@ -27,6 +27,18 @@
                  λi2b-idx
                  λi2i2i-idx) #:transparent)
 
+(define (tdc-insn->string insn)
+  (format "~a ~a ~a ~a ~a ~a ~a" (tdc-insn-op-index insn)
+          (tdc-insn-int-idx insn)
+          (tdc-insn-list-idx insn)
+          (tdc-insn-list2-idx insn)
+          (tdc-insn-λi2i-idx insn)
+          (tdc-insn-λi2b-idx insn)
+          (tdc-insn-λi2i2i-idx insn)))
+
+(define (string->tdc-insn s)
+  (apply tdc-insn (map string->number (string-split (string-trim s "\"")))))
+
 ;; typed operators maintains 2 lists of registers
 ;; separating int type and list type
 
