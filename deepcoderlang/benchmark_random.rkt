@@ -13,7 +13,7 @@
 (define retval-idx 6)
 (define stream-length 5)
 (define random-input-count 5)
-(define magnitude 32)
+(define magnitude 5)
 
 (define (get-symbolic-inputs-by-signature int-count list-count)
   (list (for/list ([i (range int-count)])
@@ -63,6 +63,14 @@
                (displayln "SAME - Synthesized function is equivalent to reference implementation")
                (displayln "DIFF - Synthesized function is NOT equivalent to reference implementation")))))
 
+(define (get-random-inputs int-count list-count stream-length input-count)
+  (for/list ([i (range input-count)])
+    (get-concrete-inputs-by-signature int-count list-count stream-length)))
+
+(define (get-outputs inputs func)
+  (for/list ([i (range (length inputs))])
+    (apply func (list-ref inputs i))))
+
 ;; note: we use the typed operators to generate a random program (to make sure it's valid and well typed)
 ;; but synthesize a program sketch using untyped operator
 ;; (for no real good reason other than to avoid rewriting sketch code)
@@ -86,8 +94,40 @@
                (synth-from-io-pairs-random program-sketch random-inputs random-outputs program-function sym-inputs)
                )))))
 
+(define (benchmark-from-file int-count list-count filename)
+  (let ([program-insns (read-program-from-file filename insn-count)])
+    (begin (print-from-random-program program-insns int-count list-count)
+           (let* ([program-function (get-random-program-function program-insns)]
+                  [program-sketch (get-sketch insn-count (+ int-count list-count))]
+                  [sym-inputs (get-symbolic-inputs-by-signature int-count list-count)]
+                  [random-inputs (for/list ([i (range random-input-count)])
+                                   (get-concrete-inputs-by-signature int-count list-count stream-length))]
+                  [random-outputs (for/list ([i (range (length random-inputs))])
+                                    (apply program-function (list-ref random-inputs i)))])
+             (begin
+               (displayln "Synthesize function against concrete program")
+               (synth-from-io-pairs-random program-sketch random-inputs random-outputs program-function sym-inputs)
+               )))))
+
 (define list-inputs (random 1 input-count))
 (define int-inputs (- input-count list-inputs))
-(define e (engine
-           (λ (_) (benchmark-program list-inputs int-inputs))))
-(engine-run 3600000 e)
+;(define e (engine
+;           (λ (_) (benchmark-program list-inputs int-inputs))))
+;(engine-run 3600000 e)
+
+(define path-to-int-programs "/Users/mpu/research/realtime/comparison/deepcoderlang/benchmarking/int-list/~a.txt")
+(define path-to-list-programs "/Users/mpu/research/realtime/comparison/deepcoderlang/benchmarking/list-list/~a.txt")
+
+(displayln "Benchmarking int list signature functions")
+
+(for ([i (range 1 50)])
+  (define e (engine (λ (_) (benchmark-from-file 1 1 (format path-to-int-programs i)))))
+  (with-handlers ([exn:fail? (λ (exn) (begin (displayln (format "failed program ~a" i))
+                                             'fail))])
+    (engine-run 3600000 e)))
+
+(displayln "Benchmarking list list signature functions")
+
+(for ([i (range 1 50)])
+  (define e (engine (λ (_) (benchmark-from-file 0 2 (format path-to-list-programs i)))))
+  (engine-run 3600000 e))
