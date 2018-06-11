@@ -95,3 +95,19 @@
   (call-with-input-file filename
     (λ (in) (for/list ([i (range insn-count)])
               (string->tdc-insn (read-line in))))))
+
+(define (write-inputs-to-file filename inputs)
+  (let ([int-inputs (first inputs)]
+        [list-inputs (last inputs)])
+    (with-output-to-file filename
+      (λ () (begin (for ([i (range (length int-inputs))])
+                     (writeln (list-ref int-inputs i)))
+                   (for ([i (range (length list-inputs))])
+                     (writeln (string-join (map number->string (list-ref list-inputs i))))))))))
+
+(define (read-inputs-from-file filename int-count list-count)
+  (call-with-input-file filename
+    (λ (in) (list (for/list ([i (range int-count)])
+                      (string->number (read-line in)))
+                    (for/list ([i (range list-count)])
+                      (map string->number (string-split (string-trim (read-line in) "\""))))))))

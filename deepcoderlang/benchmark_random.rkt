@@ -94,7 +94,7 @@
                (synth-from-io-pairs-random program-sketch random-inputs random-outputs program-function sym-inputs)
                )))))
 
-(define (benchmark-from-file int-count list-count filename)
+#;(define (benchmark-from-file int-count list-count filename)
   (let ([program-insns (read-program-from-file filename insn-count)])
     (begin (print-from-random-program program-insns int-count list-count)
            (let* ([program-function (get-random-program-function program-insns)]
@@ -109,6 +109,31 @@
                (synth-from-io-pairs-random program-sketch random-inputs random-outputs program-function sym-inputs)
                )))))
 
+(define (benchmark-from-file int-count list-count filedir)
+  (let ([program-insns (read-program-from-file (format "~a~a" filedir "program.txt") 5)])
+    (begin (print-from-random-program program-insns int-count list-count)
+           (let* ([program-function (get-random-program-function program-insns)]
+                  [program-sketch (get-sketch insn-count (+ int-count list-count))]
+                  [sym-inputs (get-symbolic-inputs-by-signature int-count list-count)]
+                  [inputs (for/list ([i (range 1 (add1 random-input-count))])
+                            (read-inputs-from-file (format "~a~a~a~a" filedir "inputs" i ".txt") int-count list-count))]
+                  [outputs (for/list ([i (range (length inputs))])
+                             (apply program-function (list-ref inputs i)))])
+             (begin
+               (displayln "Synthesize function against concrete program")
+               (synth-from-io-pairs-random program-sketch inputs outputs program-function sym-inputs))))))
+
+(define (generate-random-inputs int-count list-count filedir)
+  (let* ([program-insns (read-program-from-file (format "~a~a" filedir "/program.txt") 5)]
+         [program-function (get-random-program-function program-insns)])
+    (for ([i (range 5)])
+      (let ([random-inputs (get-concrete-inputs-by-signature int-count list-count 5)])
+        (with-handlers ([exn:fail? (λ (_) 'badexecution)])
+          (begin
+            (apply program-function random-inputs)
+            (write-inputs-to-file (format "~a~a~a~a" filedir "/inputs" i ".txt") random-inputs)))))))
+    
+
 (define list-inputs (random 1 input-count))
 (define int-inputs (- input-count list-inputs))
 ;(define e (engine
@@ -120,7 +145,7 @@
 
 (displayln "Benchmarking int list signature functions")
 
-(for ([i (range 1 50)])
+#;(for ([i (range 1 50)])
   (define e (engine (λ (_) (benchmark-from-file 1 1 (format path-to-int-programs i)))))
   (with-handlers ([exn:fail? (λ (exn) (begin (displayln (format "failed program ~a" i))
                                              'fail))])
@@ -128,6 +153,6 @@
 
 (displayln "Benchmarking list list signature functions")
 
-(for ([i (range 1 50)])
+#;(for ([i (range 1 50)])
   (define e (engine (λ (_) (benchmark-from-file 0 2 (format path-to-list-programs i)))))
   (engine-run 3600000 e))
