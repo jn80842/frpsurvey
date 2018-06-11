@@ -84,7 +84,8 @@
         (foldl f (first xs) (take (drop xs 1) i)))))
 
 (define (get-lookup-expt magnitude)
-  (λ (i) (list-ref (map (λ (x) (expt x 2)) (range (add1 magnitude))) (abs i))))
+  (let ([expt-table (map (λ (x) (expt x 2)) (range (add1 magnitude)))])
+    (λ (i) (list-ref expt-table (abs i)))))
 
 (define lut-expt (get-lookup-expt 10))
 
@@ -94,12 +95,14 @@
 (define lut-div2 (λ (i) (quotient i 2)));(get-lookup-div2 10))
 
 (define (get-lookup-div3 magnitude)
-  (λ (x) (list-ref (map (λ (i) (quotient i 3)) (range (- magnitude) (add1 magnitude))) (+ x magnitude))))
+  (let ([div4table (map (λ (i) (quotient i 3)) (range (- magnitude (add1 magnitude))))])
+    (λ (x) (list-ref div4table (+ x magnitude)))))
 
 (define lut-div3 (get-lookup-div3 10))
 
 (define (get-lookup-div4 magnitude)
-  (λ (x) (list-ref (map (λ (i) (quotient i 4)) (range (- magnitude) (add1 magnitude))) (+ x magnitude))))
+  (let ([div4table (map (λ (i) (quotient i 4)) (range (- magnitude (add1 magnitude))))])
+    (λ (x) (list-ref div4table (+ x magnitude)))))
 
 (define lut-div4 (get-lookup-div4 10))
 
@@ -125,7 +128,8 @@
                                       ))
 
 (define (get-lookup-odd magnitude)
-  (λ (x) (list-ref (map (λ (i) (odd? i)) (range (- magnitude) (add1 magnitude))) (+ x magnitude))))
+  (let ([odd-table (map (λ (i) (odd? i)) (range (- magnitude) (add1 magnitude)))])
+  (λ (x) (list-ref odd-table (+ x magnitude)))))
 
 (define lut-odd10? (get-lookup-odd 10))
 
@@ -141,10 +145,10 @@
                                        ))
 
 (define (get-lookup-pos-mult magnitude)
-  (λ (x y) (list-ref
-            (list-ref (for/list ([i (range (add1 magnitude))])
-                        (for/list ([j (range (add1 magnitude))])
-                          (* i j))) x) y)))
+  (let ([lut (for/list ([i (range (add1 magnitude))])
+               (for/list ([j (range (add1 magnitude))])
+                          (* i j)))])
+    (λ (x y) (list-ref (list-ref lut x) y))))
 
 (define (signed-times uf)
   (λ (x y)
@@ -159,7 +163,7 @@
 (define (get-lookup-mult magnitude)
   (signed-times (get-lookup-pos-mult magnitude)))
 
-(define lut-mult10 (get-lookup-mult 10))
+(define lut-mult10 (get-lookup-mult 100))
 
 (define int-to-int-to-int-funcs (list +
                                       -
