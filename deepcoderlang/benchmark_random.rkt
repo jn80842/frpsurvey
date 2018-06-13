@@ -132,6 +132,15 @@
           (begin
             (apply program-function random-inputs)
             (write-inputs-to-file (format "~a~a~a~a" filedir "/inputs" i ".txt") random-inputs)))))))
+
+(define (generate-one-set-random-inputs int-count list-count filedir outputname)
+  (let* ([program-insns (read-program-from-file (format "~a~a" filedir "/program.txt") 5)]
+         [program-function (get-random-program-function program-insns)]
+         [random-inputs (get-concrete-inputs-by-signature int-count list-count 5)])
+    (with-handlers ([exn:fail? (λ (_) 'badexecution)])
+      (begin
+        (apply program-function random-inputs)
+        (write-inputs-to-file (format "~a~a" filedir outputname) random-inputs)))))
     
 
 (define list-inputs (random 1 input-count))
