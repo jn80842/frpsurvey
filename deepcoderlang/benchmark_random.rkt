@@ -115,7 +115,7 @@
            (let* ([program-function (get-random-program-function program-insns)]
                   [program-sketch (get-sketch insn-count (+ int-count list-count))]
                   [sym-inputs (get-symbolic-inputs-by-signature int-count list-count)]
-                  [inputs (for/list ([i (range 1 (add1 random-input-count))])
+                  [inputs (for/list ([i (range random-input-count)])
                             (read-inputs-from-file (format "~a~a~a~a" filedir "inputs" i ".txt") int-count list-count))]
                   [outputs (for/list ([i (range (length inputs))])
                              (apply program-function (list-ref inputs i)))])

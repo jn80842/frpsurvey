@@ -163,7 +163,7 @@
 (define (get-lookup-mult magnitude)
   (signed-times (get-lookup-pos-mult magnitude)))
 
-(define lut-mult10 (get-lookup-mult 100))
+(define lut-mult10 (get-lookup-mult 10))
 
 (define int-to-int-to-int-funcs (list +
                                       -
