@@ -7,6 +7,8 @@
 (require "specifications.rkt")
 (require "random.rkt")
 
+(provide (all-defined-out))
+
 (current-bitwidth #f)
 (define input-count 2)
 (define insn-count 5)
@@ -121,6 +123,7 @@
                              (apply program-function (list-ref inputs i)))])
              (begin
                (displayln "Synthesize function against concrete program")
+               (displayln inputs)
                (synth-from-io-pairs-random program-sketch inputs outputs program-function sym-inputs))))))
 
 (define (generate-random-inputs int-count list-count filedir)

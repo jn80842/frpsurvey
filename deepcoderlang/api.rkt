@@ -112,9 +112,9 @@
                                (λ (i) (+ i i i))
                                (λ (i) (+ i i i i))
                                lut-div2
-                               lut-expt ;; note: (map expt2 input) is equiv to (zipwith * input input)
-                               lut-div3
-                               lut-div4
+                               (λ (i) (* i i)); lut-expt ;; note: (map expt2 input) is equiv to (zipwith * input input)
+                               (λ (i) (/ i 3));lut-div3
+                               (λ (i) (/ i 4));lut-div4
                                ))
 (define int-to-int-funcs-string (list "(λ (i) (+ i 1))"
                                       "(λ (i) (- i 1))"
@@ -133,8 +133,8 @@
 
 (define lut-odd10? (get-lookup-odd 10))
 
-(define int-to-bool-funcs (list (λ (x) (not (lut-odd10? x))); even?
-                                lut-odd10? ; odd?
+(define int-to-bool-funcs (list even?;(λ (x) (not (lut-odd10? x))); even?
+                                odd?; lut-odd10? ; odd?
                                 positive?
                                 negative?
                                 ))
@@ -167,7 +167,7 @@
 
 (define int-to-int-to-int-funcs (list +
                                       -
-                                      lut-mult10
+                                      *;lut-mult10
                                       min
                                       max
                                       ))

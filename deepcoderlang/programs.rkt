@@ -6,7 +6,7 @@
 (require "specifications.rkt")
 (require "random.rkt")
 
-(current-bitwidth #f)
+(current-bitwidth 5)
 (define magnitude 5)
 
 (define input-count 3)
