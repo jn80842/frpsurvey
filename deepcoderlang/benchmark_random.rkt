@@ -155,7 +155,7 @@
 (define path-to-int-programs "/Users/mpu/research/realtime/comparison/deepcoderlang/benchmarking/int-list/~a.txt")
 (define path-to-list-programs "/Users/mpu/research/realtime/comparison/deepcoderlang/benchmarking/list-list/~a.txt")
 
-(displayln "Benchmarking int list signature functions")
+;(displayln "Benchmarking int list signature functions")
 
 #;(for ([i (range 1 50)])
   (define e (engine (λ (_) (benchmark-from-file 1 1 (format path-to-int-programs i)))))
@@ -163,7 +163,7 @@
                                              'fail))])
     (engine-run 3600000 e)))
 
-(displayln "Benchmarking list list signature functions")
+;(displayln "Benchmarking list list signature functions")
 
 #;(for ([i (range 1 50)])
   (define e (engine (λ (_) (benchmark-from-file 0 2 (format path-to-list-programs i)))))
