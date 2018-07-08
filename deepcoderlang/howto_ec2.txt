@@ -1,6 +1,6 @@
 How to run benchmarks on EC2:
 
-1. Start your install and ssh into it (ssh -i PEMFILE ec2-user@IPADDRESS)
+1. Start your instance and ssh into it (ssh -i PEMFILE ec2-user@IPADDRESS)
 2. sudo yum groupinstall "Development Tools"
 3. git clone https://github.com/jn80842/frpsurvey.git
 4. Go to http://racket-lang.org/download/ and download the Linux x486 distro. Scp it to the ec2 instance, chmod 755 and run it to install Racket. Make sure to add racket/bin to your PATH.
