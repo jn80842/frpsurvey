@@ -12,3 +12,4 @@ racketimpl/clock/compiled/
 rx/racketimpl/compiled/
 rx/racketimpl/benchmarks/compiled/
 deepcoderlang/compiled/
+racketimpl/discretetime/compiled/
