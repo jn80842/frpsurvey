@@ -29,6 +29,10 @@
 (define (identityE evt-stream)
   evt-stream)
 
+#;(define (oneE evt-stream)
+  (unless (empty? evt-stream)
+    (list (first evt-stream)))) ;; propagate only the first event
+
 (define (onceE evt-stream)
   (for/list ([i (range (length evt-stream))])
     (if (findf (λ (e) (not (empty-event? e))) (take evt-stream i))
@@ -118,11 +122,17 @@
 
 (define (andE evt-stream1 evt-stream2)
   (map (λ (e1 e2) (if (and (not (empty-event? e1))
-                           (not (empty-event? e2)))
-                      (and e1 e2)
+                           (not (empty-event? e2))
+                           (and e1 e2))
+                      #t
                       'no-evt)) evt-stream1 evt-stream2))
 
-;; orE
+(define (orE evt-stream1 evt-stream2)
+  (map (λ (e1 e2) (if (and (not (empty-event? e1))
+                           (not (empty-event? e2))
+                           (or e1 e2))
+                      #t
+                      'no-evt)) evt-stream1 evt-stream2))
 
 (define (notE evt-stream)
   (map (λ (e) (if (empty-event? e) e (not e))) evt-stream))
@@ -294,7 +304,7 @@
          [enhanced-argBs (map (λ (b) (project-values b unique-ts)) argBs)])
   (behavior (apply proc (map behavior-init argBs)) (apply (curry map (λ e (list (get-timestamp (first e)) (apply proc (map get-value e))))) enhanced-argBs))))
 
-(define (liftB1 proc argB)
+(define (liftB proc argB)
   (behavior (proc (behavior-init argB)) (map proc (behavior-changes argB))))
 
 (define (liftB2 proc argB1 argB2)
