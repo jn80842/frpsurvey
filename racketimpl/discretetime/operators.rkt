@@ -102,14 +102,14 @@
                                         (get-input-stream3 insn past-vars)))))
 (define liftB-op
   (operator "liftB"
-            (λ (insn past-vars) (liftB1 (curry (list-ref (append inttointfuncs inttoboolfuncs) (stream-insn-option-index insn)) (get-integer-arg insn)) (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (liftB (curry (list-ref (append inttointfuncs inttoboolfuncs) (stream-insn-option-index insn)) (get-integer-arg insn)) (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
                                         (format (list-ref (append inttointfuncs-string inttoboolfuncs-string) (stream-insn-option-index insn)) (get-integer-arg insn))
                                         (get-input-stream insn past-vars)))))
 
 (define liftB-twoconst-op
   (operator "liftB"
-            (λ (insn past-vars) (liftB1 (curry (list-ref inttoboolfuncs-twoconst (stream-insn-option-index insn))
+            (λ (insn past-vars) (liftB (curry (list-ref inttoboolfuncs-twoconst (stream-insn-option-index insn))
                                                (get-integer-arg insn) (get-integer-arg2 insn))
                                         (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
