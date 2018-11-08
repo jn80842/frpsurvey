@@ -39,22 +39,55 @@
   (let ([validMovement? (λ (m) (or (equal? m STOP) (equal? m MOVEUP) (equal? m MOVEDOWN)))])
     (and (validMovement? (behavior-init stepsB))
          (andmap validMovement? (behavior-changes stepsB)))))
-(define (users userCounterE)
-  (andmap (λ (e) (or (empty-event? e) (equal? e 1) (equal? e -1))) userCounterE))
 
 ;; theta zero
 ;; ((enterEvent(bottom) && !exitEvent(top) && !(steps == MOVEDOWN))
 ;; || (enterEvent(top) && !exitEvent(bottom) && !(steps == MOVEUP)))
 ;; <-> users := users + 1
-;; simplify users to a stream of +1 and -1 to user count
 (define (theta0 topSensorE bottomSensorE stepsMovementB userCounterB)
   (let* ([stepsStatusE (behavior-changes stepsMovementB)]
-        [calculateDiff (λ (b1 b2) (- (- b1 b2)))]
-        [userCountDiffs (append (list (calculateDiff (behavior-init userCounterB) (first (behavior-changes userCounterB)))) (map calculateDiff (remove-last (behavior-changes userCounterB)) (cdr (behavior-changes userCounterB))))])
+         [calculateDiff (λ (b1 b2) (- (- b1 b2)))]
+         [userCountDiffs (append (list (calculateDiff (behavior-init userCounterB) (first (behavior-changes userCounterB)))) (map calculateDiff (remove-last (behavior-changes userCounterB)) (cdr (behavior-changes userCounterB))))])
     (andmap (λ (top bottom steps userCounter)
               (iff (or (and (equal? bottom ENTER) (not (equal? top EXIT)) (not (equal? steps MOVEDOWN)))
                        (and (equal? top ENTER) (not (equal? bottom EXIT)) (not (equal? steps MOVEUP))))
                    (equal? userCounter 1))) topSensorE bottomSensorE stepsStatusE userCountDiffs)))
+
+;; PBD for theta0
+(define t0Top (list 'no-evt ENTER 'no-evt 'no-evt))
+(define t0Bottom (list 'no-evt 'no-evt 'no-evt EXIT))
+(define t0Steps (behavior STOP (list STOP MOVEDOWN MOVEDOWN MOVEDOWN)))
+(define t0Users (behavior 0 (list 0 1 1 0)))
+
+;; assume steps is an input
+(define (counterMovedownMode top bottom)
+  (collectE 0 + (mergeE (constantE 1 (filterE (λ (e) (equal? e ENTER)) top))
+                        (constantE -1 (filterE (λ (e) (equal? e EXIT)) bottom)))))
+(define (counterMoveupMode top bottom)
+  (collectE 0 + (mergeE (constantE 1 (filterE (λ (e) (equal? e ENTER)) bottom))
+                        (constantE -1 (filterE (λ (e) (equal? e EXIT)) top)))))
+
+;; steps == MOVEDOWN case
+(define (escalator0a top bottom steps)
+  (let* ([topEnterE (filterE (λ (e) (equal? e ENTER)) top)] ;; enter from the top
+         [bottomExitE (filterE (λ (e) (equal? e EXIT)) bottom)] ;; exit from the bottom
+         [topEnterBottomExitE (andE topEnterE bottomExitE)] ;; simultaneous enter/exit (i.e. no net user count change
+         [topEnterNoExitE (andE topEnterE (notE topEnterBottomExitE))] ;; use andE to filter out top enters at same time as bottom exits
+         [topEnterMovedownE (filterE (λ (e) (equal? e MOVEDOWN)) (snapshotE topEnterE steps))])
+    (andE topEnterNoExitE topEnterMovedownE)))
+
+;; steps == MOVEUP case
+(define (escalator0b top bottom steps)
+  (let* ([bottomEnterE (filterE (λ (e) (equal? e ENTER)) bottom)]
+         [topExitE (filterE (λ (e) (equal? e EXIT)) top)]
+         [bottomEnterTopExitE (and bottomEnterE topExitE)]
+         [bottomEnterNoExitE (andE bottomEnterE (notE bottomEnterTopExitE))]
+         [bottomEnterMoveupE (filterE (λ (e) (equal? e MOVEUP)) (snapshotE bottomEnterE steps))])
+    (andE bottomEnterNoExitE bottomEnterMoveupE)))
+
+;; combine to get count of entrances
+(define (escalator0 top bottom steps)
+  (startsWith 0 (collectE 0 + (constantE 1 (mergeE (escalator0a top bottom steps) (escalator0b top bottom steps))))))
 
 ;; theta one
 ;; ((exitEvent(top) && !enterEvent(bottom) && !(steps == MOVEDOWN))
@@ -68,6 +101,7 @@
               (iff (or (and (equal? top EXIT) (not (equal? bottom ENTER)) (not (equal? steps MOVEDOWN)))
                        (and (equal? bottom EXIT) (not (equal? top ENTER)) (not (equal? steps MOVEUP))))
                    (equal? userCounter -1))) topSensorE bottomSensorE stepsStatusE userCountDiffs)))
+
 ;; theta two
 ;; (stepMovementChangeE == MOVEUP) --> userCounterB == 0 && enterEvent(bottom)
 (define (theta2 topSensorE bottomSensorE stepsMovementB userCounterB)
