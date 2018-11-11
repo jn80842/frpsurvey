@@ -362,6 +362,9 @@
                            (cons (proc (first lst) prev) (collect (rest lst) (proc (first lst) prev)))))])
            (behavior b-init (collect (behavior-changes b1) b-init)))))
 
+#;(define (collectB proc b)
+  (behavior (behavior-init b) (collectE (behavior-init b) proc (behavior-changes b))))
+
 #;(define (collectB init proc lst)
   (behavior init (for/list ([i (range (length lst))])
                    (foldl (λ (n m) (if (empty-event? n) m (proc n m))) init (take lst (add1 i))))))

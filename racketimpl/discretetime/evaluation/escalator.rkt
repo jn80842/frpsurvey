@@ -89,6 +89,40 @@
 (define (escalator0 top bottom steps)
   (startsWith 0 (collectE 0 + (constantE 1 (mergeE (escalator0a top bottom steps) (escalator0b top bottom steps))))))
 
+;; NOTE: this doesn't work
+;; let (userCount . steps) be a pair
+;; let (top . bottom) be a pair
+(define (escalator top bottom)
+  (let ([init-userCount 0]
+        [init-stepsVal STOP]
+        [sensorPair (map cons top bottom)])
+    (collectE (cons init-userCount init-stepsVal) (λ (userSteps-pair sensor-pair)
+                                                   (let ([usercount (car userSteps-pair)]
+                                                         [steps (cdr userSteps-pair)]
+                                                         [t (car sensor-pair)]
+                                                         [b (cdr sensor-pair)])
+                                                     (cons (if (or (and (equal? t ENTER)
+                                                                        (not (equal? b EXIT))
+                                                                        (not (equal? steps MOVEUP)))
+                                                                   (and (equal? b ENTER)
+                                                                        (not (equal? t EXIT))
+                                                                        (not (equal? steps MOVEDOWN))))
+                                                               (add1 usercount)
+                                                               (if (or (and (equal? t EXIT)
+                                                                            (not (equal? b ENTER))
+                                                                            (not (equal? steps MOVEUP)))
+                                                                       (and (equal? b EXIT)
+                                                                            (not (equal? t ENTER))
+                                                                            (not (equal? steps MOVEDOWN))))
+                                                                   (sub1 usercount)
+                                                                   usercount))
+                                                           (if (not (equal? usercount 0))
+                                                               steps
+                                                               (cond [(and (equal? t ENTER) (not (equal? b ENTER))) MOVEDOWN]
+                                                                     [(and (equal? b ENTER) (not (equal? t ENTER))) MOVEUP]
+                                                                     [(and (not (equal? t ENTER)) (not (equal? b ENTER))) STOP]
+                                                                     [else steps]))))) sensorPair)))
+
 ;; theta one
 ;; ((exitEvent(top) && !enterEvent(bottom) && !(steps == MOVEDOWN))
 ;; || (exitEvent(bottom) && !enterEvent(top) && !(steps == MOVEUP)))
@@ -162,3 +196,4 @@
               (iff (and (not (equal? users 0)) (equal? xUsers 0) (not (equal? xTop ENTER)) (not (equal? xBottom ENTER)))
                    (equal? steps STOP)))
             (remove-last userCounterE) nextUserCounterE nextTopSensorE nextBottomSensorE (remove-last stepsMovementChangeE))))
+
