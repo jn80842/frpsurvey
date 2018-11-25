@@ -57,6 +57,7 @@
 (define t0Top (list 'no-evt ENTER 'no-evt 'no-evt))
 (define t0Bottom (list 'no-evt 'no-evt 'no-evt EXIT))
 (define t0Steps (behavior STOP (list STOP MOVEDOWN MOVEDOWN MOVEDOWN)))
+
 (define t0Users (behavior 0 (list 0 1 1 0)))
 
 ;; assume steps is an input
@@ -197,3 +198,7 @@
                    (equal? steps STOP)))
             (remove-last userCounterE) nextUserCounterE nextTopSensorE nextBottomSensorE (remove-last stepsMovementChangeE))))
 
+(define (abstracted-inc topE bottomE)
+  (map (λ (t b) (if (empty-event? t)
+                    NOEVENT
+                    (if (empty-event? b) 1 NOEVENT))) topE bottomE))
