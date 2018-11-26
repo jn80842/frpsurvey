@@ -92,6 +92,35 @@
                                                 (get-integer-arg insn) (get-integer-arg2 insn))
                                         (get-input-stream insn past-vars)))))
 
+(define andE-op
+  (operator "andE"
+            (λ (insn past-vars) (andE (get-input-stream insn past-vars)
+                                      (get-input-stream2 insn past-vars)))
+            (λ (insn past-vars) (format "~a ~a"
+                                        (get-input-stream insn past-vars)
+                                        (get-input-stream2 insn past-vars)))))
+(define orE-op
+  (operator "orE"
+            (λ (insn past-vars) (orE (get-input-stream insn past-vars)
+                                     (get-input-stream2 insn past-vars)))
+            (λ (insn past-vars) (format "~a ~a"
+                                        (get-input-stream insn past-vars)
+                                        (get-input-stream2 insn past-vars)))))
+(define maskOnE-op
+  (operator "maskOnE"
+            (λ (insn past-vars) (maskOnE (get-input-stream insn past-vars)
+                                         (get-input-stream2 insn past-vars)))
+            (λ (insn past-vars) (format "~a ~a"
+                                        (get-input-stream insn past-vars)
+                                        (get-input-stream2 insn past-vars)))))
+(define maskOffE-op
+  (operator "maskOffE"
+            (λ (insn past-vars) (maskOffE (get-input-stream insn past-vars)
+                                          (get-input-stream2 insn past-vars)))
+            (λ (insn past-vars) (format "~a ~a"
+                                        (get-input-stream insn past-vars)
+                                        (get-input-stream2 insn past-vars)))))
+
 (define ifE-op
   (operator "ifE"
             (λ (insn past-vars) (ifE (get-input-stream insn past-vars)
@@ -235,6 +264,8 @@
         filterE-const-op ;13
         notB-op ;14
         ifE-op ;15
+        andE-op ;16
+        maskOffE-op ;17
         ))
 
 (define stateful-operator-list
@@ -340,10 +371,7 @@
                                          "(λ (i) (and (>= i ~a) (<= i ~a)))"
                                          "(λ (i) (or (>= i ~a) (<= i ~a)))"
                                          "(λ (i) (and (>= i ~a) (<= i ~a)))"
-                                         "(λ (i) (or (>= i ~a) (<= i ~a)))"
-                                         ))
-;; bool -> bool
-;; no need for these because and, or, not are all baked into the operators
+                                         "(λ (i) (or (>= i ~a) (<= i ~a)))"))
 
 ;; int -> int -> int
 (define inttointtointfuncs (list +

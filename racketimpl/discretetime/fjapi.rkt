@@ -134,6 +134,18 @@
                       #t
                       'no-evt)) evt-stream1 evt-stream2))
 
+(define (maskOnE mask-stream signal-stream)
+  (map (λ (m s)
+         (if (empty-event? m)
+             NOEVENT
+             s)) mask-stream signal-stream))
+
+(define (maskOffE mask-stream signal-stream)
+  (map (λ (m s)
+         (if (not-empty-event? m)
+             NOEVENT
+             s)) mask-stream signal-stream))
+
 (define (notE evt-stream)
   (map (λ (e) (if (empty-event? e) e (not e))) evt-stream))
 

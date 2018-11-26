@@ -202,3 +202,9 @@
   (map (λ (t b) (if (empty-event? t)
                     NOEVENT
                     (if (empty-event? b) 1 NOEVENT))) topE bottomE))
+
+;; increment user counter +1 when escalator is moving up
+(define (inc-moving-up movementE topE bottomE)
+  (constantE 1 (andE (maskOffE (filterE (λ (e) (equal? e EXIT)) topE)
+                               (filterE (λ (e) (equal? e ENTER)) bottomE))
+                     (mapE (λ (e) (equal? e MOVEUP)) movementE))))
