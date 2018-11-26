@@ -1,1 +1,0 @@
-("6.8" ("6651515b19e3793d876847bd9016a699e68eaac6" . "12f3e4a3ba1237cacd169783293e8f2fb7b92334") #"/Users/mpu/research/realtime/comparison/racketimpl/atemporal/fjapi.rkt" #"/Users/mpu/research/realtime/comparison/racketimpl/atemporal/model.rkt" (collects #"racket" #"runtime-config.rkt") (collects #"rosette" #"lang" #"reader.rkt") (collects #"rosette" #"main.rkt"))
