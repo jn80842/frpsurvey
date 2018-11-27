@@ -142,53 +142,78 @@
        (equal? stepsUpdate STOP)))
 
 ;; while escalator is not moving down, entrance from the bottom increments user count if there is no simultaneous exit from top
+;; 6 operators
 (define (inc-moving-up topSensor bottomSensor stepsMovement userCounter)
   (constantE 1 (andE (maskOffE (filterE (λ (e) (equal? e EXIT)) topSensor)
                                (filterE (λ (e) (equal? e ENTER)) bottomSensor))
                      (mapE (λ (e) (not (equal? e MOVINGDOWN))) stepsMovement))))
+
+(define (inc-moving-up-reg topSensor bottomSensor stepsMovement userCounter)
+  (define r1 topSensor)
+  (define r2 bottomSensor)
+  (define r3 stepsMovement)
+  (define r4 userCounter)
+  (define r5 (mapE (λ (e) (not (equal? e MOVINGDOWN))) r3))
+  (define r6 (filterE (λ (e) (equal? e EXIT)) r1))
+  (define r7 (filterE (λ (e) (equal? e ENTER)) r2))
+  (define r8 (maskOffE r6 r7))
+  (define r9 (andE r5 r8))
+  (define r10 (constantE 1 r9))
+  r10)
 ;; similarly when escalator is moving up
+;; 6 operators
 (define (inc-moving-down topSensor bottomSensor stepsMovement userCounter)
   (constantE 1 (andE (maskOffE (filterE (λ (e) (equal? e EXIT)) bottomSensor)
                                (filterE (λ (e) (equal? e ENTER)) topSensor))
                      (mapE (λ (e) (not (equal? e MOVINGUP))) stepsMovement))))
+;; 13 operators
 (define (inc-users topSensor bottomSensor stepsMovement userCounter)
   (mergeE (inc-moving-up topSensor bottomSensor stepsMovement userCounter)
           (inc-moving-down topSensor bottomSensor stepsMovement userCounter)))
 
 ;; while escalator is not moving down, exit from the top decrements user count if there is no simultaneous entrance from bottom
+;; 6 operators
 (define (dec-moving-down topSensor bottomSensor stepsMovement userCounter)
   (constantE -1 (andE (maskOffE (filterE (λ (e) (equal? e ENTER)) bottomSensor)
                                 (filterE (λ (e) (equal? e EXIT)) topSensor))
                       (mapE (λ (e) (not (equal? e MOVINGDOWN))) stepsMovement))))
 ;; similarly when escalator is moving up
+;; 6 operators
 (define (dec-moving-up topSensor bottomSensor stepsMovement userCounter)
   (constantE -1 (andE (maskOffE (filterE (λ (e) (equal? e ENTER)) topSensor)
                                 (filterE (λ (e) (equal? e EXIT)) bottomSensor))
                       (mapE (λ (e) (not (equal? e MOVINGUP))) stepsMovement))))
+;; 13 operators
 (define (dec-users topSensor bottomSensor stepsMovement userCounter)
   (mergeE (dec-moving-down topSensor bottomSensor stepsMovement userCounter)
           (dec-moving-up topSensor bottomSensor stepsMovement userCounter)))
+;; 27 operators
 (define (get-userCounterUpdateE topSensor bottomSensor stepsMovement userCounter)
   (mergeE (inc-users topSensor bottomSensor stepsMovement userCounter)
           (dec-users topSensor bottomSensor stepsMovement userCounter)))
 
 ;; sending signal to escalator to MOVEDOWN
+;; 6 operators
 (define (send-move-down topSensor bottomSensor stepsMovement userCounter)
   (constantE MOVEDOWN (maskOffE (filterE (λ (e) (equal? e ENTER)) (maskOnE (mapE (λ (e) (equal? e 0)) userCounter)
                                                                            bottomSensor))
                                 (filterE (λ (e) (equal? e ENTER)) (maskOnE (mapE (λ (e) (equal? e 0)) userCounter)
                                                                            topSensor)))))
 ;; sending signal to escalator to MOVEUP
+
+;; 6 operators
 (define (send-move-up topSensor bottomSensor stepsMovement userCounter)
   (constantE MOVEUP (maskOffE (filterE (λ (e) (equal? e ENTER)) (maskOnE (mapE (λ (e) (equal? e 0)) userCounter)
                                                                          topSensor))
                               (filterE (λ (e) (equal? e ENTER)) (maskOnE (mapE (λ (e) (equal? e 0)) userCounter)
                                                                          bottomSensor)))))
 ;; sending signal to escalator to STOP
+;; 7 operators
 (define (send-stop topSensor bottomSensor stepsMovement userCounter)
   (constantE STOP (maskOffE (filterE (λ (e) (equal? e ENTER)) (mergeE bottomSensor topSensor))
                             (andE (mapE (λ (e) (equal? e 0)) userCounter) (mapE (λ (e) (not (equal? e STOPPED))) stepsMovement)))))
 
+;; 21 operators
 (define (get-stepsUpdateE topSensor bottomSensor stepsMovement userCounter)
   (mergeE (send-move-down topSensor bottomSensor stepsMovement userCounter)
           (mergeE (send-move-up topSensor bottomSensor stepsMovement userCounter)
@@ -206,3 +231,50 @@
                                              (theta5 sym-top sym-bottom sym-stepsMovement sym-userCounter stepsUpdateE userCounterUpdateE)
                                              (theta6 sym-top sym-bottom sym-stepsMovement sym-userCounter stepsUpdateE userCounterUpdateE)
                                              (theta7 sym-top sym-bottom sym-stepsMovement sym-userCounter stepsUpdateE userCounterUpdateE))))))
+
+;; synthesis experiments:
+;; synthesize based on paper specs
+
+;; synthesize userCounter increment program
+(define userCounterIncUp-sk (get-symbolic-sketch 6 4))
+(define evaled-userCounterIncUp-sk ((get-sketch-function userCounterIncUp-sk) sym-top sym-bottom sym-stepsMovement sym-userCounter))
+;; took 120s with only ref impl as spec
+;; took 533s with both i/o and ref impl as spec
+;; took 5s with only i/o
+(define b (time (synthesize #:forall (symbolics (list sym-top sym-bottom sym-stepsMovement sym-userCounter))
+                            #:guarantee (assert (and (equal? ((get-sketch-function userCounterIncUp-sk) NOEVENT ENTER MOVINGUP 0) 1)
+                                                     (equal? ((get-sketch-function userCounterIncUp-sk) NOEVENT ENTER MOVINGUP 1) 1)
+                                                     (equal? ((get-sketch-function userCounterIncUp-sk) NOEVENT ENTER MOVINGUP 2) 1)
+                                                     (equal? ((get-sketch-function userCounterIncUp-sk) EXIT NOEVENT MOVINGUP 1) NOEVENT)
+                                                     (equal? ((get-sketch-function userCounterIncUp-sk) EXIT ENTER MOVINGUP 1) NOEVENT)
+                                                     (equal? ((get-sketch-function userCounterIncUp-sk) EXIT ENTER MOVINGUP 1) NOEVENT)
+                                                     (equal? ((get-sketch-function userCounterIncUp-sk) EXIT ENTER MOVINGDOWN 1) NOEVENT)
+                                         ;(equal? evaled-userCounterIncUp-sk (inc-moving-up sym-top sym-bottom sym-stepsMovement sym-userCounter))
+                                         )))))
+;; synthesized answer
+(define (synthesized-function input1 input2 input3 input4)
+  (define r1 input1)
+  (define r2 input2)
+  (define r3 input3)
+  (define r4 input4)
+  (define r5 (mapE (λ (i) (and (>= i 1) (<= i 1))) r1))
+  (define r6 (mapE (λ (i) (or (>= i 2) (<= i 0))) r3))
+  (define r7 (mapE (λ (i) (and (>= i 0) (<= i 0))) r2))
+  (define r8 (andE r6 r7))
+  (define r9 (maskOffE r5 r8))
+  (define r10 (constantE 1 r9))
+  r10)
+(clear-asserts!)
+
+;; synthesize userCounterUpdate program
+(define userCounter-sk(get-symbolic-sketch 27 4))
+
+#;(define synthed-userCounter
+  (let ([evaled-userCounter-sk ((get-sketch-function userCounter-sk) sym-top sym-bottom sym-stepsMovement sym-userCounter)])
+    (time (synthesize #:forall (symbolics (list sym-top sym-bottom sym-stepsMovement sym-userCounter))
+                      #:guarantee (assert (and (theta0 sym-top sym-bottom sym-stepsMovement sym-userCounter NOEVENT evaled-userCounter-sk)
+                                               (theta1 sym-top sym-bottom sym-stepsMovement sym-userCounter NOEVENT evaled-userCounter-sk)))))))
+;; synthesize stepsUpdate program
+(define stepsUpdate-sk (get-symbolic-sketch 21 4))
+;; synthesize based on input/output traces
+;; synthesize based on invariants not present in paper specs

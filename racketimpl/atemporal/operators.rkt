@@ -115,6 +115,10 @@
             (λ (insn past-vars) (format "~a ~a"
                                         (get-input-stream insn past-vars)
                                         (get-input-stream2 insn past-vars)))))
+(define notE-op
+  (operator "notE"
+            (λ (insn past-vars) (notE (get-input-stream insn past-vars)))
+            (λ (insn past-vars) (format "~a" (get-input-stream insn past-vars)))))
 
 (define maskOnE-op
   (operator "maskOnE"
@@ -286,8 +290,27 @@
         changes-op ;23
         ))
 
-(define operator-list
+#;(define operator-list
   (append stateless-operator-list stateful-operator-list))
+(define operator-list
+  (list andE-op
+       ; collectE-imm-op
+        constantE-imm-op
+        constantE-op
+       ; delayE-op
+        filterE-const-op
+        filterE-op
+       ; filterRepeatsE-op
+        ifE-op
+        mapE-op
+        mapE-twoconst-op
+        maskOffE-op
+        maskOnE-op
+        mergeE-op
+        notE-op
+        orE-op
+        snapshotE-op
+        ))
 
 (define (get-input-stream insn past-vars)
   (list-ref past-vars (stream-insn-arg-index1 insn)))
@@ -348,6 +371,7 @@
                              (λ (placeholder p2 i) (< i placeholder))
                              (λ (placeholder p2 i) (> i placeholder))
                              (λ (placeholder p2 i) (= i placeholder))
+                             (λ (placeholder p2 i) (not (= i placeholder)))
                              ))
 
 (define inttoboolfuncs-string (list "(λ (i) (<= i ~a))"
@@ -355,6 +379,7 @@
                                     "(λ (i) (< i ~a))"
                                     "(λ (i) (> i ~a))"
                                     "(λ (i) (= i ~a))"
+                                    "(λ (i) (not (= i ~a)))"
                                     ))
 
 ;; note that these can be composed from the inttoboolfuncs

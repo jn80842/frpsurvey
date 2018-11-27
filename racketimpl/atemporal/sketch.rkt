@@ -2,26 +2,20 @@
 
 (require "model.rkt")
 (require "operators.rkt")
-;(require "specifications.rkt")
 
 (provide (all-defined-out))
 
-(struct sketch (holes state-mask retval-idx stateless-op-list stateful-op-list input-count) #:transparent)
+(struct sketch (holes retval-idx input-count) #:transparent)
 
-(define (get-symbolic-sketch insn-length state-mask input-count)
-  (sketch (get-holes-list insn-length) state-mask (get-retval-idx) stateless-operator-list stateful-operator-list input-count))
-
-(define (full-op-list sk)
-  (append (sketch-stateless-op-list sk) (sketch-stateful-op-list sk)))
+(define (get-symbolic-sketch insn-length input-count)
+  (sketch (get-holes-list insn-length) (get-retval-idx) input-count))
 
 (define (operator-lookup sk insn-idx [binding #f])
   (let* ([insn (if binding
                    (evaluate (list-ref (sketch-holes sk) insn-idx) binding)
                    (list-ref (sketch-holes sk) insn-idx))]
          [op-id (stream-insn-op-index insn)])
-    (if (vector-ref (sketch-state-mask sk) insn-idx)
-        (list-ref (full-op-list sk) op-id)
-        (list-ref (sketch-stateless-op-list sk) op-id))))
+    (list-ref operator-list op-id)))
 
 (define (string-from-sketch sk binding funcname)
   (let* ([input-count (sketch-input-count sk)]
@@ -124,13 +118,13 @@
                                           (displayln (format "Program2 output: ~a"
                                                              (execute-sketch shuffled-sketch (evaluate inputs binding2) binding2))))))))))))
 
-(define (shuffle-sketch sk)
+;; can add this back in by adding operator list as a field on the sketch struct
+#;(define (shuffle-sketch sk)
   (sketch (get-holes-list (length (sketch-holes sk)))
-                                                      (sketch-state-mask sk)
-                                                      (get-retval-idx)
-                                                      (shuffle stateless-operator-list)
-                                                      (shuffle stateful-operator-list)
-                                                      (sketch-input-count sk)))
+          (get-retval-idx)
+          (shuffle stateless-operator-list)
+          (shuffle stateful-operator-list)
+          (sketch-input-count sk)))
 
 #;(define (specs-synthesis sk specs inputs)
   (let ([formulas (spec-formulas specs (get-sketch-function sk))])
