@@ -293,23 +293,23 @@
 #;(define operator-list
   (append stateless-operator-list stateful-operator-list))
 (define operator-list
-  (list andE-op
+  (list andE-op ;0
        ; collectE-imm-op
-        constantE-imm-op
-        constantE-op
+        constantE-imm-op ;1
+        constantE-op ;2
        ; delayE-op
-        filterE-const-op
-        filterE-op
+        filterE-const-op ;3
+        filterE-op ;4
        ; filterRepeatsE-op
-        ifE-op
-        mapE-op
-        mapE-twoconst-op
-        maskOffE-op
-        maskOnE-op
-        mergeE-op
-        notE-op
-        orE-op
-        snapshotE-op
+        ifE-op ;5
+        mapE-op ;6
+       ; mapE-twoconst-op
+        maskOffE-op ;7
+        maskOnE-op ;8
+        mergeE-op ;9
+        notE-op ;10
+        orE-op ;11
+       ; snapshotE-op
         ))
 
 (define (get-input-stream insn past-vars)
@@ -366,12 +366,12 @@
                                   ; "(λ (i) (* i ~a))"
                                    ))
 ;; int -> bool
-(define inttoboolfuncs (list (λ (placeholder p2 i) (<= i placeholder))
-                             (λ (placeholder p2 i) (>= i placeholder))
-                             (λ (placeholder p2 i) (< i placeholder))
-                             (λ (placeholder p2 i) (> i placeholder))
-                             (λ (placeholder p2 i) (= i placeholder))
-                             (λ (placeholder p2 i) (not (= i placeholder)))
+(define inttoboolfuncs (list (λ (placeholder i) (<= i placeholder))
+                             (λ (placeholder i) (>= i placeholder))
+                             (λ (placeholder i) (< i placeholder))
+                             (λ (placeholder i) (> i placeholder))
+                             (λ (placeholder i) (= i placeholder))
+                             (λ (placeholder i) (not (= i placeholder)))
                              ))
 
 (define inttoboolfuncs-string (list "(λ (i) (<= i ~a))"

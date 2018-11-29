@@ -242,15 +242,15 @@
 ;; took 533s with both i/o and ref impl as spec
 ;; took 5s with only i/o
 (define b (time (synthesize #:forall (symbolics (list sym-top sym-bottom sym-stepsMovement sym-userCounter))
-                            #:guarantee (assert (and (equal? ((get-sketch-function userCounterIncUp-sk) NOEVENT ENTER MOVINGUP 0) 1)
-                                                     (equal? ((get-sketch-function userCounterIncUp-sk) NOEVENT ENTER MOVINGUP 1) 1)
-                                                     (equal? ((get-sketch-function userCounterIncUp-sk) NOEVENT ENTER MOVINGUP 2) 1)
-                                                     (equal? ((get-sketch-function userCounterIncUp-sk) EXIT NOEVENT MOVINGUP 1) NOEVENT)
-                                                     (equal? ((get-sketch-function userCounterIncUp-sk) EXIT ENTER MOVINGUP 1) NOEVENT)
-                                                     (equal? ((get-sketch-function userCounterIncUp-sk) EXIT ENTER MOVINGUP 1) NOEVENT)
-                                                     (equal? ((get-sketch-function userCounterIncUp-sk) EXIT ENTER MOVINGDOWN 1) NOEVENT)
-                                         ;(equal? evaled-userCounterIncUp-sk (inc-moving-up sym-top sym-bottom sym-stepsMovement sym-userCounter))
-                                         )))))
+                            #:guarantee (assert ;(and ;(equal? ((get-sketch-function userCounterIncUp-sk) NOEVENT ENTER MOVINGUP 0) 1)
+                                                     ;(equal? ((get-sketch-function userCounterIncUp-sk) NOEVENT ENTER MOVINGUP 1) 1)
+                                                     ;(equal? ((get-sketch-function userCounterIncUp-sk) NOEVENT ENTER MOVINGUP 2) 1)
+                                                     ;(equal? ((get-sketch-function userCounterIncUp-sk) EXIT NOEVENT MOVINGUP 1) NOEVENT)
+                                                     ;(equal? ((get-sketch-function userCounterIncUp-sk) EXIT ENTER MOVINGUP 1) NOEVENT)
+                                                     ;(equal? ((get-sketch-function userCounterIncUp-sk) EXIT ENTER MOVINGUP 1) NOEVENT)
+                                                     ;(equal? ((get-sketch-function userCounterIncUp-sk) EXIT ENTER MOVINGDOWN 1) NOEVENT)
+                                         (equal? evaled-userCounterIncUp-sk (inc-moving-up sym-top sym-bottom sym-stepsMovement sym-userCounter))
+                                         ))))
 ;; synthesized answer
 (define (synthesized-function input1 input2 input3 input4)
   (define r1 input1)
@@ -265,6 +265,13 @@
   (define r10 (constantE 1 r9))
   r10)
 (clear-asserts!)
+(define concrete-sk (sketch (list (stream-insn 6 2 0 0 6 1 0)
+                                  (stream-insn 3 0 0 0 0 1 0)
+                                  (stream-insn 3 1 0 0 0 0 0)
+                                  (stream-insn 7 5 6 0 0 0 0)
+                                  (stream-insn 0 4 7 0 0 0 0)
+                                  (stream-insn 1 8 0 0 0 1 0))
+                            9 4))
 
 ;; synthesize userCounterUpdate program
 (define userCounter-sk(get-symbolic-sketch 27 4))
