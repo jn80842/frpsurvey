@@ -9,30 +9,30 @@
 
 (current-bitwidth #f)
 
-(define ENTER 0)
-(define EXIT 1)
+(define ENTER (bv 0 (bitvector 4)))
+(define EXIT (bv 1 (bitvector 4)))
 
-(define MOVEUP 0)
-(define MOVEDOWN 1)
-(define STOP 2)
+(define MOVEUP (bv 0 (bitvector 4)))
+(define MOVEDOWN (bv 1 (bitvector 4)))
+(define STOP (bv 2 (bitvector 4)))
 
-(define MOVINGUP 0)
-(define MOVINGDOWN 1)
-(define STOPPED 2)
+(define MOVINGUP (bv 0 (bitvector 4)))
+(define MOVINGDOWN (bv 1 (bitvector 4)))
+(define STOPPED (bv 2 (bitvector 4)))
 
 (define-symbolic* top? boolean?)
-(define-symbolic* top integer?)
+(define-symbolic* top (bitvector 4))
 (define sym-top (if top? top NOEVENT))
 (define-symbolic* bottom? boolean?)
-(define-symbolic* bottom integer?)
+(define-symbolic* bottom (bitvector 4))
 (define sym-bottom (if bottom? bottom NOEVENT))
-(define-symbolic* sym-stepsMovement integer?)
-(define-symbolic* sym-userCounter integer?)
+(define-symbolic* sym-stepsMovement (bitvector 4))
+(define-symbolic* sym-userCounter (bitvector 4))
 (define-symbolic* stepsUpdate? boolean?)
-(define-symbolic* stepsUpdate integer?)
+(define-symbolic* stepsUpdate (bitvector 4))
 (define sym-stepsUpdate (if stepsUpdate? stepsUpdate NOEVENT))
 (define-symbolic* userCounterUpdate? boolean?)
-(define-symbolic* userCounterUpdate integer?)
+(define-symbolic* userCounterUpdate (bitvector 4))
 (define sym-userCounterUpdate (if userCounterUpdate? userCounterUpdate NOEVENT))
 
 (define (print-sensor s)
@@ -144,7 +144,7 @@
 ;; while escalator is not moving down, entrance from the bottom increments user count if there is no simultaneous exit from top
 ;; 6 operators
 (define (inc-moving-up topSensor bottomSensor stepsMovement userCounter)
-  (constantE 1 (andE (maskOffE (filterE (λ (e) (equal? e EXIT)) topSensor)
+  (constantE (bv 1 (bitvector 4)) (andE (maskOffE (filterE (λ (e) (equal? e EXIT)) topSensor)
                                (filterE (λ (e) (equal? e ENTER)) bottomSensor))
                      (mapE (λ (e) (not (equal? e MOVINGDOWN))) stepsMovement))))
 
@@ -265,12 +265,12 @@
   (define r10 (constantE 1 r9))
   r10)
 (clear-asserts!)
-(define concrete-sk (sketch (list (stream-insn 6 2 0 0 6 1 0)
-                                  (stream-insn 3 0 0 0 0 1 0)
-                                  (stream-insn 3 1 0 0 0 0 0)
-                                  (stream-insn 7 5 6 0 0 0 0)
-                                  (stream-insn 0 4 7 0 0 0 0)
-                                  (stream-insn 1 8 0 0 0 1 0))
+(define concrete-sk (sketch (list (stream-insn 6 2 0 0 1 (bv 1 (bitvector 4)) (bv 0 (bitvector 4)))
+                                  (stream-insn 3 0 0 0 0 (bv 1 (bitvector 4)) (bv 0 (bitvector 4)))
+                                  (stream-insn 3 1 0 0 0 (bv 0 (bitvector 4)) (bv 0 (bitvector 4)))
+                                  (stream-insn 7 5 6 0 0 (bv 0 (bitvector 4)) (bv 0 (bitvector 4)))
+                                  (stream-insn 0 4 7 0 0 (bv 0 (bitvector 4)) (bv 0 (bitvector 4)))
+                                  (stream-insn 1 8 0 0 0 (bv 1 (bitvector 4)) (bv 0 (bitvector 4))))
                             9 4))
 
 ;; synthesize userCounterUpdate program

@@ -15,8 +15,8 @@
   (define-symbolic* arg2 integer?)
   (define-symbolic* arg3 integer?)
   (define-symbolic* option-index integer?)
-  (define-symbolic* arg-int integer?)
-  (define-symbolic* arg-int2 integer?)
+  (define-symbolic* arg-int (bitvector 4))
+  (define-symbolic* arg-int2 (bitvector 4))
   (stream-insn op streamidx arg2 arg3 option-index arg-int arg-int2))
 
 (define (get-holes-list count)
@@ -71,13 +71,11 @@
                                         (get-input-stream insn past-vars)))))
 (define mapE-op
   (operator "mapE"
-            (λ (insn past-vars) (mapE (curry (list-ref (append
-                                                        inttointfuncs
-                                                        inttoboolfuncs) (stream-insn-option-index insn))
+            (λ (insn past-vars) (mapE (curry (list-ref inttoboolfuncs (stream-insn-option-index insn))
                                              (get-integer-arg insn))
                                       (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
-                                        (format (list-ref (append inttointfuncs-string inttoboolfuncs-string)
+                                        (format (list-ref inttoboolfuncs-string
                                                           (stream-insn-option-index insn))
                                                 (get-integer-arg insn))
                                         (get-input-stream insn past-vars)))))
@@ -366,18 +364,18 @@
                                   ; "(λ (i) (* i ~a))"
                                    ))
 ;; int -> bool
-(define inttoboolfuncs (list (λ (placeholder i) (<= i placeholder))
-                             (λ (placeholder i) (>= i placeholder))
-                             (λ (placeholder i) (< i placeholder))
-                             (λ (placeholder i) (> i placeholder))
-                             (λ (placeholder i) (= i placeholder))
-                             (λ (placeholder i) (not (= i placeholder)))
+(define inttoboolfuncs (list ; (λ (placeholder i) (<= i placeholder))
+                            ; (λ (placeholder i) (>= i placeholder))
+                            ; (λ (placeholder i) (< i placeholder))
+                            ; (λ (placeholder i) (> i placeholder))
+                             (λ (placeholder i) (equal? i placeholder))
+                             (λ (placeholder i) (not (equal? i placeholder)))
                              ))
 
-(define inttoboolfuncs-string (list "(λ (i) (<= i ~a))"
-                                    "(λ (i) (>= i ~a))"
-                                    "(λ (i) (< i ~a))"
-                                    "(λ (i) (> i ~a))"
+(define inttoboolfuncs-string (list ;"(λ (i) (<= i ~a))"
+                                    ;"(λ (i) (>= i ~a))"
+                                    ;"(λ (i) (< i ~a))"
+                                    ;"(λ (i) (> i ~a))"
                                     "(λ (i) (= i ~a))"
                                     "(λ (i) (not (= i ~a)))"
                                     ))
