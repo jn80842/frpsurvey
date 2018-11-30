@@ -14,3 +14,4 @@ rx/racketimpl/benchmarks/compiled/
 deepcoderlang/compiled/
 racketimpl/discretetime/compiled/
 racketimpl/atemporal/compiled/
+racketimpl/atemporal-integer/compiled/
