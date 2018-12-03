@@ -15,8 +15,14 @@
   (define-symbolic* arg2 integer?)
   (define-symbolic* arg3 integer?)
   (define-symbolic* option-index integer?)
-  (define-symbolic* arg-int integer?)
-  (define-symbolic* arg-int2 integer?)
+  ;(define-symbolic* arg-int integer?)
+  (define-symbolic* arg-intb1 boolean?)
+  (define-symbolic* arg-intb2 boolean?)
+  (define arg-int (if arg-intb1 (if arg-intb2 -1 0) (if arg-intb2 1 2)))
+  ;(define-symbolic* arg-int2 integer?)
+  (define-symbolic* arg-int2b1 boolean?)
+  (define-symbolic* arg-int2b2 boolean?)
+  (define arg-int2 (if arg-int2b1 (if arg-int2b1 -1 0) (if arg-int2b2 1 2)))
   (stream-insn op streamidx arg2 arg3 option-index arg-int arg-int2))
 
 (define (get-holes-list count)
@@ -71,7 +77,10 @@
                                         (get-input-stream insn past-vars)))))
 (define mapE-op
   (operator "mapE"
-            (λ (insn past-vars) (mapE (curry (list-ref (append inttointfuncs inttoboolfuncs) (stream-insn-option-index insn))
+            (λ (insn past-vars) (mapE (curry (list-ref
+                                              ;(append inttointfuncs inttoboolfuncs)
+                                              inttoboolfuncs
+                                              (stream-insn-option-index insn))
                                              (get-integer-arg insn))
                                       (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"

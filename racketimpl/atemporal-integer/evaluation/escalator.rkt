@@ -1,6 +1,9 @@
 #lang rosette
 
-;; TODO: rewrite constraints to understand events as symbolic unions
+;; to find package installation location:
+;; (require setup/dirs)
+;; (find-pkgs-dir)
+;; (find-user-pkgs-dir)
 
 (require "../model.rkt")
 (require "../fjapi.rkt")
@@ -20,37 +23,48 @@
 (define MOVINGDOWN 1)
 (define STOPPED 2)
 
+(define (get-sym-enum4)
+  (define-symbolic* enum-b1 boolean?)
+  (define-symbolic* enum-b2 boolean?)
+  (if enum-b1 (if enum-b2 -1 0) (if enum-b2 1 2)))
+
 (define-symbolic* top? boolean?)
-(define-symbolic* top integer?)
-(define sym-top (if top? top NOEVENT))
+;(define-symbolic* top integer?)
+;(define sym-top (if top? top NOEVENT))
+(define sym-top (if top? (get-sym-enum4) NOEVENT))
 (define-symbolic* bottom? boolean?)
-(define-symbolic* bottom integer?)
-(define sym-bottom (if bottom? bottom NOEVENT))
-(define-symbolic* sym-stepsMovement integer?)
+;(define-symbolic* bottom integer?)
+;(define sym-bottom (if bottom? bottom NOEVENT))
+(define sym-bottom (if bottom? (get-sym-enum4) NOEVENT))
+;(define-symbolic* sym-stepsMovement integer?)
+(define sym-stepsMovement (get-sym-enum4))
 (define-symbolic* sym-userCounter integer?)
 (define-symbolic* stepsUpdate? boolean?)
-(define-symbolic* stepsUpdate integer?)
-(define sym-stepsUpdate (if stepsUpdate? stepsUpdate NOEVENT))
+;(define-symbolic* stepsUpdate integer?)
+;(define sym-stepsUpdate (if stepsUpdate? stepsUpdate NOEVENT))
+(define sym-stepsUpdate (if stepsUpdate? (get-sym-enum4) NOEVENT))
 (define-symbolic* userCounterUpdate? boolean?)
-(define-symbolic* userCounterUpdate integer?)
-(define sym-userCounterUpdate (if userCounterUpdate? userCounterUpdate NOEVENT))
+;(define-symbolic* userCounterUpdate integer?)
+;(define sym-userCounterUpdate (if userCounterUpdate? userCounterUpdate NOEVENT))
+(define sym-userCounterUpdate (if userCounterUpdate? (get-sym-enum4) NOEVENT))
 
-(define (print-sensor s)
+#;(define (print-sensor s)
   (cond [(equal? s ENTER) "ENTER"]
         [(equal? s EXIT) "EXIT"]
         [else s]))
-(define (print-stepsMovement s)
+
+#;(define (print-stepsMovement s)
   (cond [(equal? s MOVINGUP) "MOVINGUP"]
         [(equal? s MOVINGDOWN) "MOVINGDOWN"]
         [(equal? s STOPPED) "STOPPED"]
         [else s]))
-(define (print-stepsUpdate s)
+#;(define (print-stepsUpdate s)
   (cond [(equal? s MOVEUP) "MOVEUP"]
         [(equal? s MOVEDOWN) "MOVEDOWN"]
         [(equal? s STOP) "STOP"]
         [else s]))
 
-(define (print-model m)
+#;(define (print-model m)
   (if (unsat? m)
       (format "UNSAT")
       (begin (println (format "topSensor: ~a" (if (evaluate top? m) (print-sensor (evaluate top m)) "NOEVENT")))
