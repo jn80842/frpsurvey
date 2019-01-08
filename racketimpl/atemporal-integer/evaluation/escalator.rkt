@@ -266,8 +266,8 @@
                                          (equal? evaled-userCounterIncUp-sk (inc-moving-up sym-top sym-bottom sym-stepsMovement sym-userCounter))
                                          ))))
 (clear-asserts!)
-;(define userCounterInc-sk (get-symbolic-sketch 13 4))
-;(define evaled-userCounterInc-sk ((get-sketch-function userCounterInc-sk) sym-top sym-bottom sym-stepsMovement sym-userCounter))
+(define userCounterInc-sk (get-symbolic-sketch 13 4))
+(define evaled-userCounterInc-sk ((get-sketch-function userCounterInc-sk) sym-top sym-bottom sym-stepsMovement sym-userCounter))
 #;(define b (time (synthesize #:forall (symbolics (list sym-top sym-bottom sym-stepsMovement sym-userCounter))
                             #:guarantee (assert (equal? evaled-userCounterInc-sk (inc-users sym-top sym-bottom sym-stepsMovement sym-userCounter))))))
 ;; synthesized answer
