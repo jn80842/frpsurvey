@@ -148,7 +148,7 @@
   (list identityE-op ;; 0
         zeroE-op ;; 1
         mapE-op ;; 2
-        mapE-twoconst-op ;; 3
+        ;mapE-twoconst-op ;; 3
         ;mapE2-op
         mergeE-op ;; 4
         filterE-op ;; 5

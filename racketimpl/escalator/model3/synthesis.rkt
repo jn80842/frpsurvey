@@ -4,6 +4,9 @@
 (require "operators.rkt")
 (require "sketch.rkt")
 
+#;(provide all-defined-out)
+(provide print-input-model)
+
 (current-bitwidth #f)
 
 (define ENTER (bv 0 (bitvector 1)))
@@ -69,7 +72,6 @@
 (define-symbolic* userCounterUpdate? boolean?)
 (define-symbolic* userCounterUpdate (bitvector 1))
 (define sym-userCounterUpdate (if userCounterUpdate? userCounterUpdate NOEVENT))
-
 
 ;; constraints on inputs
 (define (input-constraints topSensor bottomSensor stepsMovement userCounter)
@@ -167,7 +169,73 @@
 (clear-asserts!)
 #;(let ([evaled-sk ((get-sketch-function theta0-sk) sym-top sym-bottom sym-stepsMovement sym-userCounter)]
       [constraints (assert (input-constraints sym-top sym-bottom sym-stepsMovement sym-userCounter))])
-  (time (synthesize #:forall (symbolics (list sym-top sym-bottom sym-stepsMovement sym-userCounter))
-                    #:guarantee (assert (equal? evaled-sk (handwrittenfunc-theta0 sym-top sym-bottom sym-stepsMovement sym-userCounter))))))
-                    ;(assert (theta0 sym-top sym-bottom sym-stepsMovement sym-userCounter sym-stepsUpdate evaled-sk)))))
+  (let ([b (time (synthesize #:forall (symbolics (list sym-top sym-bottom sym-stepsMovement sym-userCounter))
+                    #:guarantee (assert (equal? evaled-sk (handwrittenfunc-theta0 sym-top sym-bottom sym-stepsMovement sym-userCounter)))
+;(assert (theta0 sym-top sym-bottom sym-stepsMovement sym-userCounter sym-stepsUpdate evaled-sk)))))
+                    ))])
+    (if (unsat? b)
+        (println "unsat")
+        (print-sketch theta0-sk b))))
+(clear-asserts!)
+
+;; top NOEVENT bottom NOEVENT -> userCounterUpdate NOEVENT
+(define (ex1 topSensor bottomSensor stepsMovement userCounter stepsUpdate userCounterUpdate)
+  (implies (and (equal? topSensor NOEVENT) (equal? bottomSensor NOEVENT))
+           (equal? userCounterUpdate NOEVENT)))
+;; top NOEVENT bottom ENTER stepsMovement MOVINGUP -> INCBYONE
+(define (ex2 topSensor bottomSensor stepsMovement userCounter stepsUpdate userCounterUpdate)
+  (implies (and (equal? topSensor NOEVENT) (equal? bottomSensor ENTER) (equal? stepsMovement MOVINGUP))
+           (equal? userCounterUpdate INCBYONE)))
+;; top ENTER bottom ENTER stepsMovement MOVINGUP -> INCBYONE
+(define (ex3 topSensor bottomSensor stepsMovement userCounter stepsUpdate userCounterUpdate)
+  (implies (and (equal? topSensor ENTER) (equal? bottomSensor ENTER) (equal? stepsMovement MOVINGUP))
+           (equal? userCounterUpdate INCBYONE)))
+;; top EXIT bottom ENTER stepsMovement MOVINGUP -> NOEVENT
+(define (ex4 topSensor bottomSensor stepsMovement userCounter stepsUpdate userCounterUpdate)
+  (implies (and (equal? topSensor EXIT) (equal? bottomSensor ENTER) (equal? stepsMovement MOVINGUP))
+           (equal? userCounterUpdate NOEVENT)))
+;; bottom EXIT stepsMovement -> NOEVENT
+(define (ex5 topSensor bottomSensor stepsMovement userCounter stepsUpdate userCounterUpdate)
+  (implies (and (equal? bottomSensor EXIT) (equal? stepsMovement MOVINGDOWN))
+           (equal? userCounterUpdate NOEVENT)))
+;; top ENTER bottom NOEVENT stepsMovement MOVINGDOWN -> INCBYONE
+(define (ex6 topSensor bottomSensor stepsMovement userCounter stepsUpdate userCounterUpdate)
+   (implies (and (equal? topSensor ENTER) (equal? bottomSensor NOEVENT) (equal? stepsMovement MOVINGDOWN))
+            (equal? userCounterUpdate INCBYONE)))
+;; top ENTER bottom EXIT stepsMovement MOVINGDOWN -> NOEVENT
+(define (ex7 topSensor bottomSensor stepsMovement userCounter stepsUpdate userCounterUpdate)
+  (implies (and (equal? topSensor ENTER) (equal? bottomSensor EXIT) (equal? stepsMovement MOVINGDOWN))
+           (equal? userCounterUpdate NOEVENT)))
+;; top ENTER bottom ENTER stepsMovement MOVINGDOWN -> INCBYONE
+(define (ex8 topSensor bottomSensor stepsMovement userCounter stepsUpdate userCounterUpdate)
+  (implies (and (equal? topSensor ENTER) (equal? bottomSensor ENTER) (equal? stepsMovement MOVINGDOWN))
+           (equal? userCounterUpdate INCBYONE)))
+;; top EXIT stepsMovement MOVINGDOWN -> NOEVENT
+(define (ex9 topSensor bottomSensor stepsMovement userCounter stepsUpdate userCounterUpdate)
+  (implies (and (equal? topSensor EXIT) (equal? stepsMovement MOVINGDOWN))
+           (equal? userCounterUpdate NOEVENT)))
+;; top ENTER bottom NOEVENT stepsMovement MOVINGUP -> NOEVENT
+(define (ex10 topSensor bottomSensor stepsMovement userCounter stepsUpdate userCounterUpdate)
+  (implies (and (equal? topSensor ENTER) (equal? bottomSensor NOEVENT) (equal? stepsMovement MOVINGUP))
+           (equal? userCounterUpdate NOEVENT)))
+;; top ENTER bottom NOEVENT stepsMovement MOVINGUP -> NOEVENT
+
+(let ([evaled-sk ((get-sketch-function theta0-sk) sym-top sym-bottom sym-stepsMovement sym-userCounter)]
+      [constraints (assert (input-constraints sym-top sym-bottom sym-stepsMovement sym-userCounter))])
+  (let ([b (time (synthesize #:forall (symbolics (list sym-top sym-bottom sym-stepsMovement sym-userCounter))
+                             #:guarantee (begin
+                                           (assert (ex1 sym-top sym-bottom sym-stepsMovement sym-userCounter NOEVENT evaled-sk))
+                                           (assert (ex2 sym-top sym-bottom sym-stepsMovement sym-userCounter NOEVENT evaled-sk))
+                                           (assert (ex3 sym-top sym-bottom sym-stepsMovement sym-userCounter NOEVENT evaled-sk))
+                                           (assert (ex4 sym-top sym-bottom sym-stepsMovement sym-userCounter NOEVENT evaled-sk))
+                                           (assert (ex5 sym-top sym-bottom sym-stepsMovement sym-userCounter NOEVENT evaled-sk))
+                                           (assert (ex6 sym-top sym-bottom sym-stepsMovement sym-userCounter NOEVENT evaled-sk))
+                                           (assert (ex7 sym-top sym-bottom sym-stepsMovement sym-userCounter NOEVENT evaled-sk))
+                                           (assert (ex8 sym-top sym-bottom sym-stepsMovement sym-userCounter NOEVENT evaled-sk))
+                                           (assert (ex9 sym-top sym-bottom sym-stepsMovement sym-userCounter NOEVENT evaled-sk))
+                                           (assert (ex10 sym-top sym-bottom sym-stepsMovement sym-userCounter NOEVENT evaled-sk))
+                                           )))])
+    (if (unsat? b)
+        (println "unsat")
+        (print-sketch theta0-sk b))))
 (clear-asserts!)
