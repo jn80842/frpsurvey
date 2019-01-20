@@ -5,29 +5,116 @@
 (provide (all-defined-out))
 
 (struct stream-insn 
-  (op-index arg-index1 arg-index2 arg-index3 option-index arg-int arg-int2) #:transparent)
+  (op-index arg-index1 arg-index2 option-index consts-idx) #:transparent)
 
-(define (get-insn-holes)
-  (define-symbolic* op integer?)
-  (define-symbolic* streamidx integer?)
-  (define-symbolic* arg2 integer?)
-  (define-symbolic* arg3 integer?)
-  (define-symbolic* option-index integer?)
-  (define-symbolic* arg-int integer?)
-  (define-symbolic* arg-int2 integer?)
-  (stream-insn op streamidx arg2 arg3 option-index arg-int arg-int2))
+(define (always-different-bool)
+  (define-symbolic* b boolean?) b)
+(define (get-bool-list size)
+  (for/list ([i (range size)]) (always-different-bool)))
+(define (bool-lookup vals bools)
+  (letrec ([f (λ (lst b-lst) (cond [(equal? (length lst) 2) (if (list-ref b-lst 0)
+                                                                (list-ref lst 0)
+                                                                (list-ref lst 1))]
+                                   [else (if (list-ref b-lst 0)
+                                             (list-ref lst 0)
+                                             (f (cdr lst) (cdr b-lst)))]))])
+    (f vals bools)))
 
-(define (get-holes-list count)
-  (for/list ([i (range count)]) (get-insn-holes)))
+(define (get-insn-holes past-var-size)
+  (define-symbolic* option-index boolean?)
+  (stream-insn (get-symbolic-op-idx) (get-bool-list past-var-size) (get-bool-list past-var-size) option-index (get-symbolic-consts-idx)))
 
-(define (get-retval-idx)
-  (define-symbolic* retval-idx integer?)
-  retval-idx)
+(define (get-holes-list count input-size)
+  (for/list ([i (range count)]) (get-insn-holes (+ input-size i))))
+
+(define (get-retval-idx insn-count input-count)
+  (get-bool-list (+ insn-count input-count)))
+
+(struct op-idx (b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11) #:transparent)
+
+(define (get-symbolic-op-idx)
+  (define-symbolic* b1 boolean?)
+  (define-symbolic* b2 boolean?)
+  (define-symbolic* b3 boolean?)
+  (define-symbolic* b4 boolean?)
+  (define-symbolic* b5 boolean?)
+  (define-symbolic* b6 boolean?)
+  (define-symbolic* b7 boolean?)
+  (define-symbolic* b8 boolean?)
+  (define-symbolic* b9 boolean?)
+  (define-symbolic* b10 boolean?)
+  (define-symbolic* b11 boolean?)
+  (op-idx b1 b2 b3 b4 b5 b6 b7 b8 b9 b10 b11))
+
+(define (get-operator ops)
+  (let ([b1 (op-idx-b1 ops)]
+        [b2 (op-idx-b2 ops)]
+        [b3 (op-idx-b3 ops)]
+        [b4 (op-idx-b4 ops)]
+        [b5 (op-idx-b5 ops)]
+        [b6 (op-idx-b6 ops)]
+        [b7 (op-idx-b7 ops)]
+        [b8 (op-idx-b8 ops)]
+        [b9 (op-idx-b9 ops)]
+        [b10 (op-idx-b10 ops)]
+        [b11 (op-idx-b11 ops)])
+    (if b1 identityE-op
+        (if b2 zeroE-op
+            (if b3 mapE-op
+                (if b4 mergeE-op
+                    (if b5 filterE-op
+                        (if b6 filterE-const-op
+                            (if b7 constantE-op
+                                (if b8 andE-op
+                                    (if b9 orE-op
+                                        (if b10 notE-op
+                                            (if b11 maskOnE-op
+                                                maskOffE-op)))))))))))))
+
+(struct consts-idx (b1 b2 b3 b4) #:transparent)
+
+(define (get-symbolic-consts-idx)
+  (define-symbolic* b1 boolean?)
+  (define-symbolic* b2 boolean?)
+  (define-symbolic* b3 boolean?)
+  (define-symbolic* b4 boolean?)
+  (consts-idx b1 b2 b3 b4))
+
+(define (get-consts consts)
+  (let ([b1 (consts-idx-b1 consts)]
+        [b2 (consts-idx-b2 consts)]
+        [b3 (consts-idx-b3 consts)]
+        [b4 (consts-idx-b4 consts)])
+    (if b1 (bv 0 (bitvector 1))
+        (if b2 (bv 1 (bitvector 1))
+            (if b3 (bv 0 (bitvector 2))
+                (if b4 (bv 1 (bitvector 2))
+                    (bv 2 (bitvector 2))))))))
+
+(define (get-consts-string consts)
+  (let ([b1 (consts-idx-b1 consts)]
+        [b2 (consts-idx-b2 consts)]
+        [b3 (consts-idx-b3 consts)]
+        [b4 (consts-idx-b4 consts)])
+    (if b1 "(bv 0 (bitvector 1))"
+        (if b2 "(bv 1 (bitvector 1))"
+            (if b3 "(bv 0 (bitvector 2))"
+                (if b4 "(bv 1 (bitvector 2))"
+                    "(bv 2 (bitvector 2))"))))))
+
+(define (get-funcs b)
+  (if b (λ (placeholder i) (equal? i placeholder))
+      (λ (placeholder i) (not (equal? i placeholder)))))
+
+(define (get-funcs-string b)
+  (if (term? b) "symbolic ~a"
+      (if b "(λ (i) (equal? i ~a))"
+          "(λ (i) (not (equal? i ~a)))")))
 
 (struct operator
   (name call print) #:transparent)
 
-(define constantE-imm-op
+#;(define constantE-imm-op
   (operator "constantE"
             (λ (insn past-vars) (constantE (get-integer-arg insn)
                                            (get-input-stream insn past-vars)))
@@ -35,9 +122,9 @@
                                         (get-input-stream insn past-vars)))))
 (define constantE-op
   (operator "constantE"
-            (λ (insn past-vars) (constantE (list-ref constantB-consts (stream-insn-option-index insn))
+            (λ (insn past-vars) (constantE (get-consts (stream-insn-consts-idx insn))
                                            (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a ~a" (list-ref constantB-consts (stream-insn-option-index insn))
+            (λ (insn past-vars) (format "~a ~a" (get-consts-string (stream-insn-consts-idx insn))
                                         (get-input-stream insn past-vars)))))
 (define mergeE-op
   (operator "mergeE"
@@ -46,16 +133,15 @@
 
 (define mapE-op
   (operator "mapE"
-            (λ (insn past-vars) (mapE (curry (list-ref inttoboolfuncs (stream-insn-option-index insn))
-                                             (list-ref filterE-consts (get-integer-arg insn)))
+            (λ (insn past-vars) (mapE (curry (get-funcs (stream-insn-option-index insn))
+                                             (get-consts (stream-insn-consts-idx insn)))
                                       (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
-                                        (format (list-ref inttoboolfuncs-string
-                                                          (stream-insn-option-index insn))
-                                                (list-ref filterE-consts (get-integer-arg insn)))
+                                        (format (get-funcs-string (stream-insn-option-index insn))
+                                                (get-consts-string (stream-insn-consts-idx insn)))
                                         (get-input-stream insn past-vars)))))
 
-(define mapE-twoconst-op
+#;(define mapE-twoconst-op
   (operator "mapE"
             (λ (insn past-vars) (mapE (curry (list-ref inttoboolfuncs-twoconst (stream-insn-option-index insn))
                                              (get-integer-arg insn) (get-integer-arg2 insn))
@@ -65,7 +151,7 @@
                                                 (get-integer-arg insn) (get-integer-arg2 insn))
                                         (get-input-stream insn past-vars)))))
 
-(define ifE-op
+#;(define ifE-op
   (operator "ifE"
             (λ (insn past-vars) (ifE (get-input-stream insn past-vars)
                                      (get-input-stream2 insn past-vars)
@@ -120,18 +206,18 @@
 
 (define filterE-op
   (operator "filterE"
-            (λ (insn past-vars) (filterE (list-ref genericfuncs (stream-insn-option-index insn))
+            (λ (insn past-vars) (filterE identity
                                          (get-input-stream insn past-vars)))
-            (λ (insn past-vars) (format "~a ~a" (list-ref genericfuncs-string (stream-insn-option-index insn))
+            (λ (insn past-vars) (format "~a ~a" "identity"
                                         (get-input-stream insn past-vars)))))
 (define filterE-const-op
   (operator "filterE"
-            (λ (insn past-vars) (filterE (curry (list-ref inttoboolfuncs (stream-insn-option-index insn))
-                                                (list-ref filterE-consts (get-integer-arg insn)))
+            (λ (insn past-vars) (filterE (curry (get-funcs (stream-insn-option-index insn))
+                                                (get-consts (stream-insn-consts-idx insn)))
                                          (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a ~a"
-                                        (format (list-ref inttoboolfuncs-string (stream-insn-option-index insn))
-                                                (list-ref filterE-consts (get-integer-arg insn)))
+                                        (format (get-funcs-string (stream-insn-option-index insn))
+                                                (get-consts-string (stream-insn-consts-idx insn)))
                                         (get-input-stream insn past-vars)))))
 
 (define identityE-op
@@ -144,38 +230,11 @@
             (λ (insn past-vars) (zeroE (get-input-stream insn past-vars)))
             (λ (insn past-vars) (format "~a" (get-input-stream insn past-vars)))))
 
-(define operator-list
-  (list identityE-op ;; 0
-        zeroE-op ;; 1
-        mapE-op ;; 2
-        ;mapE-twoconst-op ;; 3
-        ;mapE2-op
-        mergeE-op ;; 4
-        filterE-op ;; 5
-        filterE-const-op ;; 6
-        ifE-op ;;7 
-        constantE-op ;; 8
-        constantE-imm-op ;; 9
-        andE-op ;; 10
-        orE-op ;; 11
-        notE-op ;; 12
-        maskOnE-op ;; 13
-        maskOffE-op)) ;; 14
-
 (define (get-input-stream insn past-vars)
-  (list-ref past-vars (stream-insn-arg-index1 insn)))
+  (bool-lookup past-vars (stream-insn-arg-index1 insn)))
 
 (define (get-input-stream2 insn past-vars)
-  (list-ref past-vars (stream-insn-arg-index2 insn)))
-
-(define (get-input-stream3 insn past-vars)
-  (list-ref past-vars (stream-insn-arg-index3 insn)))
-
-(define (get-integer-arg insn)
-  (stream-insn-arg-int insn))
-
-(define (get-integer-arg2 insn)
-  (stream-insn-arg-int2 insn))
+  (bool-lookup past-vars (stream-insn-arg-index2 insn)))
 
 (define (call-stream-insn op insn past-vars)
   ((operator-call op) insn past-vars))
@@ -215,22 +274,7 @@
                                    "(λ (i) (+ i ~a))"
                                   ; "(λ (i) (* i ~a))"
                                    ))
-;; int -> bool
-(define inttoboolfuncs (list ; (λ (placeholder i) (<= i placeholder))
-                            ; (λ (placeholder i) (>= i placeholder))
-                            ; (λ (placeholder i) (< i placeholder))
-                            ; (λ (placeholder i) (> i placeholder))
-                             (λ (placeholder i) (equal? i placeholder))
-                             (λ (placeholder i) (not (equal? i placeholder)))
-                             ))
 
-(define inttoboolfuncs-string (list ;"(λ (i) (<= i ~a))"
-                                    ;"(λ (i) (>= i ~a))"
-                                    ;"(λ (i) (< i ~a))"
-                                    ;"(λ (i) (> i ~a))"
-                                    "(λ (i) (= i ~a))"
-                                    "(λ (i) (not (= i ~a)))"
-                                    ))
 
 ;; note that these can be composed from the inttoboolfuncs
 (define inttoboolfuncs-twoconst (list
@@ -273,21 +317,3 @@
                                          ))
 
 (define constantB-consts (list 'on 'off #t #f 'test (bv 0 (bitvector 1)) (bv 1 (bitvector 1))))
-(define filterE-consts (list (bv 0 (bitvector 1))
-                             (bv 1 (bitvector 1))
-                             (bv 0 (bitvector 2))
-                             (bv 1 (bitvector 2))
-                             (bv 2 (bitvector 2))))
-
-(define (get-filterE-consts lookup)
-  (if (equal? (bv 0 (bitvector 3)) lookup)
-      (bv 0 (bitvector 1))
-      (if (equal? (bv 1 (bitvector 3)) lookup)
-          (bv 1 (bitvector 1))
-          (if (equal? (bv 2 (bitvector 3)) lookup)
-              (bv 0 (bitvector 2))
-              (if (equal? (bv 3 (bitvector 3)) lookup)
-                  (bv 1 (bitvector 2))
-                  (if (equal? (bv 4 (bitvector 3)) lookup)
-                      (bv 2 (bitvector 2))
-                      'INVALID))))))

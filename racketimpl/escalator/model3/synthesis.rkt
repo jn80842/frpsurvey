@@ -7,7 +7,9 @@
 #;(provide all-defined-out)
 (provide print-input-model)
 
-(current-bitwidth #f)
+;; (output-smt "smtoutput/")
+
+(current-bitwidth 3)
 
 (define ENTER (bv 0 (bitvector 1)))
 (define EXIT (bv 1 (bitvector 1)))
@@ -87,6 +89,15 @@
            (and (equal? topSensor ENTER) (or (empty-event? bottomSensor) (not (equal? bottomSensor EXIT))) (not (equal? stepsMovement MOVINGUP))))
        (equal? userCounterUpdate INCBYONE)))
 
+;; theta one
+;; ((exitEvent(top) && !enterEvent(bottom) && !(steps == MOVEDOWN))
+;; || (exitEvent(bottom) && !enterEvent(top) && !(steps == MOVEUP)))
+;; <-> users := users - 1
+(define (theta1 topSensor bottomSensor stepsMovement userCounter stepsUpdate userCounterUpdate)
+  (iff (or (and (equal? topSensor EXIT) (or (empty-event? bottomSensor) (not (equal? bottomSensor ENTER))) (not (equal? stepsMovement MOVINGDOWN)))
+           (and (equal? bottomSensor EXIT) (or (empty-event? topSensor) (not (equal? topSensor ENTER))) (not (equal? stepsMovement MOVINGUP))))
+       (equal? userCounterUpdate DECBYONE)))
+
 (define (handwrittenfunc-theta0 topSensor bottomSensor stepsMovement userCounter)
   (constantE INCBYONE (filterE identity (orE (andE (maskOffE (filterE (λ (e) (equal? e EXIT)) topSensor)
                                                              (filterE (λ (e) (equal? e ENTER)) bottomSensor))
@@ -126,44 +137,6 @@
          [R19 (constantE INCBYONE R18)])
     R19))
 
-(define (handwrittenregs3-theta0 topSensor bottomSensor stepsMovement userCounter)
-  (let* ([R1 topSensor]
-         [R2 bottomSensor]
-         [R3 stepsMovement]
-         [R4 userCounter]
-         [R5 (call-stream-insn (list-ref operator-list 6) (stream-insn 6 0 0 0 0 1 0) (list R1 R2 R3 R4))]
-         [R6 (call-stream-insn (list-ref operator-list 6) (stream-insn 6 1 0 0 0 0 0) (list R1 R2 R3 R4 R5))]
-         [R7 (call-stream-insn (list-ref operator-list 14) (stream-insn 14 4 5 0 0 0 0) (list R1 R2 R3 R4 R5 R6))]
-         [R8 (call-stream-insn (list-ref operator-list 2) (stream-insn 2 2 0 0 0 3 0) (list R1 R2 R3 R4 R5 R6 R7))]
-         [R9 (call-stream-insn (list-ref operator-list 12) (stream-insn 12 7 0 0 0 0 0) (list R1 R2 R3 R4 R5 R6 R7 R8))]
-         [R10 (call-stream-insn (list-ref operator-list 10) (stream-insn 10 6 8 0 0 0 0) (list R1 R2 R3 R4 R5 R6 R7 R8 R9))]
-         [R11 (call-stream-insn (list-ref operator-list 6) (stream-insn 6 1 0 0 0 1 0) (list R1 R2 R3 R4 R5 R6 R7 R8 R9 R10))]
-         [R12 (call-stream-insn (list-ref operator-list 6) (stream-insn 6 0 0 0 0 0 0) (list R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11))]
-         [R13 (call-stream-insn (list-ref operator-list 14) (stream-insn 14 10 11 0 0 0 0) (list R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12))]
-         [R14 (call-stream-insn (list-ref operator-list 2) (stream-insn 2 2 0 0 0 2 0) (list R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13))]
-         [R15 (call-stream-insn (list-ref operator-list 12) (stream-insn 12 13 0 0 0 0 0) (list R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14))]
-         [R16 (call-stream-insn (list-ref operator-list 10) (stream-insn 10 12 14 0 0 0 0) (list R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15))]
-         [R17 (call-stream-insn (list-ref operator-list 11) (stream-insn 11 9 15 0 0 0 0) (list R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16))]
-         [R18 (call-stream-insn (list-ref operator-list 5) (stream-insn 5 16 0 0 0 0 0) (list R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17))]
-         [R19 (call-stream-insn (list-ref operator-list 8) (stream-insn 8 17 0 0 5 0 0) (list R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R18))])
-    R19))
-
-(define handwritten-sk (sketch (list (stream-insn 6 0 0 0 0 1 0)
-                                     (stream-insn 6 1 0 0 0 0 0)
-                                     (stream-insn 14 4 5 0 0 0 0)
-                                     (stream-insn 2 2 0 0 0 3 0)
-                                     (stream-insn 12 7 0 0 0 0 0)
-                                     (stream-insn 10 6 8 0 0 0 0)
-                                     (stream-insn 6 1 0 0 0 1 0)
-                                     (stream-insn 6 0 0 0 0 0 0)
-                                     (stream-insn 14 10 11 0 0 0 0)
-                                     (stream-insn 2 2 0 0 0 2 0)
-                                     (stream-insn 12 13 0 0 0 0 0)
-                                     (stream-insn 10 12 14 0 0 0 0)
-                                     (stream-insn 11 9 15 0 0 0 0)
-                                     (stream-insn 5 16 0 0 0 0 0)
-                                     (stream-insn 8 17 0 0 5 0 0)) 18 4))
-
 (define theta0-sk (get-symbolic-sketch 15 4))
 
 (clear-asserts!)
@@ -175,7 +148,8 @@
                     ))])
     (if (unsat? b)
         (println "unsat")
-        (print-sketch theta0-sk b))))
+        (begin (println b) (print-sketch theta0-sk b)))
+    ))
 (clear-asserts!)
 
 ;; top NOEVENT bottom NOEVENT -> userCounterUpdate NOEVENT
@@ -220,7 +194,7 @@
            (equal? userCounterUpdate NOEVENT)))
 ;; top ENTER bottom NOEVENT stepsMovement MOVINGUP -> NOEVENT
 
-(let ([evaled-sk ((get-sketch-function theta0-sk) sym-top sym-bottom sym-stepsMovement sym-userCounter)]
+#;(let ([evaled-sk ((get-sketch-function theta0-sk) sym-top sym-bottom sym-stepsMovement sym-userCounter)]
       [constraints (assert (input-constraints sym-top sym-bottom sym-stepsMovement sym-userCounter))])
   (let ([b (time (synthesize #:forall (symbolics (list sym-top sym-bottom sym-stepsMovement sym-userCounter))
                              #:guarantee (begin

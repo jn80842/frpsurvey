@@ -7,14 +7,14 @@
 (struct sketch (holes retval-idx input-count) #:transparent)
 
 (define (get-symbolic-sketch insn-length input-count)
-  (sketch (get-holes-list insn-length) (get-retval-idx) input-count))
+  (sketch (get-holes-list insn-length input-count) (get-retval-idx insn-length input-count) input-count))
 
 (define (operator-lookup sk insn-idx [binding #f])
   (let* ([insn (if binding
                    (evaluate (list-ref (sketch-holes sk) insn-idx) binding)
                    (list-ref (sketch-holes sk) insn-idx))]
          [op-id (stream-insn-op-index insn)])
-    (list-ref operator-list op-id)))
+    (get-operator op-id)))
 
 (define (string-from-sketch sk binding funcname)
   (let* ([input-count (sketch-input-count sk)]
@@ -30,7 +30,7 @@
                                          (list-ref (evaluate (sketch-holes sk) binding) i)
                                          (list-ref varlist (+ input-count i))
                                          (take varlist (+ input-count i))))]
-         [return-stmt (format "  ~a)" (list-ref varlist (evaluate (sketch-retval-idx sk) binding)))])
+         [return-stmt (format "  ~a)" (bool-lookup varlist (evaluate (sketch-retval-idx sk) binding)))])
     (string-append (format "(define (~a ~a)\n" funcname (string-join arg-list))
                    (string-join input-stmt-list "\n")
                    "\n"
@@ -54,7 +54,7 @@
                                                                  (list-ref (sketch-holes sk) i)
                                                                  calculated-streams)])
                               (f (append calculated-streams (list next-stream)) (add1 i)))]))])
-    (λ inputs (list-ref (f inputs 0) (sketch-retval-idx sk)))))
+    (λ inputs (bool-lookup (f inputs 0) (sketch-retval-idx sk)))))
 
 (define (get-bound-sketch-function sk binding)
   (letrec ([f (λ (calculated-streams i)
