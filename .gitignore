@@ -18,3 +18,4 @@ racketimpl/atemporal-integer/compiled/
 racketimpl/escalator/model3/compiled/
 racketimpl/escalator/model1/compiled/
 racketimpl/escalator/model2/compiled/
+racketimpl/escalator/model3/lut/compiled/
