@@ -1,10 +1,19 @@
 #lang rosette
 
-(require "api.rkt")
-(require "operators.rkt")
+;(require "api.rkt")
+;(require "operators.rkt")
 (require "sketch.rkt")
 
+;; note that ZERO always means that no event occurred
+(define ZERO (bv 0 (bitvector 2)))
+(define ONE (bv 1 (bitvector 2)))
+(define TWO (bv 2 (bitvector 2)))
+(define THREE (bv 3 (bitvector 2)))
+
 ;; (current-bitwidth 3)
+
+(define (iff p q)
+  (or (and p q) (and (not p) (not q))))
 
 (define ENTER (bv 0 (bitvector 2)))
 (define EXIT (bv 1 (bitvector 2)))
@@ -67,21 +76,26 @@
 
 (define-symbolic f (~> (bitvector 2) (bitvector 2) (bitvector 2) (bitvector 2)))
 
-(println "synthesizing LUT for specs")
+;(println "synthesizing LUT for specs")
 
-(define b (time (synthesize  #:forall (list sym-top sym-bottom sym-stepsMovement)
+#;(define b (time (synthesize  #:forall (list sym-top sym-bottom sym-stepsMovement)
                              #:guarantee (begin (assert (theta0 sym-top sym-bottom sym-stepsMovement
                                                                 (f sym-top sym-bottom sym-stepsMovement)))
                                                 (assert (theta1 sym-top sym-bottom sym-stepsMovement
                                                                 (f sym-top sym-bottom sym-stepsMovement)))
                                                 (assert (not (equal? THREE (f sym-top sym-bottom sym-stepsMovement))))))))
 
-(define g (evaluate f b))
+;(define g (evaluate f b))
 
-(println "synthesizing FRP program for LUT")
+;(println "synthesizing FRP program for LUT")
 
-(current-bitwidth 3)
+;(current-bitwidth 3)
 
-(define b1 (time (synthesize #:forall (list sym-top sym-bottom sym-stepsMovement)
+#;(define b1 (time (synthesize #:forall (list sym-top sym-bottom sym-stepsMovement)
                              #:guarantee (assert (equal? (g sym-top sym-bottom sym-stepsMovement)
                                                          evaled-sk)))))
+
+(define b (time (synthesize #:forall (list sym-top sym-bottom sym-stepsMovement)
+                            #:guarantee (begin (assert (not (equal? THREE (f sym-top sym-bottom sym-stepsMovement))))
+                                               (assert (theta0 sym-top sym-bottom sym-stepsMovement evaled-sk))
+                                               (assert (theta1 sym-top sym-bottom sym-stepsMovement evaled-sk))))))
